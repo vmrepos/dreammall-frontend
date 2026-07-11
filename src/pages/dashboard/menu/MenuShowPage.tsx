@@ -1,20 +1,30 @@
+import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowLeft, faBookOpen, faPen, faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faArrowLeft, faBookOpen, faPen, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { Badge } from "../../../components/atoms/Badge"
 import { Button } from "../../../components/atoms/Button"
 import { Card } from "../../../components/atoms/Card"
 import { Toggle } from "../../../components/atoms/Toggle"
+import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
 import { useMenuCatalog } from "../../../context/MenuCatalogContext"
 import { getMockMenu } from "../../../mocks/menus"
+import type { TProduct } from "../../../types/Product"
 import { formatCurrency } from "../../../utils/format"
 
 export const MenuShowPage = () => {
   const { menuId } = useParams()
   const navigate = useNavigate()
   const parsedMenuId = Number(menuId)
-  const { menus, toggleMenuActive, toggleProductActive } = useMenuCatalog()
+  const { menus, toggleMenuActive, toggleProductActive, deleteProduct } = useMenuCatalog()
+  const [productToDelete, setProductToDelete] = useState<TProduct | null>(null)
   const menu = getMockMenu(parsedMenuId, menus)
+
+  const confirmDelete = () => {
+    if (!productToDelete) return
+    deleteProduct(menu!.id, productToDelete.id)
+    setProductToDelete(null)
+  }
 
   if (!menu) {
     return (
@@ -118,14 +128,24 @@ export const MenuShowPage = () => {
                       />
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button
-                        variant="ghost"
-                        className="px-3 py-2"
-                        onClick={() => navigate(`/menu/${menu.id}/products/${product.id}/edit`)}
-                      >
-                        <FontAwesomeIcon icon={faPen} className="size-4" aria-hidden />
-                        Editar
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          className="px-3 py-2"
+                          onClick={() => navigate(`/menu/${menu.id}/products/${product.id}/edit`)}
+                        >
+                          <FontAwesomeIcon icon={faPen} className="size-4" aria-hidden />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          onClick={() => setProductToDelete(product)}
+                        >
+                          <FontAwesomeIcon icon={faTrash} className="size-4" aria-hidden />
+                          Eliminar
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -134,6 +154,15 @@ export const MenuShowPage = () => {
           </div>
         )}
       </Card>
+
+      <ConfirmDialog
+        open={productToDelete !== null}
+        title="Eliminar producto"
+        message={`¿Estás seguro de que deseas eliminar "${productToDelete?.name}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Sí, eliminar"
+        onConfirm={confirmDelete}
+        onCancel={() => setProductToDelete(null)}
+      />
     </div>
   )
 }

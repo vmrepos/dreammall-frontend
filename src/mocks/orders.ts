@@ -1,6 +1,6 @@
 import type { TOrder } from "../types/Order"
 
-export const mockOrders: TOrder[] = [
+export const initialOrders: TOrder[] = [
   {
     id: 1043,
     status: "received",
@@ -79,4 +79,6 @@ export const mockOrders: TOrder[] = [
   },
 ]
 
-export const getMockOrder = (id: number) => mockOrders.find((order) => order.id === id)
+export const mockOrders = initialOrders
+
+export const getMockOrder = (id: number) => initialOrders.find((order) => order.id === id)

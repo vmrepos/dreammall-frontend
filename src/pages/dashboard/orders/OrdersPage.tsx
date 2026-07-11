@@ -1,14 +1,17 @@
 import { useNavigate } from "react-router-dom"
-import { faClipboardList } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faClipboardList, faPlus } from "@fortawesome/free-solid-svg-icons"
+import { Button } from "../../../components/atoms/Button"
 import { PageHeader } from "../../../components/molecules/PageHeader"
 import { Card } from "../../../components/atoms/Card"
 import { OrderStatusBadge } from "../../../components/molecules/StatusBadge"
-import { mockOrders } from "../../../mocks/orders"
+import { useOrders } from "../../../context/OrdersContext"
 import { formatCurrency, formatDate } from "../../../utils/format"
 import { tableRowLinkClass } from "../../../components/organisms/OrderItemsTable"
 
 export const OrdersPage = () => {
   const navigate = useNavigate()
+  const { orders } = useOrders()
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -17,12 +20,18 @@ export const OrdersPage = () => {
         section="Logística"
         title="Pedidos"
         description="Gestiona pedidos entrantes, prepáralos y márcalos listos para entrega."
+        action={
+          <Button onClick={() => navigate("/orders/new")}>
+            <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
+            Nuevo pedido
+          </Button>
+        }
       />
 
       <Card>
         <div className="border-b border-gray-100 px-6 py-4">
           <p className="text-sm text-gray-500">
-            <span className="font-semibold text-gray-900">{mockOrders.length}</span> pedidos
+            <span className="font-semibold text-gray-900">{orders.length}</span> pedidos
           </p>
         </div>
 
@@ -38,7 +47,7 @@ export const OrdersPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {mockOrders.map((order) => (
+              {orders.map((order) => (
                 <tr
                   key={order.id}
                   className={tableRowLinkClass}

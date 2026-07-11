@@ -11,6 +11,7 @@ type MenuCatalogContextType = {
   toggleMenuActive: (menuId: number, active: boolean) => void
   addProduct: (menuId: number, input: ProductInput) => void
   updateProduct: (menuId: number, productId: number, input: ProductInput) => void
+  deleteProduct: (menuId: number, productId: number) => void
   toggleProductActive: (menuId: number, productId: number, active: boolean) => void
 }
 
@@ -95,6 +96,14 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
     }))
   }
 
+  const deleteProduct = (menuId: number, productId: number) => {
+    updateMenu(menuId, (menu) => ({
+      ...menu,
+      updated_at: touch(),
+      products: menu.products.filter((product) => product.id !== productId),
+    }))
+  }
+
   return (
     <MenuCatalogContext.Provider
       value={{
@@ -103,6 +112,7 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
         toggleMenuActive,
         addProduct,
         updateProduct,
+        deleteProduct,
         toggleProductActive,
       }}
     >

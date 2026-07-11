@@ -7,8 +7,8 @@ import { Card, CardHeader } from "../../../components/atoms/Card"
 import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
 import { OrderStatusBadge } from "../../../components/molecules/StatusBadge"
 import { DetailRow, OrderItemsTable } from "../../../components/organisms/OrderItemsTable"
-import { getMockOrder } from "../../../mocks/orders"
-import type { TOrder, TOrderStatus } from "../../../types/Order"
+import { useOrders } from "../../../context/OrdersContext"
+import type { TOrderStatus } from "../../../types/Order"
 import { canCancelOrder, getNextOrderStatus, orderStatusConfig } from "../../../utils/status"
 import { formatCurrency, formatDate } from "../../../utils/format"
 
@@ -21,8 +21,8 @@ const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
 export const OrderShowPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const initialOrder = getMockOrder(Number(id))
-  const [order, setOrder] = useState<TOrder | undefined>(initialOrder)
+  const { getOrder, updateOrder } = useOrders()
+  const order = getOrder(Number(id))
   const [showCancelDialog, setShowCancelDialog] = useState(false)
 
   if (!order) {
@@ -41,17 +41,19 @@ export const OrderShowPage = () => {
 
   const advanceStatus = () => {
     if (!nextStatus) return
-    setOrder((current) =>
-      current ? { ...current, status: nextStatus, updated_at: new Date().toISOString() } : current,
-    )
+    updateOrder(order.id, (current) => ({
+      ...current,
+      status: nextStatus,
+      updated_at: new Date().toISOString(),
+    }))
   }
 
   const cancelOrder = () => {
-    setOrder((current) =>
-      current
-        ? { ...current, status: "cancelled", updated_at: new Date().toISOString() }
-        : current,
-    )
+    updateOrder(order.id, (current) => ({
+      ...current,
+      status: "cancelled",
+      updated_at: new Date().toISOString(),
+    }))
     setShowCancelDialog(false)
   }
 
