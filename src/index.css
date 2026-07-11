@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  --color-brand: #046832;
+  --color-brand-dark: #035028;
+  --color-brand-light: #e8f5e9;
+  --color-brand-muted: #0468321a;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply m-0 min-h-svh bg-gray-50 font-sans text-gray-900 antialiased;
+  }
+
+  #root {
+    @apply min-h-svh;
+  }
+}

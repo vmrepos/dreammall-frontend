@@ -1,0 +1,88 @@
+@use "sass:map";
+
+$theme-colors: (
+  "theme-green": #046832,
+  "theme-green-light": #e8f5e9,
+  "theme-green-muted": #0468321a,
+  "theme-green-dark": #035028,
+  "white": #ffffff,
+  "black": #111827,
+  "grey-600": #6b7280,
+  "grey-400": #9ca3af,
+  "grey-200": #e5e7eb,
+  "grey-100": #f3f4f6,
+  "grey-50": #f9fafb,
+  "error": #dc2626,
+  "error-light": #fef2f2,
+);
+
+:root {
+  @each $name, $value in $theme-colors {
+    --#{$name}: #{$value};
+  }
+
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+@each $name, $value in $theme-colors {
+  .text-#{$name} {
+    color: $value;
+  }
+
+  .bg-#{$name} {
+    background-color: $value;
+  }
+
+  .border-#{$name} {
+    border-color: $value;
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):active {
+    transform: scale(0.99);
+  }
+}
+
+.btn-block {
+  width: 100%;
+}
+
+@each $name, $value in $theme-colors {
+  .btn-#{$name} {
+    @extend .btn;
+
+    @if $name == "white" or $name == "theme-green-light" or $name == "grey-100" or $name == "grey-50" {
+      background-color: $value;
+      color: map.get($theme-colors, "theme-green");
+    } @else if $name == "error-light" {
+      background-color: $value;
+      color: map.get($theme-colors, "error");
+    } @else {
+      background-color: $value;
+      color: map.get($theme-colors, "white");
+    }
+  }
+}
+
+.btn-theme-green:not(:disabled):hover {
+  background-color: map.get($theme-colors, "theme-green-dark");
+}
