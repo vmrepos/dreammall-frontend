@@ -6,6 +6,8 @@ type ConfirmDialogProps = {
   title: string
   message: string
   confirmLabel?: string
+  confirmVariant?: "primary" | "danger"
+  confirming?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -15,6 +17,8 @@ export const ConfirmDialog = ({
   title,
   message,
   confirmLabel = "Confirmar",
+  confirmVariant = "danger",
+  confirming = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) => {
@@ -26,10 +30,10 @@ export const ConfirmDialog = ({
         <h2 className="text-lg font-bold text-gray-900">{title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-gray-500">{message}</p>
         <div className="mt-6 flex justify-end gap-3">
-          <Button variant="secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel} disabled={confirming}>
             Volver
           </Button>
-          <Button variant="danger" onClick={onConfirm}>
+          <Button variant={confirmVariant} onClick={onConfirm} disabled={confirming}>
             {confirmLabel}
           </Button>
         </div>

@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { initialMenuCatalog } from "../mocks/menus"
 import type { TMenu } from "../types/Menu"
 import type { TProduct } from "../types/Product"
+import { apiClient } from "../services/apiClient"
 
 type ProductInput = Pick<TProduct, "name" | "description" | "price" | "active" | "combo">
 
@@ -23,7 +24,13 @@ const nextId = (items: { id: number }[]) =>
   items.reduce((max, item) => Math.max(max, item.id), 0) + 1
 
 export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
-  const [menus, setMenus] = useState<TMenu[]>(initialMenuCatalog)
+  const [menus, setMenus] = useState<TMenu[]>([])
+
+  useEffect(() => {
+    apiClient.menus.list().then((menus: TMenu[]) => {
+      setMenus(menus)
+    })
+  }, [])
 
   const updateMenu = (menuId: number, updater: (menu: TMenu) => TMenu) => {
     setMenus((current) =>
@@ -39,6 +46,7 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
         id: nextId(current),
         name,
         active: true,
+        products_count: 0,
         created_at: now,
         updated_at: now,
         products: [],
@@ -53,15 +61,16 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
   const addProduct = (menuId: number, input: ProductInput) => {
     updateMenu(menuId, (menu) => {
       const now = touch()
+      const products = menu.products ?? []
       const product: TProduct = {
-        id: nextId(menu.products),
+        id: nextId(products),
         menu_id: menuId,
         name: input.name,
         description: input.description,
         price: input.price,
         active: input.active,
         combo: input.combo,
-        position: menu.products.length + 1,
+        position: 3,
         created_at: now,
         updated_at: now,
       }
@@ -69,7 +78,8 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
       return {
         ...menu,
         updated_at: now,
-        products: [...menu.products, product],
+        products_count: menu.products_count + 1,
+        products: [...products, product],
       }
     })
   }
@@ -78,7 +88,7 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
     updateMenu(menuId, (menu) => ({
       ...menu,
       updated_at: touch(),
-      products: menu.products.map((product) =>
+      products: (menu.products ?? []).map((product) =>
         product.id === productId
           ? { ...product, ...input, updated_at: touch() }
           : product,
@@ -90,7 +100,7 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
     updateMenu(menuId, (menu) => ({
       ...menu,
       updated_at: touch(),
-      products: menu.products.map((product) =>
+      products: (menu.products ?? []).map((product) =>
         product.id === productId ? { ...product, active, updated_at: touch() } : product,
       ),
     }))
@@ -100,7 +110,8 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
     updateMenu(menuId, (menu) => ({
       ...menu,
       updated_at: touch(),
-      products: menu.products.filter((product) => product.id !== productId),
+      products_count: Math.max(0, menu.products_count - 1),
+      products: (menu.products ?? []).filter((product) => product.id !== productId),
     }))
   }
 

@@ -39,8 +39,8 @@ export const OrderCreatePage = () => {
         .filter((menu) => menu.active)
         .flatMap((menu) =>
           menu.products
-            .filter((product) => product.active)
-            .map((product) => ({ ...product, menuName: menu.name })),
+            ?.filter((product) => product.active)
+            .map((product) => ({ ...product, menuName: menu.name })) ?? [],
         ),
     [menus],
   )

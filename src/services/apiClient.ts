@@ -1,4 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import { DeliveriesAPI } from "./deliveries";
+import { MenusAPI } from "./menus";
+import { ProductsAPI } from "./products";
 
 export const axiosInstance = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL ?? ""}/api/v1`,
@@ -57,14 +60,7 @@ axiosInstance.interceptors.response.use(
 );
 
 export const apiClient = {
-  deliveries: {
-    list: async () => {
-      const response = await axiosInstance.get("/restaurants/deliveries")
-      return response.data.data
-    },
-    show: async (id: number) => {
-      const response = await axiosInstance.get(`/restaurants/deliveries/${id}`)
-      return response.data.data
-    },
-  }
+  deliveries: DeliveriesAPI,
+  menus: MenusAPI,
+  products: ProductsAPI,
 }

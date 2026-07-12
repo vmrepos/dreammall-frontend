@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faBookOpen, faPen, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons"
@@ -8,22 +8,71 @@ import { Card } from "../../../components/atoms/Card"
 import { Toggle } from "../../../components/atoms/Toggle"
 import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
 import { useMenuCatalog } from "../../../context/MenuCatalogContext"
-import { getMockMenu } from "../../../mocks/menus"
 import type { TProduct } from "../../../types/Product"
 import { formatCurrency } from "../../../utils/format"
+import type { TMenu } from "../../../types/Menu"
+import { apiClient } from "../../../services/apiClient"
 
 export const MenuShowPage = () => {
   const { menuId } = useParams()
   const navigate = useNavigate()
   const parsedMenuId = Number(menuId)
-  const { menus, toggleMenuActive, toggleProductActive, deleteProduct } = useMenuCatalog()
+  const { toggleMenuActive } = useMenuCatalog()
   const [productToDelete, setProductToDelete] = useState<TProduct | null>(null)
-  const menu = getMockMenu(parsedMenuId, menus)
+  const [productToToggle, setProductToToggle] = useState<TProduct | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [toggling, setToggling] = useState(false)
+  const [menu, setMenu] = useState<TMenu | null>(null)
 
-  const confirmDelete = () => {
-    if (!productToDelete) return
-    deleteProduct(menu!.id, productToDelete.id)
-    setProductToDelete(null)
+  useEffect(() => {
+    apiClient.menus.show(parsedMenuId).then((menu: TMenu) => {
+      setMenu(menu)
+    })
+  }, [parsedMenuId])
+
+  const confirmDelete = async () => {
+    if (!productToDelete || !menu || deleting) return
+
+    setDeleting(true)
+    try {
+      await apiClient.products.destroy(menu.id, productToDelete.id)
+      setMenu((current) => {
+        if (!current) return current
+        return {
+          ...current,
+          products_count: Math.max(0, current.products_count - 1),
+          products: (current.products ?? []).filter((product) => product.id !== productToDelete.id),
+        }
+      })
+      setProductToDelete(null)
+    } catch {
+      // Keep dialog open so the user can retry or cancel.
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const confirmToggle = async () => {
+    if (!productToToggle || !menu || toggling) return
+
+    setToggling(true)
+    try {
+      const updated = await apiClient.products.toggle(menu.id, productToToggle.id)
+      setMenu((current) => {
+        if (!current) return current
+        return {
+          ...current,
+          products: (current.products ?? []).map((product) =>
+            product.id === updated.id ? { ...product, ...updated } : product,
+          ),
+        }
+      })
+      setProductToToggle(null)
+    } catch {
+      // Keep dialog open so the user can retry or cancel.
+    } finally {
+      setToggling(false)
+    }
   }
 
   if (!menu) {
@@ -36,6 +85,8 @@ export const MenuShowPage = () => {
       </div>
     )
   }
+
+  const toggleNextActive = productToToggle ? !productToToggle.active : false
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -60,7 +111,7 @@ export const MenuShowPage = () => {
             </Badge>
           </div>
           <p className="mt-1 text-[15px] text-gray-500">
-            {menu.products.length} {menu.products.length === 1 ? "producto" : "productos"}
+            {menu.products_count} {menu.products_count === 1 ? "producto" : "productos"}
           </p>
         </div>
 
@@ -78,7 +129,7 @@ export const MenuShowPage = () => {
       </div>
 
       <Card>
-        {menu.products.length === 0 ? (
+        {(menu.products ?? []).length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
             <p className="text-sm text-gray-500">Este menú no tiene productos todavía.</p>
             <Button className="mt-6" onClick={() => navigate(`/menu/${menu.id}/products/new`)}>
@@ -99,7 +150,7 @@ export const MenuShowPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {menu.products.map((product) => (
+                {(menu.products ?? []).map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50/60">
                     <td className="px-6 py-4">
                       <p className="font-medium text-gray-900">{product.name}</p>
@@ -124,7 +175,7 @@ export const MenuShowPage = () => {
                       <Toggle
                         checked={product.active}
                         label={`${product.active ? "Desactivar" : "Activar"} ${product.name}`}
-                        onChange={(active) => toggleProductActive(menu.id, product.id, active)}
+                        onChange={() => setProductToToggle(product)}
                       />
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -159,9 +210,35 @@ export const MenuShowPage = () => {
         open={productToDelete !== null}
         title="Eliminar producto"
         message={`¿Estás seguro de que deseas eliminar "${productToDelete?.name}"? Esta acción no se puede deshacer.`}
-        confirmLabel="Sí, eliminar"
+        confirmLabel={deleting ? "Eliminando..." : "Sí, eliminar"}
+        confirming={deleting}
         onConfirm={confirmDelete}
-        onCancel={() => setProductToDelete(null)}
+        onCancel={() => {
+          if (!deleting) setProductToDelete(null)
+        }}
+      />
+
+      <ConfirmDialog
+        open={productToToggle !== null}
+        title={toggleNextActive ? "Activar producto" : "Desactivar producto"}
+        message={
+          toggleNextActive
+            ? `¿Deseas activar "${productToToggle?.name}"? Quedará disponible en este menú.`
+            : `¿Deseas desactivar "${productToToggle?.name}"? Dejará de estar disponible en este menú.`
+        }
+        confirmLabel={
+          toggling
+            ? "Guardando..."
+            : toggleNextActive
+              ? "Sí, activar"
+              : "Sí, desactivar"
+        }
+        confirmVariant={toggleNextActive ? "primary" : "danger"}
+        confirming={toggling}
+        onConfirm={confirmToggle}
+        onCancel={() => {
+          if (!toggling) setProductToToggle(null)
+        }}
       />
     </div>
   )

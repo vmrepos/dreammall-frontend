@@ -5,6 +5,7 @@ export const initialMenuCatalog: TMenu[] = [
     id: 1,
     name: "Menú principal",
     active: true,
+    products_count: 3,
     created_at: "2026-07-01T10:00:00Z",
     updated_at: "2026-07-10T14:30:00Z",
     products: [
@@ -50,6 +51,7 @@ export const initialMenuCatalog: TMenu[] = [
     id: 2,
     name: "Menú desayuno",
     active: true,
+    products_count: 2,
     created_at: "2026-07-03T08:00:00Z",
     updated_at: "2026-07-09T09:15:00Z",
     products: [
@@ -83,6 +85,7 @@ export const initialMenuCatalog: TMenu[] = [
     id: 3,
     name: "Menú fin de semana",
     active: false,
+    products_count: 0,
     created_at: "2026-07-05T12:00:00Z",
     updated_at: "2026-07-08T18:45:00Z",
     products: [],
@@ -92,4 +95,4 @@ export const initialMenuCatalog: TMenu[] = [
 export const getMockMenu = (id: number, menus: TMenu[]) => menus.find((menu) => menu.id === id)
 
 export const getMockProduct = (menuId: number, productId: number, menus: TMenu[]) =>
-  menus.find((menu) => menu.id === menuId)?.products.find((product) => product.id === productId)
+  menus.find((menu) => menu.id === menuId)?.products?.find((product) => product.id === productId)

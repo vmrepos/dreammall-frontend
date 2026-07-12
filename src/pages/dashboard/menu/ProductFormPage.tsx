@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
@@ -7,8 +7,9 @@ import { Card } from "../../../components/atoms/Card"
 import { Input } from "../../../components/atoms/Input"
 import { Label } from "../../../components/atoms/Label"
 import { Toggle } from "../../../components/atoms/Toggle"
-import { useMenuCatalog } from "../../../context/MenuCatalogContext"
-import { getMockMenu, getMockProduct } from "../../../mocks/menus"
+import { apiClient } from "../../../services/apiClient"
+import type { TMenu } from "../../../types/Menu"
+import type { TProduct } from "../../../types/Product"
 
 export const ProductFormPage = () => {
   const { menuId, productId } = useParams()
@@ -17,21 +18,76 @@ export const ProductFormPage = () => {
   const parsedProductId = productId ? Number(productId) : null
   const isEditing = parsedProductId !== null
 
-  const { menus, addProduct, updateProduct } = useMenuCatalog()
-  const menu = getMockMenu(parsedMenuId, menus)
-  const existingProduct =
-    parsedProductId !== null ? getMockProduct(parsedMenuId, parsedProductId, menus) : undefined
+  const [menu, setMenu] = useState<TMenu | null>(null)
+  const [existingProduct, setExistingProduct] = useState<TProduct | null | undefined>(undefined)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const [name, setName] = useState(existingProduct?.name ?? "")
-  const [description, setDescription] = useState(existingProduct?.description ?? "")
-  const [price, setPrice] = useState(existingProduct?.price ?? "")
-  const [active, setActive] = useState(existingProduct?.active ?? true)
-  const [combo, setCombo] = useState(existingProduct?.combo ?? false)
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [price, setPrice] = useState("")
+  const [active, setActive] = useState(true)
+  const [combo, setCombo] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    setLoading(true)
+    setError(null)
+
+    apiClient.menus
+      .show(parsedMenuId)
+      .then((loadedMenu: TMenu) => {
+        if (cancelled) return
+
+        setMenu(loadedMenu)
+
+        if (!isEditing || parsedProductId === null) {
+          setExistingProduct(null)
+          return
+        }
+
+        const product = loadedMenu.products?.find((item) => item.id === parsedProductId) ?? null
+        setExistingProduct(product)
+
+        if (product) {
+          setName(product.name)
+          setDescription(product.description ?? "")
+          setPrice(product.price)
+          setActive(product.active)
+          setCombo(product.combo)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMenu(null)
+          setExistingProduct(null)
+          setError("No se pudo cargar el menú.")
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [parsedMenuId, parsedProductId, isEditing])
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-3xl text-center">
+        <p className="text-sm text-gray-500">Cargando...</p>
+      </div>
+    )
+  }
 
   if (!menu) {
     return (
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="text-2xl font-bold text-gray-900">Menú no encontrado</h1>
+        {error && <p className="mt-2 text-sm text-gray-500">{error}</p>}
         <Link to="/menu" className="mt-4 inline-block text-brand hover:underline">
           Volver a menús
         </Link>
@@ -50,8 +106,10 @@ export const ProductFormPage = () => {
     )
   }
 
-  const handleSubmit = (ev: React.FormEvent) => {
+  const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault()
+    setSubmitting(true)
+    setError(null)
 
     const input = {
       name: name.trim(),
@@ -61,13 +119,18 @@ export const ProductFormPage = () => {
       combo,
     }
 
-    if (isEditing && parsedProductId !== null) {
-      updateProduct(parsedMenuId, parsedProductId, input)
-    } else {
-      addProduct(parsedMenuId, input)
-    }
+    try {
+      if (isEditing && parsedProductId !== null) {
+        await apiClient.products.update(parsedMenuId, parsedProductId, input)
+      } else {
+        await apiClient.products.create(parsedMenuId, input)
+      }
 
-    navigate(`/menu/${menu.id}`)
+      navigate(`/menu/${menu.id}`)
+    } catch {
+      setError("No se pudo guardar el producto. Intenta de nuevo.")
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -89,6 +152,10 @@ export const ProductFormPage = () => {
 
       <Card padding="lg">
         <form className="grid gap-5" onSubmit={handleSubmit}>
+          {error && (
+            <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+          )}
+
           <div>
             <Label htmlFor="product-name">Nombre</Label>
             <Input
@@ -155,7 +222,13 @@ export const ProductFormPage = () => {
             <Button type="button" variant="secondary" onClick={() => navigate(`/menu/${menu.id}`)}>
               Cancelar
             </Button>
-            <Button type="submit">{isEditing ? "Guardar cambios" : "Crear producto"}</Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting
+                ? "Guardando..."
+                : isEditing
+                  ? "Guardar cambios"
+                  : "Crear producto"}
+            </Button>
           </div>
         </form>
       </Card>
