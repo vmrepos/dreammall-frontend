@@ -1,12 +1,26 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --color-brand: #046832;
-  --color-brand-dark: #035028;
-  --color-brand-light: #e8f5e9;
-  --color-brand-muted: #0468321a;
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand: #0c6b3d;
+  --color-brand-dark: #084d2c;
+  --color-brand-light: #e7f3ec;
+  --color-brand-muted: #0c6b3d1a;
+
+  --color-accent-sun: #d4a017;
+  --color-accent-clay: #c0392b;
+
+  --color-surface: #f4f6f4;
+  --color-surface-elevated: #ffffff;
+  --color-ink: #1c241f;
+  --color-ink-muted: #5c675f;
+
+  --color-sidebar: #0a2f22;
+  --color-sidebar-hover: #124033;
 }
 
 @layer base {
@@ -16,11 +30,66 @@
     box-sizing: border-box;
   }
 
+  html {
+    font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  }
+
   body {
-    @apply m-0 min-h-svh bg-gray-50 font-sans text-gray-900 antialiased;
+    @apply m-0 min-h-svh antialiased;
+    font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+    color: var(--color-ink);
+    background-color: var(--color-surface);
   }
 
   #root {
     @apply min-h-svh;
+  }
+
+  .dark {
+    --color-brand: #1f9a56;
+    --color-brand-dark: #167a43;
+    --color-brand-light: #143528;
+    --color-brand-muted: #1f9a5633;
+
+    --color-accent-sun: #e0b42a;
+    --color-accent-clay: #e05a4c;
+
+    --color-surface: #101412;
+    --color-surface-elevated: #181e1b;
+    --color-ink: #e8eee9;
+    --color-ink-muted: #9aa49e;
+
+    --color-sidebar: #070f0b;
+    --color-sidebar-hover: #12201a;
+
+    --color-gray-50: #141a17;
+    --color-gray-100: #1c241f;
+    --color-gray-200: #2a332e;
+    --color-gray-300: #3e4943;
+    --color-gray-400: #7f8b84;
+    --color-gray-500: #9aa49e;
+    --color-gray-600: #b4beb8;
+    --color-gray-700: #cdd5d0;
+    --color-gray-800: #0c100e;
+    --color-gray-900: #eef3f0;
+    --color-gray-950: #f7faf8;
+
+    --color-red-50: #3a1816;
+    --color-red-100: #4a1f1c;
+    --color-red-600: #f07167;
+    --color-red-700: #ff8a80;
+
+    --color-amber-100: #3a2e12;
+    --color-amber-800: #f0d48a;
+    --color-amber-900: #f6e2a8;
+
+    --color-sky-100: #152a36;
+    --color-sky-800: #9ec9e0;
+  }
+}
+
+@layer utilities {
+  .text-ink-muted {
+    color: var(--color-ink-muted);
   }
 }

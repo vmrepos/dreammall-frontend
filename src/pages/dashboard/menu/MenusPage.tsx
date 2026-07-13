@@ -72,8 +72,8 @@ export const MenusPage = () => {
         </Card>
       ) : (
         <>
-          <p className="mb-4 text-sm text-gray-500">
-            <span className="font-semibold text-gray-900">{menus.length}</span>{" "}
+          <p className="mb-4 text-sm text-ink-muted">
+            <span className="font-semibold text-ink">{menus.length}</span>{" "}
             {menus.length === 1 ? "menú" : "menús"}
           </p>
 
@@ -81,36 +81,46 @@ export const MenusPage = () => {
             {menus.map((menu) => (
               <Card
                 key={menu.id}
-                className="transition hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08),0_12px_28px_rgba(4,104,50,0.12)]"
+                className={[
+                  "transition hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08),0_12px_28px_rgba(12,107,61,0.12)]",
+                  menu.active ? "" : "border-red-200/80 bg-red-50/40",
+                ].join(" ")}
               >
                 <button
                   type="button"
                   onClick={() => navigate(`/menu/${menu.id}`)}
                   className="group block w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
-                  <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-brand-light via-emerald-50 to-gray-100">
-                    <div
-                      className="absolute inset-0 opacity-40"
-                      style={{
-                        backgroundImage:
-                          "radial-gradient(circle at 20% 20%, rgba(4,104,50,0.18), transparent 45%), radial-gradient(circle at 80% 70%, rgba(4,104,50,0.12), transparent 40%)",
-                      }}
-                    />
+                  <div
+                    className={[
+                      "relative aspect-square overflow-hidden",
+                      menu.active
+                        ? "bg-gradient-to-br from-brand-light via-emerald-50 to-gray-100"
+                        : "bg-gradient-to-br from-red-100 via-red-50 to-gray-100",
+                    ].join(" ")}
+                  >
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="flex size-10 items-center justify-center rounded-xl bg-white/70 text-brand shadow-sm backdrop-blur-sm transition group-hover:scale-105">
+                      <span
+                        className={[
+                          "flex size-10 items-center justify-center rounded-xl shadow-sm backdrop-blur-sm transition group-hover:scale-105",
+                          menu.active
+                            ? "bg-white/70 text-brand"
+                            : "bg-white/70 text-red-600",
+                        ].join(" ")}
+                      >
                         <FontAwesomeIcon icon={faUtensils} className="size-4" aria-hidden />
                       </span>
                     </div>
                     <div className="absolute left-2 top-2">
-                      <Badge variant={menu.active ? "success" : "default"}>
+                      <Badge variant={menu.active ? "success" : "danger"}>
                         {menu.active ? "Activo" : "Inactivo"}
                       </Badge>
                     </div>
                   </div>
 
                   <div className="px-2.5 pt-2.5">
-                    <h2 className="truncate text-sm font-semibold text-gray-900">{menu.name}</h2>
-                    <p className="mt-0.5 text-xs text-gray-500">
+                    <h2 className="truncate text-sm font-semibold text-ink">{menu.name}</h2>
+                    <p className="mt-0.5 text-xs text-ink-muted">
                       {menu.products_count}{" "}
                       {menu.products_count === 1 ? "producto" : "productos"}
                     </p>

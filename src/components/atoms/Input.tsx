@@ -1,7 +1,7 @@
 import { forwardRef, type ComponentPropsWithoutRef } from "react"
 
 export const inputClassName =
-  "w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 text-[15px] text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand-muted"
+  "w-full rounded-xl border border-gray-200 bg-surface-elevated py-3.5 text-[15px] text-ink outline-none transition placeholder:text-ink-muted/60 focus:border-brand focus:ring-4 focus:ring-brand-muted"
 
 type InputProps = ComponentPropsWithoutRef<"input"> & {
   hasIcon?: boolean

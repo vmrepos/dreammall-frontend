@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from "react"
 
 const variants = {
-  default: "bg-gray-100 text-gray-700",
+  default: "bg-gray-100 text-ink-muted",
   brand: "bg-brand-light text-brand",
   warning: "bg-amber-100 text-amber-800",
   info: "bg-sky-100 text-sky-800",

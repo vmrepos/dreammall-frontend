@@ -17,8 +17,8 @@ export const PageHeader = ({ icon, section, title, description, action }: PageHe
         <FontAwesomeIcon icon={icon} className="size-5" aria-hidden />
         <span className="text-sm font-semibold uppercase tracking-wide">{section}</span>
       </div>
-      <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-      <p className="mt-1 text-[15px] text-gray-500">{description}</p>
+      <h1 className="text-2xl font-bold text-ink">{title}</h1>
+      <p className="mt-1 text-[15px] text-ink-muted">{description}</p>
     </div>
     {action}
   </header>

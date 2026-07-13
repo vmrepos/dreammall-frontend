@@ -9,9 +9,9 @@ export const Dashboard = () => {
     <MenuCatalogProvider>
       <OrdersProvider>
         <SubscriptionProvider>
-          <div className="flex min-h-svh">
+          <div className="flex min-h-svh bg-surface">
             <Sidebar />
-            <main className="min-w-0 flex-1 bg-gray-50 p-6">
+            <main className="min-w-0 flex-1 bg-surface p-6">
               <Outlet />
             </main>
           </div>

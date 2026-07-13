@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons"
+import { BrandMark } from "../components/atoms/BrandMark"
 import { FormField } from "../components/molecules/FormField"
 import { useAuth } from "../context/AuthContext"
 
@@ -29,16 +30,19 @@ export const Login = () => {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-gray-50 px-8 py-8">
-      <div className="w-full max-w-md rounded-[20px] bg-white p-8 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_8px_24px_rgba(4,104,50,0.08)]">
+    <div className="flex min-h-svh items-center justify-center bg-surface px-8 py-8">
+      <div className="w-full max-w-md rounded-[20px] border border-gray-200/80 bg-surface-elevated p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(12,107,61,0.06)]">
         <header className="mb-8">
-          <span className="mb-4 inline-flex items-center rounded-full bg-brand-light px-3 py-1.5 text-[13px] font-semibold text-brand">
-            Dream Mall · Comercio
-          </span>
+          <div className="mb-4 flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-brand-light px-3 py-1.5 text-[13px] font-semibold text-brand">
+              Dream Mall · Comercio
+            </span>
+            <BrandMark />
+          </div>
           <h1 className="mb-2 text-[1.75rem] font-bold leading-tight text-brand">
             Iniciar sesión
           </h1>
-          <p className="text-[15px] leading-relaxed text-gray-500">
+          <p className="text-[15px] leading-relaxed text-ink-muted">
             Accede a tu panel de comercio
           </p>
         </header>
@@ -94,13 +98,13 @@ export const Login = () => {
           />
           <div>
             <p className="mb-1 text-sm font-bold text-brand">Importante</p>
-            <p className="text-[13px] leading-relaxed text-gray-500">
+            <p className="text-[13px] leading-relaxed text-ink-muted">
               Solo usuarios registrados como comercio pueden acceder a este panel.
             </p>
           </div>
         </div>
 
-        <p className="mt-6 text-center text-[13px] text-gray-500">
+        <p className="mt-6 text-center text-[13px] text-ink-muted">
           ¿No tienes cuenta?{" "}
           <Link to="/register" className="font-semibold text-brand hover:underline">
             Regístrate aquí

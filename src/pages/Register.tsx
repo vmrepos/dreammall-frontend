@@ -11,6 +11,7 @@ import {
   faPhone,
   faUser,
 } from "@fortawesome/free-solid-svg-icons"
+import { BrandMark } from "../components/atoms/BrandMark"
 import { Button } from "../components/atoms/Button"
 import { Card } from "../components/atoms/Card"
 import { FormField } from "../components/molecules/FormField"
@@ -76,14 +77,17 @@ export const Register = () => {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-gray-50 px-8 py-8">
+    <div className="flex min-h-svh items-center justify-center bg-surface px-8 py-8">
       <div className="w-full max-w-2xl">
         <div className="mb-6 text-center">
-          <span className="mb-4 inline-flex items-center rounded-full bg-brand-light px-3 py-1.5 text-[13px] font-semibold text-brand">
-            Dream Mall · Comercio
-          </span>
+          <div className="mb-4 flex items-center justify-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-brand-light px-3 py-1.5 text-[13px] font-semibold text-brand">
+              Dream Mall · Comercio
+            </span>
+            <BrandMark />
+          </div>
           <h1 className="text-[1.75rem] font-bold text-brand">Registrar comercio</h1>
-          <p className="mt-2 text-[15px] text-gray-500">Crea tu cuenta y configura tu restaurante</p>
+          <p className="mt-2 text-[15px] text-ink-muted">Crea tu cuenta y configura tu restaurante</p>
         </div>
 
         <div className="mb-8 flex items-center justify-center gap-3">
