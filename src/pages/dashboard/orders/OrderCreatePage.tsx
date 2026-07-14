@@ -14,17 +14,25 @@ import { Input } from "../../../components/atoms/Input"
 import { Label } from "../../../components/atoms/Label"
 import { useMenuCatalog } from "../../../context/MenuCatalogContext"
 import { useOrders } from "../../../context/OrdersContext"
+import { apiClient } from "../../../services/apiClient"
 import type { TProduct } from "../../../types/Product"
-import { formatCurrency } from "../../../utils/format"
 import type { TOrderItemForm } from "../../../types/OrderItem"
+import { parseCoordinates } from "../../../utils/coordinates"
+import { formatCurrency } from "../../../utils/format"
 
 export const OrderCreatePage = () => {
   const navigate = useNavigate()
   const { menus } = useMenuCatalog()
   const { createOrder } = useOrders()
   const [cart, setCart] = useState<TOrderItemForm[]>([])
+  const [coordinatesInput, setCoordinatesInput] = useState("")
   const [deliveryFee, setDeliveryFee] = useState("0.00")
+  const [distanceKm, setDistanceKm] = useState<string | null>(null)
+  const [routeSource, setRouteSource] = useState<string | null>(null)
   const [discount, setDiscount] = useState("0.00")
+  const [coordsError, setCoordsError] = useState("")
+  const [previewError, setPreviewError] = useState("")
+  const [isCalculating, setIsCalculating] = useState(false)
 
   const availableProducts = useMemo(
     () =>
@@ -90,9 +98,37 @@ export const OrderCreatePage = () => {
     setCart((current) => current.filter((line) => line.product_id !== product_id))
   }
 
+  const calculateDeliveryQuote = async () => {
+    setCoordsError("")
+    setPreviewError("")
+
+    const parsed = parseCoordinates(coordinatesInput)
+    if (!parsed) {
+      setCoordsError("Usa el formato latitud, longitud. Ej. -17.741364, -63.190680")
+      setDeliveryFee("0.00")
+      setDistanceKm(null)
+      return
+    }
+
+    setIsCalculating(true)
+    try {
+      const preview = await apiClient.deliveries.preview(parsed.latitude, parsed.longitude)
+      const fee = Number(preview.fee).toFixed(2)
+      const distance = Number(preview.distance_km).toFixed(2)
+      setDeliveryFee(fee)
+      setDistanceKm(distance)
+    } catch {
+      setPreviewError("No se pudo calcular la tarifa. Revisa las coordenadas e intenta de nuevo.")
+      setDeliveryFee("0.00")
+      setDistanceKm(null)
+    } finally {
+      setIsCalculating(false)
+    }
+  }
+
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault()
-    if (cart.length === 0) return
+    if (cart.length === 0 || !distanceKm) return
 
     const order = await createOrder({
       items_attributes: cart,
@@ -243,32 +279,76 @@ export const OrderCreatePage = () => {
 
           <Card padding="md">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Resumen</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="delivery-fee">Costo de envío</Label>
-                <Input
-                  id="delivery-fee"
-                  className="mt-2"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={deliveryFee}
-                  onChange={(ev) => setDeliveryFee(ev.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="discount">Descuento</Label>
-                <Input
-                  id="discount"
-                  className="mt-2"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={discount}
-                  onChange={(ev) => setDiscount(ev.target.value)}
-                />
-              </div>
+
+            <div>
+              <Label htmlFor="coordinates">Ubicación (lat, lng)</Label>
+              <Input
+                id="coordinates"
+                className="mt-2"
+                value={coordinatesInput}
+                onChange={(ev) => {
+                  setCoordinatesInput(ev.target.value)
+                  setCoordsError("")
+                  setPreviewError("")
+                  setDistanceKm(null)
+                  setDeliveryFee("0.00")
+                }}
+                placeholder="-17.74136401150216, -63.190680077296854"
+              />
+              <p className="mt-1.5 text-xs text-gray-500">
+                Pega las coordenadas compartidas por WhatsApp o Maps.
+              </p>
+              {coordsError && (
+                <p className="mt-2 text-sm text-red-600" role="alert">
+                  {coordsError}
+                </p>
+              )}
+              {previewError && (
+                <p className="mt-2 text-sm text-red-600" role="alert">
+                  {previewError}
+                </p>
+              )}
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-3"
+                onClick={calculateDeliveryQuote}
+                disabled={!coordinatesInput.trim() || isCalculating}
+              >
+                {isCalculating ? "Calculando..." : "Calcular envío"}
+              </Button>
             </div>
+
+            {distanceKm && (
+              <div className="mt-4 rounded-xl bg-brand-light p-4">
+                <dl className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <dt className="text-gray-500">Distancia</dt>
+                    <dd className="mt-1 text-lg font-semibold text-gray-900">{distanceKm} km</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Costo de envío</dt>
+                    <dd className="mt-1 text-lg font-semibold text-brand">
+                      {formatCurrency(deliveryFee)}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <Label htmlFor="discount">Descuento</Label>
+              <Input
+                id="discount"
+                className="mt-2"
+                type="number"
+                min="0"
+                step="0.01"
+                value={discount}
+                onChange={(ev) => setDiscount(ev.target.value)}
+              />
+            </div>
+
             <dl className="mt-6 space-y-3 border-t border-gray-100 pt-4 text-sm">
               <div className="flex justify-between">
                 <dt className="text-gray-500">Subtotal</dt>
@@ -288,7 +368,11 @@ export const OrderCreatePage = () => {
               </div>
             </dl>
             <div className="mt-6 flex gap-3">
-              <Button type="submit" disabled={cart.length === 0} className="flex-1">
+              <Button
+                type="submit"
+                disabled={cart.length === 0 || !distanceKm || isCalculating}
+                className="flex-1"
+              >
                 Crear pedido
               </Button>
               <Button type="button" variant="secondary" onClick={() => navigate("/orders")}>

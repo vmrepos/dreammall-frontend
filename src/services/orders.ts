@@ -12,8 +12,6 @@ export const OrdersAPI = {
         total_amount: input.total_amount,
         discount: input.discount,
         delivery_fee: input.delivery_fee,
-        latitude: input.latitude,
-        longitude: input.longitude,
         items_attributes: input.items_attributes.map(({ name, notes: _notes, ...item }) => ({
           ...item,
           product_name: name,
