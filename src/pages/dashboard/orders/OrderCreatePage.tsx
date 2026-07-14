@@ -16,20 +16,13 @@ import { useMenuCatalog } from "../../../context/MenuCatalogContext"
 import { useOrders } from "../../../context/OrdersContext"
 import type { TProduct } from "../../../types/Product"
 import { formatCurrency } from "../../../utils/format"
-
-type CartLine = {
-  productId: number
-  name: string
-  unit_price: string
-  quantity: number
-  notes: string
-}
+import type { TOrderItemForm } from "../../../types/OrderItem"
 
 export const OrderCreatePage = () => {
   const navigate = useNavigate()
   const { menus } = useMenuCatalog()
-  const { addOrder } = useOrders()
-  const [cart, setCart] = useState<CartLine[]>([])
+  const { createOrder } = useOrders()
+  const [cart, setCart] = useState<TOrderItemForm[]>([])
   const [deliveryFee, setDeliveryFee] = useState("0.00")
   const [discount, setDiscount] = useState("0.00")
 
@@ -54,10 +47,10 @@ export const OrderCreatePage = () => {
 
   const addToCart = (product: TProduct) => {
     setCart((current) => {
-      const existing = current.find((line) => line.productId === product.id)
+      const existing = current.find((line) => line.product_id === product.id)
       if (existing) {
         return current.map((line) =>
-          line.productId === product.id
+          line.product_id === product.id
             ? { ...line, quantity: line.quantity + 1 }
             : line,
         )
@@ -66,7 +59,7 @@ export const OrderCreatePage = () => {
       return [
         ...current,
         {
-          productId: product.id,
+          product_id: product.id,
           name: product.name,
           unit_price: product.price,
           quantity: 1,
@@ -76,35 +69,36 @@ export const OrderCreatePage = () => {
     })
   }
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (product_id: number, quantity: number) => {
     if (quantity < 1) {
-      setCart((current) => current.filter((line) => line.productId !== productId))
+      setCart((current) => current.filter((line) => line.product_id !== product_id))
       return
     }
 
     setCart((current) =>
-      current.map((line) => (line.productId === productId ? { ...line, quantity } : line)),
+      current.map((line) => (line.product_id === product_id ? { ...line, quantity } : line)),
     )
   }
 
-  const updateNotes = (productId: number, notes: string) => {
+  const updateNotes = (product_id: number, notes: string) => {
     setCart((current) =>
-      current.map((line) => (line.productId === productId ? { ...line, notes } : line)),
+      current.map((line) => (line.product_id === product_id ? { ...line, notes } : line)),
     )
   }
 
-  const removeFromCart = (productId: number) => {
-    setCart((current) => current.filter((line) => line.productId !== productId))
+  const removeFromCart = (product_id: number) => {
+    setCart((current) => current.filter((line) => line.product_id !== product_id))
   }
 
-  const handleSubmit = (ev: React.FormEvent) => {
+  const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault()
     if (cart.length === 0) return
 
-    const order = addOrder({
-      items: cart,
+    const order = await createOrder({
+      items_attributes: cart,
       delivery_fee: deliveryFee,
-      discount: discount,
+      discount,
+      total_amount: total.toFixed(2),
     })
 
     navigate(`/orders/${order.id}`)
@@ -191,7 +185,7 @@ export const OrderCreatePage = () => {
               <div className="max-h-[20rem] space-y-4 overflow-y-auto px-6 pb-6">
                 {cart.map((line) => (
                   <div
-                    key={line.productId}
+                    key={line.product_id}
                     className="rounded-xl border border-gray-100 bg-gray-50/60 p-4"
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -206,7 +200,7 @@ export const OrderCreatePage = () => {
                           type="button"
                           variant="secondary"
                           className="px-3 py-2"
-                          onClick={() => updateQuantity(line.productId, line.quantity - 1)}
+                          onClick={() => updateQuantity(line.product_id, line.quantity - 1)}
                         >
                           <FontAwesomeIcon icon={faMinus} className="size-3" aria-hidden />
                         </Button>
@@ -217,7 +211,7 @@ export const OrderCreatePage = () => {
                           type="button"
                           variant="secondary"
                           className="px-3 py-2"
-                          onClick={() => updateQuantity(line.productId, line.quantity + 1)}
+                          onClick={() => updateQuantity(line.product_id, line.quantity + 1)}
                         >
                           <FontAwesomeIcon icon={faPlus} className="size-3" aria-hidden />
                         </Button>
@@ -225,19 +219,19 @@ export const OrderCreatePage = () => {
                           type="button"
                           variant="ghost"
                           className="px-3 py-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => removeFromCart(line.productId)}
+                          onClick={() => removeFromCart(line.product_id)}
                         >
                           <FontAwesomeIcon icon={faTrash} className="size-4" aria-hidden />
                         </Button>
                       </div>
                     </div>
                     <div className="mt-4">
-                      <Label htmlFor={`notes-${line.productId}`}>Notas</Label>
+                      <Label htmlFor={`notes-${line.product_id}`}>Notas</Label>
                       <Input
-                        id={`notes-${line.productId}`}
+                        id={`notes-${line.product_id}`}
                         className="mt-2"
                         value={line.notes}
-                        onChange={(ev) => updateNotes(line.productId, ev.target.value)}
+                        onChange={(ev) => updateNotes(line.product_id, ev.target.value)}
                         placeholder="Opcional"
                       />
                     </div>

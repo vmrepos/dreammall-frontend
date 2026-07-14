@@ -1,4 +1,4 @@
-import type { TOrderItem } from "./OrderItem"
+import type { TOrderItem, TOrderItemForm } from "./OrderItem"
 
 export type TOrderStatus =
   | "pending"
@@ -18,4 +18,8 @@ export type TOrder = {
   updated_at: string
   items: TOrderItem[]
   delivery_id: number | null
+}
+
+export type TOrderForm = Omit<TOrder, "id" | "created_at" | "updated_at" | "delivery_id" | "status" | "items"> & {
+  items_attributes: TOrderItemForm[]
 }

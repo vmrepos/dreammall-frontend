@@ -2,6 +2,7 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { DeliveriesAPI } from "./deliveries";
 import { MenusAPI } from "./menus";
 import { ProductsAPI } from "./products";
+import { OrdersAPI } from "./orders";
 
 export const axiosInstance = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL ?? ""}/api/v1`,
@@ -63,4 +64,5 @@ export const apiClient = {
   deliveries: DeliveriesAPI,
   menus: MenusAPI,
   products: ProductsAPI,
+  orders: OrdersAPI,
 }

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faClipboardList } from "@fortawesome/free-solid-svg-icons"
@@ -21,11 +21,43 @@ const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
 export const OrderShowPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { getOrder, updateOrder } = useOrders()
-  const order = getOrder(Number(id))
+  const orderId = Number(id)
+  const { getOrder, fetchOrder, updateOrder } = useOrders()
+  const order = getOrder(orderId)
+  const [loading, setLoading] = useState(!order)
+  const [notFound, setNotFound] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
 
-  if (!order) {
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      setLoading(true)
+      setNotFound(false)
+      try {
+        await fetchOrder(orderId)
+      } catch {
+        if (!cancelled) setNotFound(true)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [orderId, fetchOrder])
+
+  if (loading && !order) {
+    return (
+      <div className="mx-auto max-w-3xl text-center">
+        <p className="text-sm text-gray-500">Cargando pedido...</p>
+      </div>
+    )
+  }
+
+  if (notFound || !order) {
     return (
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="text-2xl font-bold text-gray-900">Pedido no encontrado</h1>
@@ -111,14 +143,11 @@ export const OrderShowPage = () => {
           <Card padding="md">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Resumen</h2>
             <DetailRow label="Subtotal" value={formatCurrency(order.total_amount)} />
-            <DetailRow label="Envío" value={formatCurrency(order.delivery_fee)} />
-            <DetailRow label="Descuento" value={formatCurrency(order.discount)} />
+
             <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
               <span className="font-semibold text-gray-900">Total</span>
               <span className="text-lg font-bold text-brand">
-                {formatCurrency(
-                  Number(order.total_amount) + Number(order.delivery_fee) - Number(order.discount),
-                )}
+                {formatCurrency(Number(order.total_amount))}
               </span>
             </div>
           </Card>
