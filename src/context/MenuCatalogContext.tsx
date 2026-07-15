@@ -1,136 +1,117 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
-import { initialMenuCatalog } from "../mocks/menus"
-import type { TMenu } from "../types/Menu"
-import type { TProduct } from "../types/Product"
+import type { TMenu, TMenuForm } from "../types/Menu"
+import type { TProduct, TProductForm } from "../types/Product"
 import { apiClient } from "../services/apiClient"
 import { ProductList } from "../utils/utils"
-
-type ProductInput = Pick<TProduct, "name" | "description" | "price" | "active" | "combo">
 
 type MenuCatalogContextType = {
   menus: TMenu[]
   products: TProduct[]
-  addMenu: (name: string) => void
-  toggleMenuActive: (menuId: number, active: boolean) => void
-  addProduct: (menuId: number, input: ProductInput) => void
-  updateProduct: (menuId: number, productId: number, input: ProductInput) => void
-  deleteProduct: (menuId: number, productId: number) => void
-  toggleProductActive: (menuId: number, productId: number, active: boolean) => void
-
+  createMenu: (menu: TMenuForm) => Promise<void>
+  patchMenu: (menuId: number, data: TMenuForm) => Promise<void>
+  addProduct: (menuId: number, input: TProductForm) => Promise<void>
+  patchProduct: (menuId: number, productId: number, input: TProductForm) => Promise<void>
+  deleteMenu: (menuId: number) => Promise<void>
+  deleteProduct: (menuId: number, productId: number) => Promise<void>
 }
 
 const MenuCatalogContext = createContext<MenuCatalogContextType | null>(null)
-
-const touch = () => new Date().toISOString()
-
-const nextId = (items: { id: number }[]) =>
-  items.reduce((max, item) => Math.max(max, item.id), 0) + 1
 
 export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
   const [menus, setMenus] = useState<TMenu[]>([])
   const [products, setProducts] = useState<TProduct[]>([])
 
-  useEffect(() => {
-    apiClient.menus.list().then((menus: TMenu[]) => {
-      setMenus(menus)
-      setProducts(ProductList(menus))
-    })
-  }, [])
+  const fetchMenus = async () => {
+    const res = await apiClient.menus.list()
+    setMenus(res)
+  }
 
-  const updateMenu = (menuId: number, updater: (menu: TMenu) => TMenu) => {
+  const replaceMenu = (menuId: number, next: TMenu) => {
     setMenus((current) =>
-      current.map((menu) => (menu.id === menuId ? updater(menu) : menu)),
+      current.map((menu) => (menu.id === menuId ? { ...menu, ...next, products: next.products ?? menu.products } : menu)),
     )
   }
 
-  const addMenu = (name: string) => {
-    const now = touch()
-    setMenus((current) => [
-      ...current,
-      {
-        id: nextId(current),
-        name,
-        active: true,
-        products_count: 0,
-        created_at: now,
-        updated_at: now,
-        products: [],
-      },
-    ])
+  const createMenu = async (menu: TMenuForm) => {
+    const res = await apiClient.menus.create(menu)
+    setMenus((current) => [...current, { ...res, products: res.products ?? [] }])
   }
 
-  const toggleMenuActive = (menuId: number, active: boolean) => {
-    updateMenu(menuId, (menu) => ({ ...menu, active, updated_at: touch() }))
+  const patchMenu = async (menuId: number, data: TMenuForm) => {
+    const res = await apiClient.menus.update(menuId, data)
+    replaceMenu(menuId, res)
   }
 
-  const addProduct = (menuId: number, input: ProductInput) => {
-    updateMenu(menuId, (menu) => {
-      const now = touch()
-      const products = menu.products ?? []
-      const product: TProduct = {
-        id: nextId(products),
-        menu_id: menuId,
-        name: input.name,
-        description: input.description,
-        price: input.price,
-        active: input.active,
-        combo: input.combo,
-        position: 3,
-        created_at: now,
-        updated_at: now,
-      }
-
-      return {
-        ...menu,
-        updated_at: now,
-        products_count: menu.products_count + 1,
-        products: [...products, product],
-      }
-    })
-  }
-
-  const updateProduct = (menuId: number, productId: number, input: ProductInput) => {
-    updateMenu(menuId, (menu) => ({
-      ...menu,
-      updated_at: touch(),
-      products: (menu.products ?? []).map((product) =>
-        product.id === productId
-          ? { ...product, ...input, updated_at: touch() }
-          : product,
+  const addProduct = async (menuId: number, input: TProductForm) => {
+    const res = await apiClient.menus.addProduct(menuId, input)
+    setMenus((current) =>
+      current.map((menu) =>
+        menu.id === menuId
+          ? {
+              ...menu,
+              products_count: menu.products_count + 1,
+              products: [...(menu.products ?? []), res],
+            }
+          : menu,
       ),
-    }))
+    )
   }
 
-  const toggleProductActive = (menuId: number, productId: number, active: boolean) => {
-    updateMenu(menuId, (menu) => ({
-      ...menu,
-      updated_at: touch(),
-      products: (menu.products ?? []).map((product) =>
-        product.id === productId ? { ...product, active, updated_at: touch() } : product,
+  const patchProduct = async (menuId: number, productId: number, input: TProductForm) => {
+    const res = await apiClient.menus.updateProduct(menuId, productId, input)
+    setMenus((current) =>
+      current.map((menu) =>
+        menu.id === menuId
+          ? {
+              ...menu,
+              products: (menu.products ?? []).map((product) =>
+                product.id === productId ? { ...product, ...res } : product,
+              ),
+            }
+          : menu,
       ),
-    }))
+    )
   }
 
-  const deleteProduct = (menuId: number, productId: number) => {
-    updateMenu(menuId, (menu) => ({
-      ...menu,
-      updated_at: touch(),
-      products_count: Math.max(0, menu.products_count - 1),
-      products: (menu.products ?? []).filter((product) => product.id !== productId),
-    }))
+  const deleteMenu = async (menuId: number) => {
+    await apiClient.menus.deleteMenu(menuId)
+    setMenus((current) => current.filter((menu) => menu.id !== menuId))
   }
+
+  const deleteProduct = async (menuId: number, productId: number) => {
+    await apiClient.menus.deleteProduct(menuId, productId)
+    setMenus((current) =>
+      current.map((menu) =>
+        menu.id === menuId
+          ? {
+              ...menu,
+              products_count: Math.max(0, menu.products_count - 1),
+              products: (menu.products ?? []).filter((product) => product.id !== productId),
+            }
+          : menu,
+      ),
+    )
+  }
+
+  useEffect(() => {
+    void fetchMenus()
+  }, [])
+
+  useEffect(() => {
+    setProducts(ProductList(menus))
+  }, [menus])
 
   return (
     <MenuCatalogContext.Provider
       value={{
         menus,
         products,
-        addMenu,
-        toggleMenuActive,
+        createMenu,
+        patchMenu,
         addProduct,
-        updateProduct,
+        patchProduct,
         deleteProduct,
-        toggleProductActive,
+        deleteMenu,
       }}
     >
       {children}

@@ -7,5 +7,7 @@ export type TMenu = {
   products_count: number
   created_at?: string
   updated_at?: string
-  products?: TProduct[]
+  products: TProduct[]
 }
+
+export type TMenuForm = Partial<TMenu>

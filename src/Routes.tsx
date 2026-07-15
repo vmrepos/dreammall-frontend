@@ -12,9 +12,9 @@ import { DeliveryCreatePage } from "./pages/dashboard/deliveries/DeliveryCreateP
 import { ProfilePage } from "./pages/dashboard/profile/ProfilePage"
 import { SettingsPage } from "./pages/dashboard/settings/SettingsPage"
 import { SubscriptionPage } from "./pages/dashboard/subscription/SubscriptionPage"
-import { MenusPage } from "./pages/dashboard/menu/MenusPage"
+import { MenusPage } from "./pages/dashboard/menu/Index"
 import { MenuLayout } from "./pages/dashboard/menu/MenuLayout"
-import { MenuShowPage } from "./pages/dashboard/menu/MenuShowPage"
+import { MenuShowPage } from "./pages/dashboard/menu/Show"
 import { ProductFormPage } from "./pages/dashboard/menu/ProductFormPage"
 import { Orders } from "./pages/dashboard/orders/Orders"
 

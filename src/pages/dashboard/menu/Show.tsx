@@ -17,7 +17,7 @@ export const MenuShowPage = () => {
   const { menuId } = useParams()
   const navigate = useNavigate()
   const parsedMenuId = Number(menuId)
-  const { toggleMenuActive } = useMenuCatalog()
+  const { patchMenu } = useMenuCatalog()
   const [productToDelete, setProductToDelete] = useState<TProduct | null>(null)
   const [productToToggle, setProductToToggle] = useState<TProduct | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -29,6 +29,12 @@ export const MenuShowPage = () => {
       setMenu(menu)
     })
   }, [parsedMenuId])
+
+  const handleMenuActive = async (active: boolean) => {
+    if (!menu) return
+    await patchMenu(menu.id, { active })
+    setMenu((current) => (current ? { ...current, active } : current))
+  }
 
   const confirmDelete = async () => {
     if (!productToDelete || !menu || deleting) return
@@ -119,7 +125,7 @@ export const MenuShowPage = () => {
           <Toggle
             checked={menu.active}
             label={`${menu.active ? "Desactivar" : "Activar"} ${menu.name}`}
-            onChange={(active) => toggleMenuActive(menu.id, active)}
+            onChange={(active) => void handleMenuActive(active)}
           />
           <Button onClick={() => navigate(`/menu/${menu.id}/products/new`)}>
             <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />

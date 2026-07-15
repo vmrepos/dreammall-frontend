@@ -13,18 +13,22 @@ import { useMenuCatalog } from "../../../context/MenuCatalogContext"
 
 export const MenusPage = () => {
   const navigate = useNavigate()
-  const { menus, addMenu, toggleMenuActive } = useMenuCatalog()
-  const [newMenuName, setNewMenuName] = useState("")
+  const { menus, createMenu, patchMenu } = useMenuCatalog()
+  const [menu, setMenu] = useState({ name: "", active: true })
   const [showForm, setShowForm] = useState(false)
 
-  const handleCreate = (ev: React.FormEvent) => {
+  const handleCreate = async (ev: React.FormEvent) => {
     ev.preventDefault()
-    const name = newMenuName.trim()
+    const name = menu.name.trim()
     if (!name) return
 
-    addMenu(name)
-    setNewMenuName("")
-    setShowForm(false)
+    try {
+      await createMenu({ name, active: menu.active })
+      setMenu({ name: "", active: true })
+      setShowForm(false)
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   return (
@@ -51,8 +55,8 @@ export const MenusPage = () => {
                 id="menu-name"
                 className="mt-2"
                 placeholder="Ej. Menú principal"
-                value={newMenuName}
-                onChange={(ev) => setNewMenuName(ev.target.value)}
+                value={menu.name}
+                onChange={(ev) => setMenu({ ...menu, name: ev.target.value })}
                 required
               />
             </div>
@@ -131,7 +135,7 @@ export const MenusPage = () => {
                   <Toggle
                     checked={menu.active}
                     label={`${menu.active ? "Desactivar" : "Activar"} ${menu.name}`}
-                    onChange={(active) => toggleMenuActive(menu.id, active)}
+                    onChange={() => patchMenu(menu.id, { active: !menu.active })}
                   />
                 </div>
               </Card>
