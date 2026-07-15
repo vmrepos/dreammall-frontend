@@ -9,7 +9,7 @@ import { useOrders } from "../../../context/OrdersContext"
 import { formatCurrency, formatDate } from "../../../utils/format"
 import { tableRowLinkClass } from "../../../components/organisms/OrderItemsTable"
 
-export const OrdersPage = () => {
+export const Index = () => {
   const navigate = useNavigate()
   const { orders } = useOrders()
 

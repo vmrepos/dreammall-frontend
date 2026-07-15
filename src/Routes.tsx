@@ -5,9 +5,7 @@ import { Register } from "./pages/Register"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { PublicRoute } from "./components/auth/PublicRoute"
 import { Dashboard } from "./pages/dashboard/Dashboard"
-import { OrdersPage } from "./pages/dashboard/orders/OrdersPage"
-import { OrderCreatePage } from "./pages/dashboard/orders/OrderCreatePage"
-import { OrderShowPage } from "./pages/dashboard/orders/OrderShowPage"
+
 import { DeliveriesPage } from "./pages/dashboard/deliveries/DeliveriesPage"
 import { DeliveryShowPage } from "./pages/dashboard/deliveries/DeliveryShowPage"
 import { DeliveryCreatePage } from "./pages/dashboard/deliveries/DeliveryCreatePage"
@@ -18,6 +16,7 @@ import { MenusPage } from "./pages/dashboard/menu/MenusPage"
 import { MenuLayout } from "./pages/dashboard/menu/MenuLayout"
 import { MenuShowPage } from "./pages/dashboard/menu/MenuShowPage"
 import { ProductFormPage } from "./pages/dashboard/menu/ProductFormPage"
+import { Orders } from "./pages/dashboard/orders/Orders"
 
 export const AppRoutes = () => {
   return (
@@ -32,9 +31,9 @@ export const AppRoutes = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Dashboard />}>
               <Route index element={<Navigate to="/orders" replace />} />
-              <Route path="orders" element={<OrdersPage />} />
-              <Route path="orders/new" element={<OrderCreatePage />} />
-              <Route path="orders/:id" element={<OrderShowPage />} />
+              <Route path="orders" element={<Orders.Index />} />
+              <Route path="orders/new" element={<Orders.Create />} />
+              <Route path="orders/:id" element={<Orders.Show />} />
               <Route path="deliveries" element={<DeliveriesPage />} />
               <Route path="deliveries/new" element={<DeliveryCreatePage />} />
               <Route path="deliveries/:id" element={<DeliveryShowPage />} />

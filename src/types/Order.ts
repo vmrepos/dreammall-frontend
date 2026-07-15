@@ -23,3 +23,7 @@ export type TOrderForm = {
   longitude: number | null
   distance_km: string | null
 }
+
+export type TOrderUpdate = {
+  status: TOrderStatus
+}

@@ -16,7 +16,7 @@ const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
   pending: "Marcar listo",
 }
 
-export const OrderShowPage = () => {
+export const Show = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const orderId = Number(id)
@@ -69,21 +69,13 @@ export const OrderShowPage = () => {
   const nextStatus = getNextOrderStatus(order.status)
   const nextLabel = nextActionLabel[order.status]
 
-  const advanceStatus = () => {
+  const advanceStatus = async () => {
     if (!nextStatus) return
-    updateOrder(order.id, (current) => ({
-      ...current,
-      status: nextStatus,
-      updated_at: new Date().toISOString(),
-    }))
+    await updateOrder(order.id, nextStatus)
   }
 
-  const cancelOrder = () => {
-    updateOrder(order.id, (current) => ({
-      ...current,
-      status: "cancelled",
-      updated_at: new Date().toISOString(),
-    }))
+  const cancelOrder = async () => {
+    await updateOrder(order.id, "cancelled")
     setShowCancelDialog(false)
   }
 
@@ -121,9 +113,9 @@ export const OrderShowPage = () => {
               Cancelar pedido
             </Button>
           )}
-          {order.status === "ready" && (
-            <Button variant="secondary" onClick={() => navigate("/deliveries/new")}>
-              Crear entrega
+          {order.status === "ready" && order.delivery_id && (
+            <Button variant="secondary" onClick={() => navigate(`/deliveries/${order.delivery_id}`)}>
+              Ver entrega
             </Button>
           )}
         </div>

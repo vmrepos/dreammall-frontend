@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
-import type { TOrder, TOrderForm } from "../types/Order"
+import type { TOrder, TOrderForm, TOrderStatus } from "../types/Order"
 import { apiClient } from "../services/apiClient"
 
 type OrdersContextType = {
@@ -7,7 +7,7 @@ type OrdersContextType = {
   createOrder: (input: TOrderForm) => Promise<TOrder>
   getOrder: (id: number) => TOrder | undefined
   fetchOrder: (id: number) => Promise<TOrder>
-  updateOrder: (id: number, updater: (current: TOrder) => TOrder) => void
+  updateOrder: (id: number, status: TOrderStatus) => Promise<TOrder>
 }
 
 const OrdersContext = createContext<OrdersContextType | null>(null)
@@ -57,11 +57,14 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     [upsertOrder],
   )
 
-  const updateOrder = useCallback((id: number, updater: (current: TOrder) => TOrder) => {
-    setOrders((current) =>
-      current.map((order) => (order.id === id ? updater(order) : order)),
-    )
-  }, [])
+  const updateOrder = useCallback(
+    async (id: number, status: TOrderStatus) => {
+      const order = await apiClient.orders.update(id, status)
+      upsertOrder(order)
+      return order
+    },
+    [upsertOrder],
+  )
 
   useEffect(() => {
     void refreshOrders()

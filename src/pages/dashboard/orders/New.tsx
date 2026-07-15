@@ -1,13 +1,7 @@
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-  faArrowLeft,
-  faClipboardList,
-  faMinus,
-  faPlus,
-  faTrash,
-} from "@fortawesome/free-solid-svg-icons"
+import { faArrowLeft, faClipboardList, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../components/atoms/Button"
 import { Card, CardHeader } from "../../../components/atoms/Card"
 import { Input } from "../../../components/atoms/Input"
@@ -15,16 +9,16 @@ import { Label } from "../../../components/atoms/Label"
 import { useMenuCatalog } from "../../../context/MenuCatalogContext"
 import { useOrders } from "../../../context/OrdersContext"
 import { apiClient } from "../../../services/apiClient"
-import type { TProduct } from "../../../types/Product"
-import type { TOrderItemForm } from "../../../types/OrderItem"
 import { parseCoordinates } from "../../../utils/coordinates"
 import { formatCurrency } from "../../../utils/format"
-import { ProductList } from "../../../utils/utils"
 import { CartItem } from "./CartItem"
+import type { TOrderItemForm } from "../../../types/OrderItem"
+import type { TProduct } from "../../../types/Product"
 
-export const OrderCreatePage = () => {
+
+export const Create = () => {
   const navigate = useNavigate()
-  const { menus, products } = useMenuCatalog()
+  const { products } = useMenuCatalog()
   const { createOrder } = useOrders()
   const [cart, setCart] = useState<TOrderItemForm[]>([])
   const [coordinatesInput, setCoordinatesInput] = useState("")
@@ -36,6 +30,7 @@ export const OrderCreatePage = () => {
   const [isCalculating, setIsCalculating] = useState(false)
   const [latitude, setLatitude] = useState<number | null>(null)
   const [longitude, setLongitude] = useState<number | null>(null)
+
 
 
   const subtotal = cart.reduce(
