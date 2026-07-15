@@ -3,17 +3,20 @@ import { initialMenuCatalog } from "../mocks/menus"
 import type { TMenu } from "../types/Menu"
 import type { TProduct } from "../types/Product"
 import { apiClient } from "../services/apiClient"
+import { ProductList } from "../utils/utils"
 
 type ProductInput = Pick<TProduct, "name" | "description" | "price" | "active" | "combo">
 
 type MenuCatalogContextType = {
   menus: TMenu[]
+  products: TProduct[]
   addMenu: (name: string) => void
   toggleMenuActive: (menuId: number, active: boolean) => void
   addProduct: (menuId: number, input: ProductInput) => void
   updateProduct: (menuId: number, productId: number, input: ProductInput) => void
   deleteProduct: (menuId: number, productId: number) => void
   toggleProductActive: (menuId: number, productId: number, active: boolean) => void
+
 }
 
 const MenuCatalogContext = createContext<MenuCatalogContextType | null>(null)
@@ -25,10 +28,12 @@ const nextId = (items: { id: number }[]) =>
 
 export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
   const [menus, setMenus] = useState<TMenu[]>([])
+  const [products, setProducts] = useState<TProduct[]>([])
 
   useEffect(() => {
     apiClient.menus.list().then((menus: TMenu[]) => {
       setMenus(menus)
+      setProducts(ProductList(menus))
     })
   }, [])
 
@@ -119,6 +124,7 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
     <MenuCatalogContext.Provider
       value={{
         menus,
+        products,
         addMenu,
         toggleMenuActive,
         addProduct,

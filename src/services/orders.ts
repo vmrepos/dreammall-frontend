@@ -7,17 +7,7 @@ export const OrdersAPI = {
     return response.data
   },
   create: async (input: TOrderForm): Promise<TOrder> => {
-    const response = await axiosInstance.post("/restaurants/orders", {
-      order: {
-        total_amount: input.total_amount,
-        discount: input.discount,
-        delivery_fee: input.delivery_fee,
-        items_attributes: input.items_attributes.map(({ name, notes: _notes, ...item }) => ({
-          ...item,
-          product_name: name,
-        })),
-      },
-    })
+    const response = await axiosInstance.post("/restaurants/orders", input)
     return response.data.data as TOrder
   },
   show: async (id: number): Promise<TOrder> => {

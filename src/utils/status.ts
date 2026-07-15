@@ -8,10 +8,7 @@ type StatusConfig = {
 
 export const orderStatusConfig: Record<TOrderStatus, StatusConfig> = {
   pending: { label: "Pendiente", variant: "warning" },
-  received: { label: "Recibido", variant: "info" },
-  preparing: { label: "Preparando", variant: "info" },
   ready: { label: "Listo", variant: "success" },
-  completed: { label: "Completado", variant: "success" },
   cancelled: { label: "Cancelado", variant: "danger" },
 }
 
@@ -26,17 +23,11 @@ export const deliveryStatusConfig: Record<TDeliveryStatus, StatusConfig> = {
 }
 
 export const getNextOrderStatus = (status: TOrderStatus): TOrderStatus | null => {
-  const flow: Partial<Record<TOrderStatus, TOrderStatus>> = {
-    pending: "received",
-    received: "preparing",
-    preparing: "ready",
-  }
-
-  return flow[status] ?? null
+  if (status === "pending") return "ready"
+  return null
 }
 
-export const canCancelOrder = (status: TOrderStatus) =>
-  !["completed", "cancelled"].includes(status)
+export const canCancelOrder = (status: TOrderStatus) => status === "pending"
 
 export const canCancelDelivery = (status: TDeliveryStatus) =>
   !["delivered", "cancelled"].includes(status)

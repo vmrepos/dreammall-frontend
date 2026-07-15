@@ -13,9 +13,7 @@ import { canCancelOrder, getNextOrderStatus, orderStatusConfig } from "../../../
 import { formatCurrency, formatDate } from "../../../utils/format"
 
 const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
-  pending: "Marcar recibido",
-  received: "Marcar preparando",
-  preparing: "Marcar listo",
+  pending: "Marcar listo",
 }
 
 export const OrderShowPage = () => {

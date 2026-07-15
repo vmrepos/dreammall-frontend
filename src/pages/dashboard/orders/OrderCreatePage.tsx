@@ -19,32 +19,24 @@ import type { TProduct } from "../../../types/Product"
 import type { TOrderItemForm } from "../../../types/OrderItem"
 import { parseCoordinates } from "../../../utils/coordinates"
 import { formatCurrency } from "../../../utils/format"
+import { ProductList } from "../../../utils/utils"
+import { CartItem } from "./CartItem"
 
 export const OrderCreatePage = () => {
   const navigate = useNavigate()
-  const { menus } = useMenuCatalog()
+  const { menus, products } = useMenuCatalog()
   const { createOrder } = useOrders()
   const [cart, setCart] = useState<TOrderItemForm[]>([])
   const [coordinatesInput, setCoordinatesInput] = useState("")
   const [deliveryFee, setDeliveryFee] = useState("0.00")
   const [distanceKm, setDistanceKm] = useState<string | null>(null)
-  const [routeSource, setRouteSource] = useState<string | null>(null)
   const [discount, setDiscount] = useState("0.00")
   const [coordsError, setCoordsError] = useState("")
   const [previewError, setPreviewError] = useState("")
   const [isCalculating, setIsCalculating] = useState(false)
+  const [latitude, setLatitude] = useState<number | null>(null)
+  const [longitude, setLongitude] = useState<number | null>(null)
 
-  const availableProducts = useMemo(
-    () =>
-      menus
-        .filter((menu) => menu.active)
-        .flatMap((menu) =>
-          menu.products
-            ?.filter((product) => product.active)
-            .map((product) => ({ ...product, menuName: menu.name })) ?? [],
-        ),
-    [menus],
-  )
 
   const subtotal = cart.reduce(
     (sum, line) => sum + line.quantity * Number(line.unit_price),
@@ -88,12 +80,6 @@ export const OrderCreatePage = () => {
     )
   }
 
-  const updateNotes = (product_id: number, notes: string) => {
-    setCart((current) =>
-      current.map((line) => (line.product_id === product_id ? { ...line, notes } : line)),
-    )
-  }
-
   const removeFromCart = (product_id: number) => {
     setCart((current) => current.filter((line) => line.product_id !== product_id))
   }
@@ -107,6 +93,8 @@ export const OrderCreatePage = () => {
       setCoordsError("Usa el formato latitud, longitud. Ej. -17.741364, -63.190680")
       setDeliveryFee("0.00")
       setDistanceKm(null)
+      setLatitude(null)
+      setLongitude(null)
       return
     }
 
@@ -117,10 +105,14 @@ export const OrderCreatePage = () => {
       const distance = Number(preview.distance_km).toFixed(2)
       setDeliveryFee(fee)
       setDistanceKm(distance)
+      setLatitude(parsed.latitude)
+      setLongitude(parsed.longitude)
     } catch {
       setPreviewError("No se pudo calcular la tarifa. Revisa las coordenadas e intenta de nuevo.")
       setDeliveryFee("0.00")
       setDistanceKm(null)
+      setLatitude(null)
+      setLongitude(null)
     } finally {
       setIsCalculating(false)
     }
@@ -135,6 +127,9 @@ export const OrderCreatePage = () => {
       delivery_fee: deliveryFee,
       discount,
       total_amount: total.toFixed(2),
+      latitude: latitude,
+      longitude: longitude,
+      distance_km: distanceKm,
     })
 
     navigate(`/orders/${order.id}`)
@@ -167,7 +162,7 @@ export const OrderCreatePage = () => {
             title="Productos disponibles"
             description="Selecciona ítems de tus menús activos"
           />
-          {availableProducts.length === 0 ? (
+          {products.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-gray-500">
               No hay productos activos. Activa un menú y sus productos primero.
             </p>
@@ -182,11 +177,11 @@ export const OrderCreatePage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {availableProducts.map((product) => (
+                  {products.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50/60">
                       <td className="px-6 py-4">
                         <p className="font-medium text-gray-900">{product.name}</p>
-                        <p className="mt-1 text-xs text-gray-500">{product.menuName}</p>
+
                       </td>
                       <td className="px-6 py-4 font-medium text-gray-900">
                         {formatCurrency(product.price)}
@@ -220,58 +215,7 @@ export const OrderCreatePage = () => {
             ) : (
               <div className="max-h-[20rem] space-y-4 overflow-y-auto px-6 pb-6">
                 {cart.map((line) => (
-                  <div
-                    key={line.product_id}
-                    className="rounded-xl border border-gray-100 bg-gray-50/60 p-4"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="font-medium text-gray-900">{line.name}</p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {formatCurrency(line.unit_price)} c/u
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="px-3 py-2"
-                          onClick={() => updateQuantity(line.product_id, line.quantity - 1)}
-                        >
-                          <FontAwesomeIcon icon={faMinus} className="size-3" aria-hidden />
-                        </Button>
-                        <span className="min-w-8 text-center font-semibold text-gray-900">
-                          {line.quantity}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="px-3 py-2"
-                          onClick={() => updateQuantity(line.product_id, line.quantity + 1)}
-                        >
-                          <FontAwesomeIcon icon={faPlus} className="size-3" aria-hidden />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => removeFromCart(line.product_id)}
-                        >
-                          <FontAwesomeIcon icon={faTrash} className="size-4" aria-hidden />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <Label htmlFor={`notes-${line.product_id}`}>Notas</Label>
-                      <Input
-                        id={`notes-${line.product_id}`}
-                        className="mt-2"
-                        value={line.notes}
-                        onChange={(ev) => updateNotes(line.product_id, ev.target.value)}
-                        placeholder="Opcional"
-                      />
-                    </div>
-                  </div>
+                  <CartItem key={line.product_id} line={line} updateQuantity={updateQuantity} removeFromCart={removeFromCart} />
                 ))}
               </div>
             )}

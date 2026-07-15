@@ -1,12 +1,6 @@
 import type { TOrderItem, TOrderItemForm } from "./OrderItem"
 
-export type TOrderStatus =
-  | "pending"
-  | "received"
-  | "preparing"
-  | "ready"
-  | "completed"
-  | "cancelled"
+export type TOrderStatus = "pending" | "ready" | "cancelled"
 
 export type TOrder = {
   id: number
@@ -20,6 +14,12 @@ export type TOrder = {
   delivery_id: number | null
 }
 
-export type TOrderForm = Omit<TOrder, "id" | "created_at" | "updated_at" | "delivery_id" | "status" | "items"> & {
+export type TOrderForm = {
   items_attributes: TOrderItemForm[]
+  delivery_fee: string
+  discount: string
+  total_amount: string
+  latitude: number | null
+  longitude: number | null
+  distance_km: string | null
 }
