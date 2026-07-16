@@ -10,10 +10,12 @@ import { Toggle } from "../../../components/atoms/Toggle"
 import { apiClient } from "../../../services/apiClient"
 import type { TMenu } from "../../../types/Menu"
 import type { TProduct } from "../../../types/Product"
+import { useMenuCatalog } from "../../../context/MenuCatalogContext"
 
 export const ProductFormPage = () => {
   const { menuId, productId } = useParams()
   const navigate = useNavigate()
+  const { patchProduct, addProduct } = useMenuCatalog()
   const parsedMenuId = Number(menuId)
   const parsedProductId = productId ? Number(productId) : null
   const isEditing = parsedProductId !== null
@@ -121,9 +123,9 @@ export const ProductFormPage = () => {
 
     try {
       if (isEditing && parsedProductId !== null) {
-        await apiClient.products.update(parsedMenuId, parsedProductId, input)
+        void patchProduct(parsedMenuId, parsedProductId, input)
       } else {
-        await apiClient.products.create(parsedMenuId, input)
+        void addProduct(parsedMenuId, input)
       }
 
       navigate(`/menu/${menu.id}`)

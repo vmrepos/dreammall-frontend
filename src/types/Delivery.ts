@@ -20,5 +20,11 @@ export type TDelivery = {
   address: string | null
   created_at: string
   updated_at: string
+  awaiting_driver_at: string | null
+  assigned_at: string | null
+  picked_up_at: string | null
+  delivered_at: string | null
+  cancelled_at: string | null
+  absent_customer_at: string | null
   driver: TDriver | null
 }

@@ -17,18 +17,16 @@ export const MenusPage = () => {
   const [menu, setMenu] = useState({ name: "", active: true })
   const [showForm, setShowForm] = useState(false)
 
-  const handleCreate = async (ev: React.FormEvent) => {
+  const handleCreate = (ev: React.FormEvent) => {
     ev.preventDefault()
-    const name = menu.name.trim()
-    if (!name) return
-
     try {
-      await createMenu({ name, active: menu.active })
-      setMenu({ name: "", active: true })
+      createMenu(menu)
       setShowForm(false)
     } catch (error) {
       console.error(error)
     }
+
+    setShowForm(false)
   }
 
   return (

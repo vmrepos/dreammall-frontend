@@ -9,6 +9,7 @@ import {
 import { Button } from "../../../components/atoms/Button"
 import { Card, CardHeader } from "../../../components/atoms/Card"
 import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
+import { DeliveryStatusProgress } from "../../../components/molecules/DeliveryStatusProgress"
 import { DeliveryStatusBadge } from "../../../components/molecules/StatusBadge"
 import { DetailRow } from "../../../components/organisms/OrderItemsTable"
 import type { TDelivery, TDeliveryStatus } from "../../../types/Delivery"
@@ -81,6 +82,10 @@ export const DeliveryShowPage = () => {
           </Button>
         )}
       </div>
+
+      <Card padding="md" className="mb-6">
+        <DeliveryStatusProgress delivery={delivery} />
+      </Card>
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">
