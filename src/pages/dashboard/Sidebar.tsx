@@ -16,11 +16,12 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   ].join(" ")
 
 const navItems = [
+  { to: "/menu", label: "Menú" },
   { to: "/orders", label: "Pedidos" },
   { to: "/deliveries", label: "Entregas" },
   { to: "/profile", label: "Perfil" },
   { to: "/settings", label: "Configuración" },
-  { to: "/menu", label: "Menú" },
+
 ] as const
 
 export const Sidebar = () => {

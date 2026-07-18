@@ -6,3 +6,5 @@ export type TDriver = {
   status: string
   available: boolean
 }
+
+export type TDriverForm = Partial<TDriver> 

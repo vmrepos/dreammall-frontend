@@ -1,0 +1,50 @@
+name: Deploy Heroku
+
+on:
+  push:
+    branches: [main]
+
+env:
+  HEROKU_APP: virtualmall-frontend
+  IMAGE: registry.heroku.com/virtualmall-frontend/web
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+
+      - name: Login to Heroku Container Registry
+        run: heroku container:login
+
+      # Classic docker build/push (not Buildx push) so Heroku gets
+      # Docker Manifest V2 Schema 2 instead of an OCI index.
+      - name: Build web image
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_OAUTH_CLIENT_ID: ${{ secrets.VITE_OAUTH_CLIENT_ID }}
+        run: |
+          if [ -z "$VITE_API_URL" ]; then
+            echo "VITE_API_URL secret is empty."
+            exit 1
+          fi
+          echo "Building with VITE_API_URL=${VITE_API_URL}"
+          docker build --platform linux/amd64 \
+            -f Dockerfile.heroku \
+            -t "${{ env.IMAGE }}" \
+            --build-arg VITE_API_URL="${VITE_API_URL}" \
+            --build-arg VITE_OAUTH_CLIENT_ID="${VITE_OAUTH_CLIENT_ID}" \
+            .
+
+      - name: Push web image
+        run: docker push "${{ env.IMAGE }}"
+
+      - name: Release web container
+        run: heroku container:release web --app "${{ env.HEROKU_APP }}"

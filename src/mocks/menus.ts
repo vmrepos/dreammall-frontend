@@ -8,6 +8,7 @@ export const initialMenuCatalog: TMenu[] = [
     products_count: 3,
     created_at: "2026-07-01T10:00:00Z",
     updated_at: "2026-07-10T14:30:00Z",
+    image_url: null,
     products: [
       {
         id: 1,
@@ -54,6 +55,7 @@ export const initialMenuCatalog: TMenu[] = [
     products_count: 2,
     created_at: "2026-07-03T08:00:00Z",
     updated_at: "2026-07-09T09:15:00Z",
+    image_url: null,
     products: [
       {
         id: 4,
@@ -88,6 +90,7 @@ export const initialMenuCatalog: TMenu[] = [
     products_count: 0,
     created_at: "2026-07-05T12:00:00Z",
     updated_at: "2026-07-08T18:45:00Z",
+    image_url: null,
     products: [],
   },
 ]

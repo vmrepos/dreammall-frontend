@@ -131,7 +131,7 @@ export const Create = () => {
   }
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-[90rem]">
       <Link
         to="/orders"
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
@@ -151,44 +151,46 @@ export const Create = () => {
         </p>
       </div>
 
-      <form className="grid grid-cols-2 items-start gap-6" onSubmit={handleSubmit}>
-        <Card className="min-h-[32rem]">
+      <form
+        className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.95fr)_minmax(16rem,0.85fr)] lg:gap-5"
+        onSubmit={handleSubmit}
+      >
+        <Card className="flex min-h-0 flex-col border-2 !border-brand/50 lg:h-[min(36rem,calc(100svh-12rem))]">
           <CardHeader
             title="Productos disponibles"
             description="Selecciona ítems de tus menús activos"
           />
           {products.length === 0 ? (
-            <p className="px-6 pb-6 text-sm text-gray-500">
+            <p className="px-4 pb-4 text-sm text-gray-500">
               No hay productos activos. Activa un menú y sus productos primero.
             </p>
           ) : (
-            <div className="max-h-[calc(32rem-5rem)] overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <table className="w-full text-left text-sm">
                 <thead className="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm">
-                  <tr className="border-b border-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    <th className="px-6 py-3">Producto</th>
-                    <th className="px-6 py-3">Precio</th>
-                    <th className="px-6 py-3" />
+                  <tr className="border-b border-gray-100 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                    <th className="px-4 py-2">Producto</th>
+                    <th className="px-4 py-2">Precio</th>
+                    <th className="px-4 py-2" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {products.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50/60">
-                      <td className="px-6 py-4">
-                        <p className="font-medium text-gray-900">{product.name}</p>
-
+                      <td className="px-4 py-1.5">
+                        <p className="text-sm font-medium text-gray-900">{product.name}</p>
                       </td>
-                      <td className="px-6 py-4 font-medium text-gray-900">
+                      <td className="px-4 py-1.5 text-sm font-medium tabular-nums text-gray-900">
                         {formatCurrency(product.price)}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-1.5 text-right">
                         <Button
                           type="button"
                           variant="secondary"
-                          className="px-3 py-2"
+                          className="gap-1 rounded-lg px-2.5 py-1 text-xs"
                           onClick={() => addToCart(product)}
                         >
-                          <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
+                          <FontAwesomeIcon icon={faPlus} className="size-3" aria-hidden />
                           Agregar
                         </Button>
                       </td>
@@ -200,126 +202,137 @@ export const Create = () => {
           )}
         </Card>
 
-        <div className="space-y-6">
-          <Card className="min-h-[20rem]">
-            <CardHeader title="Ítems del pedido" description="Ajusta cantidades y notas" />
-            {cart.length === 0 ? (
-              <p className="px-6 pb-6 text-sm text-gray-500">
-                Agrega al menos un producto para continuar.
+        <Card className="flex min-h-0 flex-col border-2 !border-accent-sun/55 lg:h-[min(36rem,calc(100svh-12rem))]">
+          <CardHeader title="Ítems del pedido" description="Ajusta cantidades y notas" />
+          {cart.length === 0 ? (
+            <p className="px-4 pb-4 text-sm text-gray-500">
+              Agrega al menos un producto para continuar.
+            </p>
+          ) : (
+            <div className="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto px-4 pb-3">
+              {cart.map((line) => (
+                <CartItem
+                  key={line.product_id}
+                  line={line}
+                  updateQuantity={updateQuantity}
+                  removeFromCart={removeFromCart}
+                />
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card
+          padding="md"
+          className="border-2 !border-accent-clay/50 lg:sticky lg:top-4"
+        >
+          <h2 className="mb-3 text-base font-semibold text-gray-900">Resumen</h2>
+
+          <div>
+            <Label htmlFor="coordinates">Ubicación (lat, lng)</Label>
+            <Input
+              id="coordinates"
+              className="mt-1.5"
+              value={coordinatesInput}
+              onChange={(ev) => {
+                setCoordinatesInput(ev.target.value)
+                setCoordsError("")
+                setPreviewError("")
+                setDistanceKm(null)
+                setDeliveryFee("0.00")
+              }}
+              placeholder="-17.741364, -63.190680"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Pega las coordenadas de WhatsApp o Maps.
+            </p>
+            {coordsError && (
+              <p className="mt-1.5 text-sm text-red-600" role="alert">
+                {coordsError}
               </p>
-            ) : (
-              <div className="max-h-[20rem] space-y-4 overflow-y-auto px-6 pb-6">
-                {cart.map((line) => (
-                  <CartItem key={line.product_id} line={line} updateQuantity={updateQuantity} removeFromCart={removeFromCart} />
-                ))}
-              </div>
             )}
-          </Card>
-
-          <Card padding="md">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Resumen</h2>
-
-            <div>
-              <Label htmlFor="coordinates">Ubicación (lat, lng)</Label>
-              <Input
-                id="coordinates"
-                className="mt-2"
-                value={coordinatesInput}
-                onChange={(ev) => {
-                  setCoordinatesInput(ev.target.value)
-                  setCoordsError("")
-                  setPreviewError("")
-                  setDistanceKm(null)
-                  setDeliveryFee("0.00")
-                }}
-                placeholder="-17.74136401150216, -63.190680077296854"
-              />
-              <p className="mt-1.5 text-xs text-gray-500">
-                Pega las coordenadas compartidas por WhatsApp o Maps.
+            {previewError && (
+              <p className="mt-1.5 text-sm text-red-600" role="alert">
+                {previewError}
               </p>
-              {coordsError && (
-                <p className="mt-2 text-sm text-red-600" role="alert">
-                  {coordsError}
-                </p>
-              )}
-              {previewError && (
-                <p className="mt-2 text-sm text-red-600" role="alert">
-                  {previewError}
-                </p>
-              )}
-              <Button
-                type="button"
-                variant="secondary"
-                className="mt-3"
-                onClick={calculateDeliveryQuote}
-                disabled={!coordinatesInput.trim() || isCalculating}
-              >
-                {isCalculating ? "Calculando..." : "Calcular envío"}
-              </Button>
-            </div>
-
-            {distanceKm && (
-              <div className="mt-4 rounded-xl bg-brand-light p-4">
-                <dl className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <dt className="text-gray-500">Distancia</dt>
-                    <dd className="mt-1 text-lg font-semibold text-gray-900">{distanceKm} km</dd>
-                  </div>
-                  <div>
-                    <dt className="text-gray-500">Costo de envío</dt>
-                    <dd className="mt-1 text-lg font-semibold text-brand">
-                      {formatCurrency(deliveryFee)}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
             )}
+            <Button
+              type="button"
+              variant="secondary"
+              className="mt-2 w-full rounded-lg px-3 py-2 text-xs"
+              onClick={calculateDeliveryQuote}
+              disabled={!coordinatesInput.trim() || isCalculating}
+            >
+              {isCalculating ? "Calculando..." : "Calcular envío"}
+            </Button>
+          </div>
 
-            <div className="mt-4">
-              <Label htmlFor="discount">Descuento</Label>
-              <Input
-                id="discount"
-                className="mt-2"
-                type="number"
-                min="0"
-                step="0.01"
-                value={discount}
-                onChange={(ev) => setDiscount(ev.target.value)}
-              />
+          {distanceKm && (
+            <div className="mt-3 rounded-lg bg-brand-light px-3 py-2.5">
+              <dl className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <dt className="text-xs text-gray-500">Distancia</dt>
+                  <dd className="mt-0.5 font-semibold text-gray-900">{distanceKm} km</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-gray-500">Envío</dt>
+                  <dd className="mt-0.5 font-semibold text-brand">
+                    {formatCurrency(deliveryFee)}
+                  </dd>
+                </div>
+              </dl>
             </div>
+          )}
 
-            <dl className="mt-6 space-y-3 border-t border-gray-100 pt-4 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Subtotal</dt>
-                <dd className="font-medium text-gray-900">{formatCurrency(subtotal)}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Envío</dt>
-                <dd className="font-medium text-gray-900">{formatCurrency(deliveryFee)}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Descuento</dt>
-                <dd className="font-medium text-gray-900">-{formatCurrency(discount)}</dd>
-              </div>
-              <div className="flex justify-between border-t border-gray-100 pt-3">
-                <dt className="font-semibold text-gray-900">Total</dt>
-                <dd className="text-lg font-bold text-brand">{formatCurrency(total)}</dd>
-              </div>
-            </dl>
-            <div className="mt-6 flex gap-3">
-              <Button
-                type="submit"
-                disabled={cart.length === 0 || !distanceKm || isCalculating}
-                className="flex-1"
-              >
-                Crear pedido
-              </Button>
-              <Button type="button" variant="secondary" onClick={() => navigate("/orders")}>
-                Cancelar
-              </Button>
+          <div className="mt-3">
+            <Label htmlFor="discount">Descuento</Label>
+            <Input
+              id="discount"
+              className="mt-1.5"
+              type="number"
+              min="0"
+              step="0.01"
+              value={discount}
+              onChange={(ev) => setDiscount(ev.target.value)}
+            />
+          </div>
+
+          <dl className="mt-4 space-y-2 border-t border-gray-100 pt-3 text-sm">
+            <div className="flex justify-between gap-2">
+              <dt className="text-gray-500">Subtotal</dt>
+              <dd className="font-medium tabular-nums text-gray-900">{formatCurrency(subtotal)}</dd>
             </div>
-          </Card>
-        </div>
+            <div className="flex justify-between gap-2">
+              <dt className="text-gray-500">Envío</dt>
+              <dd className="font-medium tabular-nums text-gray-900">{formatCurrency(deliveryFee)}</dd>
+            </div>
+            <div className="flex justify-between gap-2">
+              <dt className="text-gray-500">Descuento</dt>
+              <dd className="font-medium tabular-nums text-gray-900">-{formatCurrency(discount)}</dd>
+            </div>
+            <div className="flex justify-between gap-2 border-t border-gray-100 pt-2">
+              <dt className="font-semibold text-gray-900">Total</dt>
+              <dd className="text-base font-bold tabular-nums text-brand">{formatCurrency(total)}</dd>
+            </div>
+          </dl>
+          <div className="mt-4 flex flex-col gap-2">
+            <Button
+              type="submit"
+              disabled={cart.length === 0 || !distanceKm || isCalculating}
+              className="w-full rounded-lg py-2.5"
+            >
+              Crear pedido
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full rounded-lg py-2.5"
+              onClick={() => navigate("/orders")}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </Card>
       </form>
     </div>
   )

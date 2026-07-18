@@ -6,6 +6,7 @@ export const mockRestaurantProfile: TRestaurant = {
   address: "Calle las frutillas, Santa Cruz",
   whatsapp: "3178422804",
   email: "system@system.com",
+  nit: "123456789",
   open_time: "08:00",
   close_time: "22:00",
   status: "open",
@@ -17,6 +18,7 @@ export const mockRestaurantProfile: TRestaurant = {
     first_name: "System",
     last_name: "System",
     username: "system",
+    phone_number: "3178422804",
   },
 }
 

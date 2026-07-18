@@ -5,6 +5,7 @@ export type TRestaurant = {
   name: string;
   address: string;
   whatsapp: string;
+  nit: string;
   email: string;
   open_time: string | null;
   close_time: string | null;
@@ -13,3 +14,6 @@ export type TRestaurant = {
   owner_id: number;
   user: TUser;
 };
+
+
+export type TRestaurantForm = Partial<TRestaurant> 

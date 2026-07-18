@@ -1,26 +1,43 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBookOpen, faPlus, faUtensils } from "@fortawesome/free-solid-svg-icons"
-import { Badge } from "../../../components/atoms/Badge"
+import { faBookOpen, faImage, faPlus, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../components/atoms/Button"
 import { Card } from "../../../components/atoms/Card"
 import { Input } from "../../../components/atoms/Input"
 import { Label } from "../../../components/atoms/Label"
-import { Toggle } from "../../../components/atoms/Toggle"
 import { PageHeader } from "../../../components/molecules/PageHeader"
 import { useMenuCatalog } from "../../../context/MenuCatalogContext"
+import { MenuThumbnail } from "./MenuThumbnail"
 
 export const MenusPage = () => {
-  const navigate = useNavigate()
-  const { menus, createMenu, patchMenu } = useMenuCatalog()
+  const { menus, createMenu } = useMenuCatalog()
   const [menu, setMenu] = useState({ name: "", active: true })
+  const [image, setImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImageChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    const file = ev.target.files?.[0] ?? null
+    setImage(file)
+
+    if (imagePreview) URL.revokeObjectURL(imagePreview)
+    setImagePreview(file ? URL.createObjectURL(file) : null)
+  }
+
+  const clearImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview)
+    setImage(null)
+    setImagePreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
 
   const handleCreate = (ev: React.FormEvent) => {
     ev.preventDefault()
     try {
-      createMenu(menu)
+      createMenu({ ...menu, image })
+      setMenu({ name: "", active: true })
+      clearImage()
       setShowForm(false)
     } catch (error) {
       console.error(error)
@@ -46,22 +63,65 @@ export const MenusPage = () => {
 
       {showForm && (
         <Card padding="lg" className="mb-6">
-          <form className="flex items-end gap-4" onSubmit={handleCreate}>
-            <div className="min-w-0 flex-1">
-              <Label htmlFor="menu-name">Nombre del menú</Label>
-              <Input
-                id="menu-name"
-                className="mt-2"
-                placeholder="Ej. Menú principal"
-                value={menu.name}
-                onChange={(ev) => setMenu({ ...menu, name: ev.target.value })}
-                required
-              />
+          <form className="flex flex-col gap-4" onSubmit={handleCreate}>
+            <div className="flex items-end gap-4">
+              <div className="min-w-0 flex-1">
+                <Label htmlFor="menu-name">Nombre del menú</Label>
+                <Input
+                  id="menu-name"
+                  className="mt-2"
+                  placeholder="Ej. Menú principal"
+                  value={menu.name}
+                  onChange={(ev) => setMenu({ ...menu, name: ev.target.value })}
+                  required
+                />
+              </div>
+              <Button type="submit">Crear menú</Button>
+              <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>
+                Cancelar
+              </Button>
             </div>
-            <Button type="submit">Crear menú</Button>
-            <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>
-              Cancelar
-            </Button>
+
+            <div>
+              <Label htmlFor="menu-image">Imagen (opcional)</Label>
+              <input
+                ref={fileInputRef}
+                id="menu-image"
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={handleImageChange}
+              />
+
+              {imagePreview ? (
+                <div className="mt-2 flex items-center gap-4">
+                  <img
+                    src={imagePreview}
+                    alt="Vista previa del menú"
+                    className="size-20 rounded-xl border border-gray-200 object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-ink">{image?.name}</p>
+                    <button
+                      type="button"
+                      onClick={clearImage}
+                      className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:underline"
+                    >
+                      <FontAwesomeIcon icon={faXmark} className="size-3.5" aria-hidden />
+                      Quitar imagen
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label
+                  htmlFor="menu-image"
+                  className="mt-2 flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 bg-surface px-4 py-6 text-sm text-ink-muted transition hover:border-brand hover:text-brand"
+                >
+                  <FontAwesomeIcon icon={faImage} className="size-4" aria-hidden />
+                  Haz clic para subir una imagen del menú
+                </label>
+              )}
+            </div>
           </form>
         </Card>
       )}
@@ -81,62 +141,7 @@ export const MenusPage = () => {
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {menus.map((menu) => (
-              <Card
-                key={menu.id}
-                className={[
-                  "transition hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08),0_12px_28px_rgba(12,107,61,0.12)]",
-                  menu.active ? "" : "border-red-200/80 bg-red-50/40",
-                ].join(" ")}
-              >
-                <button
-                  type="button"
-                  onClick={() => navigate(`/menu/${menu.id}`)}
-                  className="group block w-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-                >
-                  <div
-                    className={[
-                      "relative aspect-square overflow-hidden",
-                      menu.active
-                        ? "bg-gradient-to-br from-brand-light via-emerald-50 to-gray-100"
-                        : "bg-gradient-to-br from-red-100 via-red-50 to-gray-100",
-                    ].join(" ")}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span
-                        className={[
-                          "flex size-10 items-center justify-center rounded-xl shadow-sm backdrop-blur-sm transition group-hover:scale-105",
-                          menu.active
-                            ? "bg-white/70 text-brand"
-                            : "bg-white/70 text-red-600",
-                        ].join(" ")}
-                      >
-                        <FontAwesomeIcon icon={faUtensils} className="size-4" aria-hidden />
-                      </span>
-                    </div>
-                    <div className="absolute left-2 top-2">
-                      <Badge variant={menu.active ? "success" : "danger"}>
-                        {menu.active ? "Activo" : "Inactivo"}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="px-2.5 pt-2.5">
-                    <h2 className="truncate text-sm font-semibold text-ink">{menu.name}</h2>
-                    <p className="mt-0.5 text-xs text-ink-muted">
-                      {menu.products_count}{" "}
-                      {menu.products_count === 1 ? "producto" : "productos"}
-                    </p>
-                  </div>
-                </button>
-
-                <div className="flex items-center justify-end px-2.5 pb-2.5 pt-2">
-                  <Toggle
-                    checked={menu.active}
-                    label={`${menu.active ? "Desactivar" : "Activar"} ${menu.name}`}
-                    onChange={() => patchMenu(menu.id, { active: !menu.active })}
-                  />
-                </div>
-              </Card>
+              <MenuThumbnail key={menu.id} menu={menu} />
             ))}
           </div>
         </>

@@ -12,6 +12,19 @@ export const MenusAPI = {
     return response.data.data
   },
   create: async (menu: TMenuForm) => {
+    // When an image is attached, send multipart/form-data so the backend
+    // can receive the file. Keys must be nested under `menu[...]` because
+    // Rails' wrap_parameters only auto-wraps JSON bodies, not multipart.
+    if (menu.image) {
+      const formData = new FormData()
+      if (menu.name != null) formData.append("menu[name]", menu.name)
+      if (menu.active != null) formData.append("menu[active]", String(menu.active))
+      formData.append("menu[image]", menu.image)
+
+      const response = await axiosInstance.post("/restaurants/menus", formData)
+      return response.data.data
+    }
+
     const response = await axiosInstance.post("/restaurants/menus", menu)
     return response.data.data
   },

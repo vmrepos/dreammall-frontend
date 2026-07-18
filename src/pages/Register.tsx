@@ -15,23 +15,11 @@ import { BrandMark } from "../components/atoms/BrandMark"
 import { Button } from "../components/atoms/Button"
 import { Card } from "../components/atoms/Card"
 import { FormField } from "../components/molecules/FormField"
+import type { TUserCreateForm, TUserForm } from "../types/User"
+import type { TRestaurantForm } from "../types/Restaurant"
+import { apiClient } from "../services/apiClient"
 
-type AccountData = {
-  first_name: string
-  last_name: string
-  email: string
-  phone_number: string
-  password: string
-  password_confirmation: string
-}
 
-type RestaurantData = {
-  name: string
-  nit: string
-  address: string
-  whatsapp: string
-  email: string
-}
 
 const steps = [
   { id: 1, label: "Cuenta", icon: faUser },
@@ -39,7 +27,7 @@ const steps = [
   { id: 3, label: "Confirmar", icon: faCheck },
 ] as const
 
-const emptyAccount: AccountData = {
+const emptyUser: TUserForm = {
   first_name: "",
   last_name: "",
   email: "",
@@ -48,7 +36,7 @@ const emptyAccount: AccountData = {
   password_confirmation: "",
 }
 
-const emptyRestaurant: RestaurantData = {
+const emptyRestaurant: TRestaurantForm = {
   name: "",
   nit: "",
   address: "",
@@ -59,21 +47,29 @@ const emptyRestaurant: RestaurantData = {
 export const Register = () => {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
-  const [account, setAccount] = useState<AccountData>(emptyAccount)
-  const [restaurant, setRestaurant] = useState<RestaurantData>(emptyRestaurant)
+  const [user, setUser] = useState<TUserForm>(emptyUser)
+  const [restaurant, setRestaurant] = useState<TRestaurantForm>(emptyRestaurant)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const updateAccount = (field: keyof AccountData, value: string) =>
-    setAccount((current) => ({ ...current, [field]: value }))
+  const updateAccount = (field: keyof TUserForm, value: string) =>
+    setUser((current) => ({ ...current, [field]: value }))
 
-  const updateRestaurant = (field: keyof RestaurantData, value: string) =>
+  const updateRestaurant = (field: keyof TRestaurantForm, value: string) =>
     setRestaurant((current) => ({ ...current, [field]: value }))
 
   const handleSubmit = async () => {
+    const data: TUserCreateForm = { user, restaurant }
     setIsSubmitting(true)
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    setIsSubmitting(false)
-    navigate("/login", { replace: true })
+    apiClient.users.createAccount(data)
+      .then(() => {
+        navigate("/login", { replace: true })
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+      .finally(() => {
+        setIsSubmitting(false)
+      })
   }
 
   return (
@@ -116,24 +112,33 @@ export const Register = () => {
                 <FormField
                   id="first_name"
                   label="Nombre"
-                  value={account.first_name}
+                  value={user.first_name}
                   onChange={(ev) => updateAccount("first_name", ev.target.value)}
                   required
                 />
                 <FormField
                   id="last_name"
                   label="Apellido"
-                  value={account.last_name}
+                  value={user.last_name}
                   onChange={(ev) => updateAccount("last_name", ev.target.value)}
                   required
                 />
               </div>
               <FormField
+                id="username"
+                label="Nombre de usuario"
+                icon={faUser}
+                type="text"
+                value={user.username}
+                onChange={(ev) => updateAccount("username", ev.target.value)}
+                required
+              />
+              <FormField
                 id="email"
                 label="Correo electrónico"
                 icon={faEnvelope}
                 type="email"
-                value={account.email}
+                value={user.email}
                 onChange={(ev) => updateAccount("email", ev.target.value)}
                 required
               />
@@ -141,7 +146,7 @@ export const Register = () => {
                 id="phone_number"
                 label="Teléfono"
                 icon={faPhone}
-                value={account.phone_number}
+                value={user.phone_number}
                 onChange={(ev) => updateAccount("phone_number", ev.target.value)}
                 required
               />
@@ -150,7 +155,7 @@ export const Register = () => {
                 label="Contraseña"
                 icon={faLock}
                 type="password"
-                value={account.password}
+                value={user.password}
                 onChange={(ev) => updateAccount("password", ev.target.value)}
                 required
               />
@@ -159,7 +164,7 @@ export const Register = () => {
                 label="Confirmar contraseña"
                 icon={faLock}
                 type="password"
-                value={account.password_confirmation}
+                value={user.password_confirmation}
                 onChange={(ev) => updateAccount("password_confirmation", ev.target.value)}
                 required
               />
@@ -216,16 +221,16 @@ export const Register = () => {
                   <div className="flex justify-between gap-4">
                     <dt className="text-gray-500">Nombre</dt>
                     <dd className="font-medium text-gray-900">
-                      {account.first_name} {account.last_name}
+                      {user.first_name} {user.last_name}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-gray-500">Correo</dt>
-                    <dd className="font-medium text-gray-900">{account.email}</dd>
+                    <dd className="font-medium text-gray-900">{user.email}</dd>
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-gray-500">Teléfono</dt>
-                    <dd className="font-medium text-gray-900">{account.phone_number}</dd>
+                    <dd className="font-medium text-gray-900">{user.phone_number}</dd>
                   </div>
                 </dl>
               </section>
