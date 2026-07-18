@@ -104,7 +104,17 @@ export const ProfilePage = () => {
             value={profile.email}
             onChange={(ev) => setProfile({ ...profile, email: ev.target.value })}
           />
-
+          <FormField
+            id="latitude"
+            label="Coordenadas"
+            icon={faLocationDot}
+            value={`${profile.latitude}, ${profile.longitude}`}
+            onChange={(ev) => {
+              const [latitude, longitude] = ev.target.value.split(",")
+              setProfile({ ...profile, latitude: parseFloat(latitude), longitude: parseFloat(longitude) })
+            }}
+            required
+          />
           <div className="grid grid-cols-2 gap-4">
             <FormField
               id="open_time"
@@ -114,6 +124,7 @@ export const ProfilePage = () => {
               value={profile.open_time ?? ""}
               onChange={(ev) => setProfile({ ...profile, open_time: ev.target.value })}
             />
+
             <FormField
               id="close_time"
               label="Hora de cierre"
