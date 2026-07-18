@@ -13,6 +13,8 @@ export type TRestaurant = {
   score: number | null;
   owner_id: number;
   user: TUser;
+  latitude: number;
+  longitude: number;
 };
 
 
