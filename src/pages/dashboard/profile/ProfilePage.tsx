@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   faClock,
   faEnvelope,
@@ -10,24 +10,53 @@ import { Button } from "../../../components/atoms/Button"
 import { Card } from "../../../components/atoms/Card"
 import { FormField } from "../../../components/molecules/FormField"
 import { PageHeader } from "../../../components/molecules/PageHeader"
-import { mockRestaurantProfile } from "../../../mocks/restaurant"
+
+import { apiClient } from "../../../services/apiClient"
+import type { TRestaurant, TRestaurantForm } from "../../../types/Restaurant"
 
 export const ProfilePage = () => {
-  const [profile, setProfile] = useState(mockRestaurantProfile)
+  const [profile, setProfile] = useState<TRestaurant | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [saved, setSaved] = useState(false)
+  const getProfile = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const profile = await apiClient.restaurants.getProfile()
+      setProfile(profile)
+    }
+    catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    getProfile()
+  }, [getProfile])
 
   const handleSave = async (ev: React.FormEvent) => {
     ev.preventDefault()
+    if (!profile) return
     setIsSaving(true)
     setSaved(false)
-    await new Promise((resolve) => setTimeout(resolve, 600))
-    setIsSaving(false)
-    setSaved(true)
+    try {
+      const response = await apiClient.restaurants.updateProfile(profile)
+      setProfile(response)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsSaving(false)
+      setSaved(true)
+    }
   }
+
+  if (!profile) return <div>Cargando...</div>
 
   return (
     <div className="mx-auto max-w-3xl">
+
       <PageHeader
         icon={faStore}
         section="Cuenta"
