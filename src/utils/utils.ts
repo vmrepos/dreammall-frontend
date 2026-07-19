@@ -9,3 +9,7 @@ export function ProductList(menus: TMenu[]): TProduct[] {
         .map((product) => ({ ...product, menuName: menu.name })) ?? [],
     )
 }
+
+export function revokePreviewIfBlob(preview: string | null) {
+  if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview)
+}

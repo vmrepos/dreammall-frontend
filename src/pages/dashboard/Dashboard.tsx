@@ -1,12 +1,12 @@
 import { Outlet } from "react-router-dom"
-import { MenuCatalogProvider } from "../../context/MenuCatalogContext"
 import { OrdersProvider } from "../../context/OrdersContext"
 import { SubscriptionProvider } from "../../context/SubscriptionContext"
 import { Sidebar } from "./Sidebar"
+import { MenuProvider } from "../../context/MenuContext"
 
 export const Dashboard = () => {
   return (
-    <MenuCatalogProvider>
+    <MenuProvider>
       <OrdersProvider>
         <SubscriptionProvider>
           <div className="flex min-h-svh bg-surface">
@@ -17,6 +17,6 @@ export const Dashboard = () => {
           </div>
         </SubscriptionProvider>
       </OrdersProvider>
-    </MenuCatalogProvider>
+    </MenuProvider>
   )
 }

@@ -6,7 +6,7 @@ import { axiosInstance } from "./apiClient"
 export const ProductsAPI = {
   create: async (menuId: number, product: TProductForm): Promise<TProduct> => {
     const response = await axiosInstance.post(`/restaurants/menus/${menuId}/products`, {
-      product,
+      product: product,
     })
     return response.data.data as TProduct
   },

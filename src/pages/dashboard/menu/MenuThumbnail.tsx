@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom"
 import { Card } from "../../../components/atoms/Card"
-import { useMenuCatalog } from "../../../context/MenuCatalogContext"
 import type { TMenu } from "../../../types/Menu"
 import { faUtensils } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Badge } from "../../../components/atoms/Badge"
 import { Toggle } from "../../../components/atoms/Toggle"
+import { useMenuContext } from "../../../context/MenuContext"
 type Props = {
   menu: TMenu
 
@@ -13,7 +13,7 @@ type Props = {
 }
 export const MenuThumbnail: React.FC<Props> = ({ menu }) => {
   const navigate = useNavigate()
-  const { patchMenu } = useMenuCatalog()
+  const { toggleMenu } = useMenuContext()
   return (
 
     <Card
@@ -75,7 +75,7 @@ export const MenuThumbnail: React.FC<Props> = ({ menu }) => {
         <Toggle
           checked={menu.active}
           label={`${menu.active ? "Desactivar" : "Activar"} ${menu.name}`}
-          onChange={() => patchMenu(menu.id, { active: !menu.active })}
+          onChange={() => toggleMenu(menu.id, !menu.active)}
         />
       </div>
     </Card>

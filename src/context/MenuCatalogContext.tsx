@@ -5,8 +5,6 @@ import type { TProduct, TProductForm } from "../types/Product"
 import { apiClient } from "../services/apiClient"
 import { ProductList } from "../utils/utils"
 
-
-
 type MenuCatalogContextType = {
   menus: TMenu[]
   products: TProduct[]
@@ -16,82 +14,104 @@ type MenuCatalogContextType = {
   patchProduct: (menuId: number, productId: number, input: TProductForm) => Promise<void>
   deleteMenu: (menuId: number) => Promise<void>
   deleteProduct: (menuId: number, productId: number) => Promise<void>
-
 }
 
 const MenuCatalogContext = createContext<MenuCatalogContextType | null>(null)
 
-
+// Replace a menu in the array
+const replaceMenu = (menus: TMenu[], menuId: number, updater: (menu: TMenu) => TMenu) =>
+  menus.map((menu) => (menu.id === menuId ? updater(menu) : menu))
 
 export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
-
-
   const [menus, setMenus] = useState<TMenu[]>([])
   const [products, setProducts] = useState<TProduct[]>([])
-
-  const fetchMenus = async () => {
-    const res = await apiClient.menus.list()
-    setMenus(res)
-    setProducts(ProductList(res))
-  }
-
-
-  const createMenu = async (menu: TMenuForm) => {
-    const res = await apiClient.menus.create(menu)
-    setMenus((current) => [...current, res])
-  }
-
-  // This patches on server
-  const patchMenu = async (menuId: number, data: TMenuForm) => {
-    const res = await apiClient.menus.update(menuId, data)
-    updateMenu(menuId, res)
-  }
-
-  const updateMenu = (menuId: number, updater: (menu: TMenu) => TMenu) => {
-    setMenus((current) =>
-      current.map((menu) => (menu.id === menuId ? updater(menu) : menu)),
-    )
-  }
-
-  const addProduct = async (menuId: number, input: TProductForm) => {
-    const res = await apiClient.menus.addProduct(menuId, input)
-    setMenus((current) =>
-      current.map((menu) => (menu.id === menuId ? { ...menu, products: [...menu.products, res] } : menu)),
-    )
-
-  }
-
-  const patchProduct = async (menuId: number, productId: number, input: TProductForm) => {
-    const res = await apiClient.menus.updateProduct(menuId, productId, input)
-    setMenus((current) =>
-      current.map((menu) => (menu.id === menuId ? { ...menu, products: [...menu.products, res] } : menu)),
-    )
-
-  }
-
-  const deleteMenu = async (menuId: number) => {
-    await apiClient.menus.deleteMenu(menuId)
-    setMenus((current) => current.filter((menu) => menu.id !== menuId))
-  }
-
-  const deleteProduct = async (menuId: number, productId: number) => {
-    await apiClient.menus.deleteProduct(menuId, productId)
-    setMenus((current) =>
-      current.map((menu) => (menu.id === menuId ? { ...menu, products: menu.products.filter((product) => product.id !== productId) } : menu)),
-    )
-  }
-
-
 
   useEffect(() => {
     fetchMenus()
   }, [])
 
+
   useEffect(() => {
     setProducts(ProductList(menus))
   }, [menus])
 
+  // Fetch menus from the API
+  const fetchMenus = async () => {
+    try {
+      const res = await apiClient.menus.list()
+      setMenus(res)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
+  // Create a new menu
+  const createMenu = async (menu: TMenuForm) => {
+    try {
+      const res = await apiClient.menus.create(menu)
+      setMenus((current) => [...current, res])
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  // patches a menu in the api, then replaces the menu in the array
+  const patchMenu = async (menuId: number, data: TMenuForm) => {
+    const res = await apiClient.menus.update(menuId, data)
+    setMenus((current) =>
+      replaceMenu(current, menuId, (menu) => ({
+        ...menu,
+        ...res,
+        products: res.products ?? menu.products,
+      })),
+    )
+  }
+
+  // adds a product to a menu in the api, then replaces the product in the array
+  const addProduct = async (menuId: number, input: TProductForm) => {
+    const res = await apiClient.products.create(menuId, input)
+    setMenus((current) =>
+      replaceMenu(current, menuId, (menu) => ({
+        ...menu,
+        products: [...(menu.products ?? []), res],
+        products_count: (menu.products_count ?? 0) + 1,
+      })),
+    )
+  }
+
+  // patches a product in the api, then replaces the product in the array
+  const patchProduct = async (menuId: number, productId: number, input: TProductForm) => {
+    const res = await apiClient.products.update(menuId, productId, input)
+    setMenus((current) =>
+      replaceMenu(current, menuId, (menu) => ({
+        ...menu,
+        products: (menu.products ?? []).map((product) =>
+          product.id === productId ? { ...product, ...res } : product,
+        ),
+      })),
+    )
+  }
+
+  // deletes a menu in the api, then removes the menu from the array
+  const deleteMenu = async (menuId: number) => {
+    await apiClient.menus.destroy(menuId)
+    setMenus((current) => current.filter((menu) => menu.id !== menuId))
+  }
+
+  // deletes a product in the api, then removes the product from the array
+  const deleteProduct = async (menuId: number, productId: number) => {
+    await apiClient.products.destroy(menuId, productId)
+    setMenus((current) =>
+      replaceMenu(current, menuId, (menu) => {
+        const products = (menu.products ?? []).filter((product) => product.id !== productId)
+        return {
+          ...menu,
+          products,
+          products_count: products.length,
+        }
+      }),
+    )
+  }
 
 
 
@@ -106,7 +126,7 @@ export const MenuCatalogProvider = ({ children }: { children: ReactNode }) => {
         addProduct,
         patchProduct,
         deleteProduct,
-        deleteMenu
+        deleteMenu,
       }}
     >
       {children}

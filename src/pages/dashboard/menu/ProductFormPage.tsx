@@ -16,6 +16,7 @@ export const ProductFormPage = () => {
   const { menuId, productId } = useParams()
   const navigate = useNavigate()
   const { patchProduct, addProduct } = useMenuCatalog()
+
   const parsedMenuId = Number(menuId)
   const parsedProductId = productId ? Number(productId) : null
   const isEditing = parsedProductId !== null
@@ -123,9 +124,9 @@ export const ProductFormPage = () => {
 
     try {
       if (isEditing && parsedProductId !== null) {
-        void patchProduct(parsedMenuId, parsedProductId, input)
+        await patchProduct(parsedMenuId, parsedProductId, input)
       } else {
-        void addProduct(parsedMenuId, input)
+        await addProduct(parsedMenuId, input)
       }
 
       navigate(`/menu/${menu.id}`)
