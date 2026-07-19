@@ -1,21 +1,18 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "../../../components/atoms/Button"
-import { Card } from "../../../components/atoms/Card"
-import { Input } from "../../../components/atoms/Input"
-import { Label } from "../../../components/atoms/Label"
-import { Toggle } from "../../../components/atoms/Toggle"
-import { apiClient } from "../../../services/apiClient"
-import type { TMenu } from "../../../types/Menu"
-import type { TProduct } from "../../../types/Product"
-import { useMenuCatalog } from "../../../context/MenuCatalogContext"
+import { Button } from "../../../../components/atoms/Button"
+import { Card } from "../../../../components/atoms/Card"
+import { GoBack } from "../../../../components/atoms/GoBack"
+import { Input } from "../../../../components/atoms/Input"
+import { Label } from "../../../../components/atoms/Label"
+import { Toggle } from "../../../../components/atoms/Toggle"
+import { apiClient } from "../../../../services/apiClient"
+import type { TMenu } from "../../../../types/Menu"
+import type { TProduct } from "../../../../types/Product"
 
-export const ProductFormPage = () => {
+export const Form = () => {
   const { menuId, productId } = useParams()
   const navigate = useNavigate()
-  const { patchProduct, addProduct } = useMenuCatalog()
 
   const parsedMenuId = Number(menuId)
   const parsedProductId = productId ? Number(productId) : null
@@ -124,9 +121,9 @@ export const ProductFormPage = () => {
 
     try {
       if (isEditing && parsedProductId !== null) {
-        await patchProduct(parsedMenuId, parsedProductId, input)
+        await apiClient.products.update(parsedMenuId, parsedProductId, input)
       } else {
-        await addProduct(parsedMenuId, input)
+        await apiClient.products.create(parsedMenuId, input)
       }
 
       navigate(`/menu/${menu.id}`)
@@ -138,13 +135,7 @@ export const ProductFormPage = () => {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link
-        to={`/menu/${menu.id}`}
-        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
-      >
-        <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />
-        Volver a {menu.name}
-      </Link>
+      <GoBack text={`Volver a ${menu.name}`} route={`/menu/${menu.id}`} />
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">

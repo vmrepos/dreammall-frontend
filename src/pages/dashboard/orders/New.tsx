@@ -6,7 +6,7 @@ import { Button } from "../../../components/atoms/Button"
 import { Card, CardHeader } from "../../../components/atoms/Card"
 import { Input } from "../../../components/atoms/Input"
 import { Label } from "../../../components/atoms/Label"
-import { useMenuCatalog } from "../../../context/MenuCatalogContext"
+import { useMenuContext } from "../../../context/MenuContext"
 import { useOrders } from "../../../context/OrdersContext"
 import { apiClient } from "../../../services/apiClient"
 import { parseCoordinates } from "../../../utils/coordinates"
@@ -18,7 +18,7 @@ import type { TProduct } from "../../../types/Product"
 
 export const Create = () => {
   const navigate = useNavigate()
-  const { products } = useMenuCatalog()
+  const { products } = useMenuContext()
   const { createOrder } = useOrders()
   const [cart, setCart] = useState<TOrderItemForm[]>([])
   const [coordinatesInput, setCoordinatesInput] = useState("")

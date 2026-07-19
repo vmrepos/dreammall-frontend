@@ -1,23 +1,23 @@
 import { useEffect, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowLeft, faBookOpen, faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faBookOpen, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { Badge } from "../../../components/atoms/Badge"
 import { Button } from "../../../components/atoms/Button"
 import { Toggle } from "../../../components/atoms/Toggle"
-import { useMenuCatalog } from "../../../context/MenuCatalogContext"
 import { apiClient } from "../../../services/apiClient"
 import type { TMenu } from "../../../types/Menu"
 import type { TProduct } from "../../../types/Product"
 import { ProductTable } from "./ProductTable"
 import { MenuNotFound } from "./NotFound"
 import { GoBack } from "../../../components/atoms/GoBack"
+import { useMenuContext } from "../../../context/MenuContext"
 
 export const Show = () => {
   const { menuId } = useParams()
   const navigate = useNavigate()
   const parsedMenuId = Number(menuId)
-  const { patchMenu } = useMenuCatalog()
+  const { toggleMenu } = useMenuContext()
   const [menu, setMenu] = useState<TMenu | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -38,11 +38,7 @@ export const Show = () => {
     fetchMenu()
   }, [parsedMenuId])
 
-  const handleMenuActive = async (active: boolean) => {
-    if (!menu) return
-    await patchMenu(menu.id, { active })
-    setMenu((current) => (current ? { ...current, active } : current))
-  }
+
 
   const handleProductsChange = (products: TProduct[]) => {
     setMenu((current) =>
@@ -89,7 +85,7 @@ export const Show = () => {
           <Toggle
             checked={menu.active}
             label={`${menu.active ? "Desactivar" : "Activar"} ${menu.name}`}
-            onChange={(active) => void handleMenuActive(active)}
+            onChange={(active) => toggleMenu(menu.id, active)}
           />
           <Button onClick={() => navigate(`/menu/${menu.id}/products/new`)}>
             <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />

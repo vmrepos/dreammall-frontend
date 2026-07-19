@@ -15,9 +15,9 @@ import { SubscriptionPage } from "./pages/dashboard/subscription/SubscriptionPag
 
 import { MenuLayout } from "./pages/dashboard/menu/MenuLayout"
 
-import { ProductFormPage } from "./pages/dashboard/menu/ProductFormPage"
 import { Orders } from "./pages/dashboard/orders/Orders"
 import { Menu } from "./pages/dashboard/menu/Menu"
+import { Products } from "./pages/dashboard/menu/products/Products"
 
 export const AppRoutes = () => {
   return (
@@ -44,8 +44,8 @@ export const AppRoutes = () => {
               <Route path="menu" element={<MenuLayout />}>
                 <Route index element={<Menu.Index />} />
                 <Route path="new" element={<Menu.New />} />
-                <Route path=":menuId/products/new" element={<ProductFormPage />} />
-                <Route path=":menuId/products/:productId/edit" element={<ProductFormPage />} />
+                <Route path=":menuId/products/new" element={<Products.Form />} />
+                <Route path=":menuId/products/:productId/edit" element={<Products.Form />} />
                 <Route path=":menuId" element={<Menu.Show />} />
               </Route>
             </Route>
