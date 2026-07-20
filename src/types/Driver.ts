@@ -5,6 +5,7 @@ export type TDriver = {
   vehicle_plate: string
   status: string
   available: boolean
+  phone_number: string
 }
 
 export type TDriverForm = Partial<TDriver> 

@@ -11,6 +11,7 @@ import { useOrders } from "../../../context/OrdersContext"
 import type { TOrderStatus } from "../../../types/Order"
 import { canCancelOrder, getNextOrderStatus, orderStatusConfig } from "../../../utils/status"
 import { formatCurrency, formatDate } from "../../../utils/format"
+import { DeliveryCard } from "./DeliveryCard"
 
 const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
   pending: "Marcar listo",
@@ -113,8 +114,8 @@ export const Show = () => {
               Cancelar pedido
             </Button>
           )}
-          {order.status === "ready" && order.delivery_id && (
-            <Button variant="secondary" onClick={() => navigate(`/deliveries/${order.delivery_id}`)}>
+          {order.status === "ready" && order.delivery && (
+            <Button variant="secondary" onClick={() => navigate(`/deliveries/${order.delivery?.id}`)}>
               Ver entrega
             </Button>
           )}
@@ -144,12 +145,8 @@ export const Show = () => {
 
           <Card padding="md">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Entrega</h2>
-            {order.delivery_id ? (
-              <DetailRow
-                label="Entrega asociada"
-                value={`#${order.delivery_id}`}
-                href={`/deliveries/${order.delivery_id}`}
-              />
+            {order.delivery ? (
+              <DeliveryCard delivery={order.delivery} />
             ) : (
               <p className="text-sm text-gray-500">Sin entrega asociada todavía.</p>
             )}
@@ -165,6 +162,6 @@ export const Show = () => {
         onConfirm={cancelOrder}
         onCancel={() => setShowCancelDialog(false)}
       />
-    </div>
+    </div >
   )
 }
