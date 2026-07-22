@@ -1,11 +1,11 @@
 import { NavLink, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCreditCard, faMoon, faSun } from "@fortawesome/free-solid-svg-icons"
+import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons"
 import { useAuth } from "../../context/AuthContext"
-import { useSubscription } from "../../context/SubscriptionContext"
 import { useTheme } from "../../context/ThemeContext"
 import { BrandMark } from "../../components/atoms/BrandMark"
 import { Toggle } from "../../components/atoms/Toggle"
+import { SidebarSubscriptionWidget } from "../../components/molecules/SidebarSubscriptionWidget"
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -26,7 +26,6 @@ const navItems = [
 
 export const Sidebar = () => {
   const { restaurant, logout } = useAuth()
-  const { subscription, currentPlan } = useSubscription()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -61,34 +60,7 @@ export const Sidebar = () => {
       </nav>
 
       <div className="mt-auto border-t border-white/10 pt-4">
-        <NavLink
-          to="/subscription"
-          className={({ isActive }) =>
-            [
-              "block rounded-xl bg-white/5 p-3 transition hover:bg-white/10",
-              isActive ? "ring-1 ring-accent-sun/60" : "",
-            ].join(" ")
-          }
-        >
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/45">
-            <FontAwesomeIcon icon={faCreditCard} className="size-3.5" aria-hidden />
-            Mi suscripción
-          </div>
-          {currentPlan ? (
-            <>
-              <p className="text-sm font-semibold text-white">{currentPlan.name}</p>
-              {subscription.creditsRemaining !== null && subscription.creditsTotal !== null ? (
-                <p className="mt-1 text-xs text-white/50">
-                  {subscription.creditsRemaining} / {subscription.creditsTotal} entregas
-                </p>
-              ) : (
-                <p className="mt-1 text-xs text-white/50">Postpago · ilimitado</p>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-white/50">Sin plan activo</p>
-          )}
-        </NavLink>
+        <SidebarSubscriptionWidget />
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2.5">

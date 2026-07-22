@@ -15,6 +15,7 @@ export type TRestaurant = {
   user: TUser;
   latitude: number;
   longitude: number;
+  credits: number;
 };
 
 

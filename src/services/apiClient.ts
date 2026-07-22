@@ -4,6 +4,7 @@ import { MenusAPI } from "./menus";
 import { ProductsAPI } from "./products";
 import { OrdersAPI } from "./orders";
 import { UsersAPI } from "./users";
+import { SubscriptionsAPI } from "./subscriptions";
 import { RestaurantsAPI } from "./restaurants";
 
 export const axiosInstance = axios.create({
@@ -69,4 +70,5 @@ export const apiClient = {
   orders: OrdersAPI,
   users: UsersAPI,
   restaurants: RestaurantsAPI,
+  subscriptions: SubscriptionsAPI,
 }

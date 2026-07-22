@@ -7,6 +7,7 @@ type AuthContextType = {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshRestaurant: () => Promise<TRestaurant | null>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -14,6 +15,7 @@ export const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => {},
   logout: async () => {},
+  refreshRestaurant: async () => null,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -23,6 +25,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadSession = async () => {
     const session = await authService.me();
     setRestaurant(session);
+    return session;
   };
 
   const login = async (email: string, password: string) => {
@@ -33,6 +36,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     await authService.logout();
     setRestaurant(null);
+  };
+
+  const refreshRestaurant = async () => {
+    try {
+      return await loadSession();
+    } catch {
+      setRestaurant(null);
+      return null;
+    }
   };
 
   useEffect(() => {
@@ -49,7 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ restaurant, isLoading: loading, login, logout }}>
+    <AuthContext.Provider value={{ restaurant, isLoading: loading, login, logout, refreshRestaurant }}>
       {children}
     </AuthContext.Provider>
   );

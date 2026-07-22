@@ -1,44 +1,62 @@
-import { createContext, useContext, useState, type ReactNode } from "react"
-import { getSubscriptionPlan, initialSubscription, subscriptionPlans } from "../mocks/subscription"
-import type { TSubscription, TSubscriptionPlan, TSubscriptionPlanId } from "../types/Subscription"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { useAuth } from "./AuthContext"
+import { apiClient } from "../services/apiClient"
+import type { TSubscriptionPlan } from "../types/Subscription"
 
 type SubscriptionContextType = {
-  subscription: TSubscription
+  credits: number
   plans: TSubscriptionPlan[]
-  currentPlan: TSubscriptionPlan | undefined
-  selectPlan: (planId: TSubscriptionPlanId) => void
+  loading: boolean
+  purchasingId: number | null
+  purchasePlan: (subscriptionId: number) => Promise<void>
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | null>(null)
 
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
-  const [subscription, setSubscription] = useState<TSubscription>(initialSubscription)
+  const { restaurant, refreshRestaurant } = useAuth()
+  const [plans, setPlans] = useState<TSubscriptionPlan[]>([])
+  const [loading, setLoading] = useState(true)
+  const [purchasingId, setPurchasingId] = useState<number | null>(null)
 
-  const currentPlan = subscription.planId ? getSubscriptionPlan(subscription.planId) : undefined
+  useEffect(() => {
+    let cancelled = false
 
-  const selectPlan = (planId: TSubscriptionPlanId) => {
-    const plan = getSubscriptionPlan(planId)
-    if (!plan) return
-
-    if (plan.billingType === "postpaid") {
-      setSubscription({
-        planId,
-        creditsRemaining: null,
-        creditsTotal: null,
-      })
-      return
+    const loadPlans = async () => {
+      setLoading(true)
+      try {
+        const data = await apiClient.subscriptions.list()
+        if (!cancelled) setPlans(data)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
 
-    setSubscription({
-      planId,
-      creditsRemaining: plan.deliveryCredits,
-      creditsTotal: plan.deliveryCredits,
-    })
+    void loadPlans()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const purchasePlan = async (subscriptionId: number) => {
+    setPurchasingId(subscriptionId)
+    try {
+      await apiClient.subscriptions.purchase(subscriptionId)
+      await refreshRestaurant()
+    } finally {
+      setPurchasingId(null)
+    }
   }
 
   return (
     <SubscriptionContext.Provider
-      value={{ subscription, plans: subscriptionPlans, currentPlan, selectPlan }}
+      value={{
+        credits: restaurant?.credits ?? 0,
+        plans,
+        loading,
+        purchasingId,
+        purchasePlan,
+      }}
     >
       {children}
     </SubscriptionContext.Provider>
