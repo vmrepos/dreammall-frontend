@@ -5,7 +5,7 @@ import { faArrowLeft, faLocationDot, faTruck } from "@fortawesome/free-solid-svg
 import { Button } from "../../../components/atoms/Button"
 import { Card } from "../../../components/atoms/Card"
 import { FormField } from "../../../components/molecules/FormField"
-import { mockDeliveryPreview } from "../../../mocks/deliveries"
+
 import { formatCurrency } from "../../../utils/format"
 
 export const DeliveryCreatePage = () => {
@@ -20,7 +20,7 @@ export const DeliveryCreatePage = () => {
 
     setIsCalculating(true)
     await new Promise((resolve) => setTimeout(resolve, 600))
-    setPreview(mockDeliveryPreview)
+
     setIsCalculating(false)
   }
 

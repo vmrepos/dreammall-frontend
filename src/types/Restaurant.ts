@@ -16,6 +16,8 @@ export type TRestaurant = {
   latitude: number;
   longitude: number;
   credits: number;
+  delivery_radius: number;
+  prep_time: number;
 };
 
 

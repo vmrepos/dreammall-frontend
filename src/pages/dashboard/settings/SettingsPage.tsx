@@ -1,25 +1,44 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGear, faMapLocationDot, faStopwatch } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../components/atoms/Button"
 import { Card } from "../../../components/atoms/Card"
 import { FormField } from "../../../components/molecules/FormField"
 import { PageHeader } from "../../../components/molecules/PageHeader"
-import { mockSettings } from "../../../mocks/restaurant"
+import type { TRestaurantForm } from "../../../types/Restaurant"
+import { useRestaurant } from "../../../context/RestaurantContext"
 
 export const SettingsPage = () => {
-  const [settings, setSettings] = useState(mockSettings)
+  const { restaurant, loading, updateRestaurant } = useRestaurant()
+  const [settings, setSettings] = useState<TRestaurantForm | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  useEffect(() => {
+    if (!restaurant) return
+    setSettings({
+      delivery_radius: restaurant.delivery_radius,
+      prep_time: restaurant.prep_time,
+    })
+  }, [restaurant])
+
   const handleSave = async (ev: React.FormEvent) => {
     ev.preventDefault()
+    if (!settings) return
+
     setIsSaving(true)
     setSaved(false)
-    await new Promise((resolve) => setTimeout(resolve, 600))
-    setIsSaving(false)
-    setSaved(true)
+    try {
+      await updateRestaurant(settings)
+      setSaved(true)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsSaving(false)
+    }
   }
+
+  if (loading || !settings) return <div>Cargando...</div>
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -32,7 +51,7 @@ export const SettingsPage = () => {
 
       {saved && (
         <div className="mb-6 rounded-xl bg-brand-light px-4 py-3.5 text-sm text-brand" role="status">
-          Configuración guardada correctamente.
+          Cambios guardados correctamente.
         </div>
       )}
 
@@ -49,9 +68,9 @@ export const SettingsPage = () => {
               type="number"
               min={1}
               max={50}
-              value={String(settings.delivery_radius_km)}
+              value={String(settings.delivery_radius ?? "")}
               onChange={(ev) =>
-                setSettings({ ...settings, delivery_radius_km: Number(ev.target.value) })
+                setSettings({ ...settings, delivery_radius: Number(ev.target.value) })
               }
             />
             <p className="mt-2 text-xs text-gray-500">
@@ -70,9 +89,9 @@ export const SettingsPage = () => {
               type="number"
               min={5}
               max={120}
-              value={String(settings.prep_time_minutes)}
+              value={String(settings.prep_time ?? "")}
               onChange={(ev) =>
-                setSettings({ ...settings, prep_time_minutes: Number(ev.target.value) })
+                setSettings({ ...settings, prep_time: Number(ev.target.value) })
               }
             />
             <p className="mt-2 text-xs text-gray-500">
