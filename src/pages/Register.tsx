@@ -14,7 +14,7 @@ import {
 import { BrandMark } from "../components/atoms/BrandMark"
 import { Button } from "../components/atoms/Button"
 import { Card } from "../components/atoms/Card"
-import { FormField } from "../components/molecules/FormField"
+import { FormField, PasswordField } from "../components/molecules/FormField"
 import type { TUserCreateForm, TUserForm } from "../types/User"
 import type { TRestaurantForm } from "../types/Restaurant"
 import { apiClient } from "../services/apiClient"
@@ -50,7 +50,6 @@ export const Register = () => {
   const [user, setUser] = useState<TUserForm>(emptyUser)
   const [restaurant, setRestaurant] = useState<TRestaurantForm>(emptyRestaurant)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
   const updateAccount = (field: keyof TUserForm, value: string) =>
     setUser((current) => ({ ...current, [field]: value }))
 
@@ -150,20 +149,18 @@ export const Register = () => {
                 onChange={(ev) => updateAccount("phone_number", ev.target.value)}
                 required
               />
-              <FormField
+              <PasswordField
                 id="password"
                 label="Contraseña"
                 icon={faLock}
-                type="password"
                 value={user.password}
                 onChange={(ev) => updateAccount("password", ev.target.value)}
                 required
               />
-              <FormField
+              <PasswordField
                 id="password_confirmation"
                 label="Confirmar contraseña"
                 icon={faLock}
-                type="password"
                 value={user.password_confirmation}
                 onChange={(ev) => updateAccount("password_confirmation", ev.target.value)}
                 required

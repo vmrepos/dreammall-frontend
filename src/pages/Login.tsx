@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons"
 import { BrandMark } from "../components/atoms/BrandMark"
-import { FormField } from "../components/molecules/FormField"
+import { FormField, PasswordField } from "../components/molecules/FormField"
 import { useAuth } from "../context/AuthContext"
 
 export const Login = () => {
@@ -60,11 +60,10 @@ export const Login = () => {
             required
           />
 
-          <FormField
+          <PasswordField
             id="password"
             label="Contraseña"
             icon={faLock}
-            type="password"
             autoComplete="current-password"
             placeholder="••••••••"
             value={password}
