@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { TRestaurant, TRestaurantForm } from "../types/Restaurant"
 import { apiClient } from "../services/apiClient"
 import { useAuth } from "./AuthContext"
+import { toast } from "sonner"
 
 type RestaurantContextType = {
   restaurant: TRestaurant | null
@@ -21,6 +22,13 @@ export const RestaurantProvider = ({ children }: { children: ReactNode }) => {
     const response = await apiClient.restaurants.getProfile()
     setRestaurant(response)
   }, [])
+
+  useEffect(() => {
+
+    if (restaurant && restaurant.credits == 0) {
+      toast.error("No tienes créditos suficientes para crear pedidos. Por favor, recarga tu cuenta.")
+    }
+  }, [restaurant])
 
   const updateRestaurant = useCallback(async (input: TRestaurantForm) => {
     const response = await apiClient.restaurants.updateProfile(input)
