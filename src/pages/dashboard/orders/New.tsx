@@ -14,6 +14,8 @@ import { formatCurrency } from "../../../utils/format"
 import { CartItem } from "./CartItem"
 import type { TOrderItemForm } from "../../../types/OrderItem"
 import type { TProduct } from "../../../types/Product"
+import type { AxiosError } from "axios"
+import { toast } from "sonner"
 
 
 export const Create = () => {
@@ -117,17 +119,29 @@ export const Create = () => {
     ev.preventDefault()
     if (cart.length === 0 || !distanceKm) return
 
-    const order = await createOrder({
-      items_attributes: cart,
-      delivery_fee: deliveryFee,
-      discount,
-      total_amount: total.toFixed(2),
-      latitude: latitude,
-      longitude: longitude,
-      distance_km: distanceKm,
-    })
+    try {
+      const order = await createOrder({
+        items_attributes: cart,
+        delivery_fee: deliveryFee,
+        discount,
+        total_amount: total.toFixed(2),
+        latitude: latitude,
+        longitude: longitude,
+        distance_km: distanceKm,
+      })
+      navigate(`/orders/${order.id}`)
+    }
+    catch (error: any) {
+      const errors: string[] = error.response?.data.error
 
-    navigate(`/orders/${order.id}`)
+      errors.forEach((error) => {
+        toast.error(error)
+      })
+      return
+
+
+    }
+
   }
 
   return (
