@@ -19,7 +19,9 @@ let refreshPromise: Promise<void> | null = null;
 const isAuthRequest = (url?: string) =>
   url?.includes("/auth/login") ||
   url?.includes("/auth/logout") ||
-  url?.includes("/auth/refresh");
+  url?.includes("/auth/refresh") ||
+  url?.includes("/auth/forgot_password") ||
+  url?.includes("/auth/reset_password");
 
 const refreshSession = async () => {
   await axiosInstance.post("/auth/refresh", {

@@ -26,6 +26,26 @@ export const authService = {
     });
   },
 
+  forgotPassword: async (email: string) => {
+    const response = await axiosInstance.post<{ data: { message: string } }>(
+      "/auth/forgot_password",
+      { email },
+    );
+    return response.data.data;
+  },
+
+  resetPassword: async (token: string, password: string, passwordConfirmation: string) => {
+    const response = await axiosInstance.post<{ data: { message: string } }>(
+      "/auth/reset_password",
+      {
+        token,
+        password,
+        password_confirmation: passwordConfirmation,
+      },
+    );
+    return response.data.data;
+  },
+
   logout: async () => {
     await axiosInstance.post<void>("/auth/logout");
   },

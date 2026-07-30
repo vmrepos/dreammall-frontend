@@ -102,7 +102,12 @@ export const Login = () => {
             </p>
           </div>
         </div>
+        <p className="mt-6 text-center text-[13px] text-ink-muted">
 
+          <Link to="/forgot-password" className="font-semibold text-brand hover:underline">
+            Olvidé mi contraseña
+          </Link>
+        </p>
         <p className="mt-6 text-center text-[13px] text-ink-muted">
           ¿No tienes cuenta?{" "}
           <Link to="/register" className="font-semibold text-brand hover:underline">

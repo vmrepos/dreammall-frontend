@@ -18,6 +18,8 @@ import { MenuLayout } from "./pages/dashboard/menu/MenuLayout"
 import { Orders } from "./pages/dashboard/orders/Orders"
 import { Menu } from "./pages/dashboard/menu/Menu"
 import { Products } from "./pages/dashboard/menu/products/Products"
+import { ForgotPassword } from "./pages/ForgotPassword"
+import { ResetPassword } from "./pages/ResetPassword"
 
 export const AppRoutes = () => {
   return (
@@ -27,6 +29,8 @@ export const AppRoutes = () => {
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>
