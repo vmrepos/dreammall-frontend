@@ -134,6 +134,15 @@ export const Show = () => {
           <Card padding="md">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Resumen</h2>
             <DetailRow label="Subtotal" value={formatCurrency(order.total_amount)} />
+            <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-2">
+              <span className="flex flex-col gap-1">
+                <span className="font-semibold text-gray-900">Código de entrega</span>
+                <small className="text-gray-500">Entregar este codigo al cliente</small>
+              </span>
+              <span className="text-lg font-bold text-blue-500">
+                {order.delivery_code}
+              </span>
+            </div>
 
             <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
               <span className="font-semibold text-gray-900">Total</span>

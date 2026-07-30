@@ -18,8 +18,7 @@ import { FormField, PasswordField } from "../components/molecules/FormField"
 import type { TUserCreateForm, TUserForm } from "../types/User"
 import type { TRestaurantForm } from "../types/Restaurant"
 import { apiClient } from "../services/apiClient"
-
-
+import { toast } from "sonner"
 
 const steps = [
   { id: 1, label: "Cuenta", icon: faUser },
@@ -30,6 +29,7 @@ const steps = [
 const emptyUser: TUserForm = {
   first_name: "",
   last_name: "",
+  username: "",
   email: "",
   phone_number: "",
   password: "",
@@ -44,17 +44,65 @@ const emptyRestaurant: TRestaurantForm = {
   email: "",
 }
 
+const filled = (...values: Array<string | undefined>) =>
+  values.every((value) => value?.trim())
+
 export const Register = () => {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [user, setUser] = useState<TUserForm>(emptyUser)
   const [restaurant, setRestaurant] = useState<TRestaurantForm>(emptyRestaurant)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const updateAccount = (field: keyof TUserForm, value: string) =>
-    setUser((current) => ({ ...current, [field]: value }))
 
-  const updateRestaurant = (field: keyof TRestaurantForm, value: string) =>
+  const updateAccount = (field: keyof TUserForm, value: string) => {
+    setUser((current) => ({ ...current, [field]: value }))
+  }
+
+  const updateRestaurant = (field: keyof TRestaurantForm, value: string) => {
     setRestaurant((current) => ({ ...current, [field]: value }))
+  }
+
+  const validateStep1 = () => {
+    if (
+      !filled(
+        user.first_name,
+        user.last_name,
+        user.username,
+        user.email,
+        user.phone_number,
+        user.password,
+        user.password_confirmation,
+      )
+    ) {
+      toast.error("Por favor, complete todos los campos")
+      return false
+    }
+    if (user.password.length < 6) {
+      toast.error("La contraseña debe tener al menos 6 caracteres")
+      return false
+    }
+    if (user.password !== user.password_confirmation) {
+      toast.error("Las contraseñas no coinciden")
+      return false
+    }
+    return true
+  }
+
+  const validateStep2 = () => {
+    if (!filled(restaurant.name, restaurant.nit, restaurant.address, restaurant.whatsapp)) {
+      toast.error("Por favor, complete todos los campos")
+      return false
+    }
+    return true
+  }
+
+  const advanceStep = () => {
+    if (step === 1) {
+      if (validateStep1()) setStep(2)
+      return
+    }
+    if (step === 2 && validateStep2()) setStep(3)
+  }
 
   const handleSubmit = async () => {
     const data: TUserCreateForm = { user, restaurant }
@@ -65,6 +113,7 @@ export const Register = () => {
       })
       .catch((error) => {
         console.error(error)
+        toast.error("No se pudo completar el registro. Intenta de nuevo.")
       })
       .finally(() => {
         setIsSubmitting(false)
@@ -271,7 +320,7 @@ export const Register = () => {
             )}
 
             {step < 3 ? (
-              <Button onClick={() => setStep((current) => current + 1)}>
+              <Button onClick={advanceStep}>
                 Siguiente
                 <FontAwesomeIcon icon={faArrowRight} className="size-4" aria-hidden />
               </Button>

@@ -44,6 +44,7 @@ export const Index = () => {
                 <th className="px-6 py-3">Ítems</th>
                 <th className="px-6 py-3">Total</th>
                 <th className="px-6 py-3">Fecha</th>
+                <th className="px-6 py-3">Código de recogida</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -62,6 +63,7 @@ export const Index = () => {
                     {formatCurrency(order.total_amount)}
                   </td>
                   <td className="px-6 py-4 text-gray-500">{formatDate(order.created_at)}</td>
+                  <td className="px-6 py-4 text-gray-500">{order.delivery_code}</td>
                 </tr>
               ))}
             </tbody>

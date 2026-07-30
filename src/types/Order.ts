@@ -13,6 +13,8 @@ export type TOrder = {
   updated_at: string
   items: TOrderItem[]
   delivery: TDelivery | null
+  delivery_code: string
+  pick_up_code: string
 }
 
 export type TOrderForm = {
