@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBookOpen, faPlus } from "@fortawesome/free-solid-svg-icons"
@@ -21,7 +21,7 @@ export const Show = () => {
   const [menu, setMenu] = useState<TMenu | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchMenu = async () => {
+  const fetchMenu = useCallback(async () => {
     try {
       setLoading(true)
       const response = await apiClient.menus.show(parsedMenuId)
@@ -31,12 +31,12 @@ export const Show = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [parsedMenuId])
 
 
   useEffect(() => {
     fetchMenu()
-  }, [parsedMenuId])
+  }, [parsedMenuId, fetchMenu])
 
 
 

@@ -1,9 +1,10 @@
 import { Outlet } from "react-router-dom"
-import { OrdersProvider } from "../../context/OrdersContext"
-import { RestaurantProvider } from "../../context/RestaurantContext"
-import { SubscriptionProvider } from "../../context/SubscriptionContext"
 import { Sidebar } from "./Sidebar"
-import { MenuProvider } from "../../context/MenuContext"
+
+import { MenuProvider } from "../../context/providers/MenuProvider"
+import { OrdersProvider } from "../../context/providers/OrdersProvider"
+import { RestaurantProvider } from "../../context/providers/RestaurantProvider"
+import { SubscriptionProvider } from "../../context/providers/SubscriptionProvider"
 
 export const Dashboard = () => {
   return (

@@ -14,7 +14,6 @@ import { formatCurrency } from "../../../utils/format"
 import { CartItem } from "./CartItem"
 import type { TOrderItemForm } from "../../../types/OrderItem"
 import type { TProduct } from "../../../types/Product"
-import type { AxiosError } from "axios"
 import { toast } from "sonner"
 
 

@@ -1,6 +1,6 @@
 import { Toaster } from "sonner"
 import { AppRoutes } from "./Routes"
-import { ThemeProvider } from "./context/ThemeContext"
+import { ThemeProvider } from "./context/providers/ThemeProvider"
 
 function App() {
   return (
