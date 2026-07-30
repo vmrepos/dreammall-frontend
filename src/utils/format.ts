@@ -24,3 +24,21 @@ export const formatCurrency = (value: string | number) =>
 
 export const cn = (...classes: (string | false | null | undefined)[]) =>
   classes.filter(Boolean).join(" ")
+
+export const formatCoords = (latitude?: number | null, longitude?: number | null) => {
+  if (latitude == null || longitude == null || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+    return ""
+  }
+  return `${latitude}, ${longitude}`
+}
+
+export const parseCoords = (value: string) => {
+  const [rawLat = "", rawLng = ""] = value.split(",")
+  const latitude = Number.parseFloat(rawLat.trim())
+  const longitude = Number.parseFloat(rawLng.trim())
+
+  return {
+    latitude: Number.isFinite(latitude) ? latitude : undefined,
+    longitude: Number.isFinite(longitude) ? longitude : undefined,
+  }
+}

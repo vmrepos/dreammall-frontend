@@ -12,10 +12,15 @@ import { FormField } from "../../../components/molecules/FormField"
 import { PageHeader } from "../../../components/molecules/PageHeader"
 import { useRestaurant } from "../../../context/RestaurantContext"
 import type { TRestaurantForm } from "../../../types/Restaurant"
+import { Notification } from "../../../components/atoms/Notification"
+import { formatCoords, parseCoords } from "../../../utils/format"
+
+
 
 export const ProfilePage = () => {
   const { restaurant, loading, updateRestaurant } = useRestaurant()
   const [profile, setProfile] = useState<TRestaurantForm | null>(null)
+  const [coordsInput, setCoordsInput] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -31,6 +36,7 @@ export const ProfilePage = () => {
       open_time: restaurant.open_time,
       close_time: restaurant.close_time,
     })
+    setCoordsInput(formatCoords(restaurant.latitude, restaurant.longitude))
   }, [restaurant])
 
   const handleSave = async (ev: React.FormEvent) => {
@@ -60,11 +66,7 @@ export const ProfilePage = () => {
         description="Actualiza la información pública y de contacto de tu restaurante."
       />
 
-      {saved && (
-        <div className="mb-6 rounded-xl bg-brand-light px-4 py-3.5 text-sm text-brand" role="status">
-          Cambios guardados correctamente.
-        </div>
-      )}
+      {saved && <Notification text="Cambios guardados correctamente." />}
 
       <Card padding="lg">
         <form className="grid gap-5" onSubmit={handleSave}>
@@ -104,14 +106,12 @@ export const ProfilePage = () => {
             id="latitude"
             label="Coordenadas"
             icon={faLocationDot}
-            value={`${profile.latitude ?? ""}, ${profile.longitude ?? ""}`}
+            placeholder="-17.7833, -63.1821"
+            value={coordsInput}
             onChange={(ev) => {
-              const [latitude, longitude] = ev.target.value.split(",")
-              setProfile({
-                ...profile,
-                latitude: parseFloat(latitude),
-                longitude: parseFloat(longitude),
-              })
+              const value = ev.target.value
+              setCoordsInput(value)
+              setProfile({ ...profile, ...parseCoords(value) })
             }}
             required
           />

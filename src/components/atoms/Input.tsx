@@ -9,8 +9,7 @@ type InputProps = ComponentPropsWithoutRef<"input"> & {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { className, hasIcon = false, hasTrailingIcon = false, ...props },
-  ref,
+  { className, hasIcon = false, hasTrailingIcon = false, ...props }, ref,
 ) {
   const paddingClass = [
     hasIcon ? "pl-11" : "pl-3.5",
@@ -25,3 +24,4 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     />
   )
 })
+

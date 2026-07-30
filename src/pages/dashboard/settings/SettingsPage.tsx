@@ -7,7 +7,7 @@ import { FormField } from "../../../components/molecules/FormField"
 import { PageHeader } from "../../../components/molecules/PageHeader"
 import type { TRestaurantForm } from "../../../types/Restaurant"
 import { useRestaurant } from "../../../context/RestaurantContext"
-
+import { Notification } from "../../../components/atoms/Notification"
 export const SettingsPage = () => {
   const { restaurant, loading, updateRestaurant } = useRestaurant()
   const [settings, setSettings] = useState<TRestaurantForm | null>(null)
@@ -49,11 +49,7 @@ export const SettingsPage = () => {
         description="Ajusta parámetros operativos de tu comercio."
       />
 
-      {saved && (
-        <div className="mb-6 rounded-xl bg-brand-light px-4 py-3.5 text-sm text-brand" role="status">
-          Cambios guardados correctamente.
-        </div>
-      )}
+      {saved && <Notification text="Cambios guardados correctamente." />}
 
       <Card padding="lg">
         <form className="grid gap-6" onSubmit={handleSave}>
