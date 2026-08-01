@@ -1,13 +1,29 @@
 import type { TOrder, TOrderForm, TOrderStatus } from "../types/Order"
 import { axiosInstance } from "./apiClient"
 
+const toCreatePayload = (input: TOrderForm) => {
+  const { coordinates: _coordinates, items_attributes, ...rest } = input
+
+  return {
+    order: {
+      ...rest,
+      items_attributes: items_attributes.map(({ product_id, name, quantity, unit_price }) => ({
+        product_id,
+        product_name: name,
+        quantity,
+        unit_price,
+      })),
+    },
+  }
+}
+
 export const OrdersAPI = {
   list: async () => {
     const response = await axiosInstance.get("/restaurants/orders")
     return response.data
   },
   create: async (input: TOrderForm): Promise<TOrder> => {
-    const response = await axiosInstance.post("/restaurants/orders", input)
+    const response = await axiosInstance.post("/restaurants/orders", toCreatePayload(input))
     return response.data.data as TOrder
   },
   show: async (id: number): Promise<TOrder> => {

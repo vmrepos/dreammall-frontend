@@ -1,7 +1,5 @@
 /** Parses "lat, lng" (WhatsApp / Maps style) into numbers. */
-export const parseCoordinates = (
-  value: string,
-): { latitude: number; longitude: number } | null => {
+export const parseCoordinates = (value: string,): { latitude: number; longitude: number } | null => {
   const match = value
     .trim()
     .match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/)
