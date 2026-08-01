@@ -8,52 +8,84 @@ import { Input } from "../../../components/atoms/Input"
 import { Label } from "../../../components/atoms/Label"
 import { useMenuContext } from "../../../context/MenuContext"
 import { useOrders } from "../../../context/OrdersContext"
+import { useForm } from "../../../hooks/useForm"
 import { apiClient } from "../../../services/apiClient"
+import type { TOrderForm } from "../../../types/Order"
+import type { TProduct } from "../../../types/Product"
 import { parseCoordinates } from "../../../utils/coordinates"
 import { formatCurrency } from "../../../utils/format"
-import { CartItem } from "./CartItem"
-import type { TOrderItemForm } from "../../../types/OrderItem"
-import type { TProduct } from "../../../types/Product"
 import { toast } from "sonner"
+import { CartItem } from "./CartItem"
 
+const initialValues: TOrderForm = {
+  items_attributes: [],
+  delivery_fee: 0,
+  discount: 0,
+  latitude: null,
+  longitude: null,
+  distance_km: null,
+  coordinates: "",
+}
 
 export const Create = () => {
   const navigate = useNavigate()
   const { products } = useMenuContext()
   const { createOrder } = useOrders()
-  const [cart, setCart] = useState<TOrderItemForm[]>([])
-  const [coordinatesInput, setCoordinatesInput] = useState("")
-  const [deliveryFee, setDeliveryFee] = useState("0.00")
-  const [distanceKm, setDistanceKm] = useState<string | null>(null)
-  const [discount, setDiscount] = useState("0.00")
   const [coordsError, setCoordsError] = useState("")
   const [previewError, setPreviewError] = useState("")
   const [isCalculating, setIsCalculating] = useState(false)
-  const [latitude, setLatitude] = useState<number | null>(null)
-  const [longitude, setLongitude] = useState<number | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const { values, handleChange, handleSubmit, mutate } = useForm<TOrderForm>({
+    initialValues,
+    onSubmit: async (formValues) => {
+      if (formValues.items_attributes.length === 0 || formValues.distance_km == null) return
+      if (formValues.latitude == null || formValues.longitude == null) return
 
+      const subtotal = formValues.items_attributes.reduce(
+        (sum, line) => sum + line.quantity * Number(line.unit_price),
+        0,
+      )
+      const total_amount = subtotal + Number(formValues.delivery_fee) - Number(formValues.discount)
+
+      setIsSubmitting(true)
+      try {
+        const order = await createOrder({ ...formValues, total_amount })
+        toast.success("Pedido creado")
+        navigate(`/orders/${order.id}`)
+      } catch {
+        toast.error("No se pudo crear el pedido. Intenta de nuevo.")
+      } finally {
+        setIsSubmitting(false)
+      }
+    },
+  })
+
+  const cart = values.items_attributes
 
   const subtotal = cart.reduce(
     (sum, line) => sum + line.quantity * Number(line.unit_price),
     0,
   )
 
-  const total = subtotal + Number(deliveryFee) - Number(discount)
+  const total = subtotal + Number(values.delivery_fee) - Number(values.discount)
 
   const addToCart = (product: TProduct) => {
-    setCart((current) => {
-      const existing = current.find((line) => line.product_id === product.id)
-      if (existing) {
-        return current.map((line) =>
+    const existing = cart.find((line) => line.product_id === product.id)
+    if (existing) {
+      mutate({
+        items_attributes: cart.map((line) =>
           line.product_id === product.id
             ? { ...line, quantity: line.quantity + 1 }
             : line,
-        )
-      }
+        ),
+      })
+      return
+    }
 
-      return [
-        ...current,
+    mutate({
+      items_attributes: [
+        ...cart,
         {
           product_id: product.id,
           name: product.name,
@@ -61,86 +93,67 @@ export const Create = () => {
           quantity: 1,
           notes: "",
         },
-      ]
+      ],
     })
   }
 
   const updateQuantity = (product_id: number, quantity: number) => {
     if (quantity < 1) {
-      setCart((current) => current.filter((line) => line.product_id !== product_id))
+      mutate({
+        items_attributes: cart.filter((line) => line.product_id !== product_id),
+      })
       return
     }
 
-    setCart((current) =>
-      current.map((line) => (line.product_id === product_id ? { ...line, quantity } : line)),
-    )
+    mutate({
+      items_attributes: cart.map((line) =>
+        line.product_id === product_id ? { ...line, quantity } : line,
+      ),
+    })
   }
 
   const removeFromCart = (product_id: number) => {
-    setCart((current) => current.filter((line) => line.product_id !== product_id))
+    mutate({
+      items_attributes: cart.filter((line) => line.product_id !== product_id),
+    })
   }
 
   const calculateDeliveryQuote = async () => {
     setCoordsError("")
     setPreviewError("")
 
-    const parsed = parseCoordinates(coordinatesInput)
+    const parsed = parseCoordinates(values.coordinates)
     if (!parsed) {
       setCoordsError("Usa el formato latitud, longitud. Ej. -17.741364, -63.190680")
-      setDeliveryFee("0.00")
-      setDistanceKm(null)
-      setLatitude(null)
-      setLongitude(null)
+      mutate({
+        delivery_fee: 0,
+        distance_km: null,
+        latitude: null,
+        longitude: null,
+      })
       return
     }
 
     setIsCalculating(true)
     try {
       const preview = await apiClient.deliveries.preview(parsed.latitude, parsed.longitude)
-      const fee = Number(preview.fee).toFixed(2)
-      const distance = Number(preview.distance_km).toFixed(2)
-      setDeliveryFee(fee)
-      setDistanceKm(distance)
-      setLatitude(parsed.latitude)
-      setLongitude(parsed.longitude)
+      mutate({
+        delivery_fee: Number(preview.fee),
+        distance_km: Number(preview.distance_km),
+        latitude: parsed.latitude,
+        longitude: parsed.longitude,
+      })
     } catch {
       setPreviewError("No se pudo calcular la tarifa. Revisa las coordenadas e intenta de nuevo.")
-      setDeliveryFee("0.00")
-      setDistanceKm(null)
-      setLatitude(null)
-      setLongitude(null)
+      mutate({
+        delivery_fee: 0,
+        distance_km: null,
+        latitude: null,
+        longitude: null,
+      })
     } finally {
       setIsCalculating(false)
     }
-  }
-
-  const handleSubmit = async (ev: React.FormEvent) => {
-    ev.preventDefault()
-    if (cart.length === 0 || !distanceKm) return
-
-    try {
-      const order = await createOrder({
-        items_attributes: cart,
-        delivery_fee: deliveryFee,
-        discount,
-        total_amount: total.toFixed(2),
-        latitude: latitude,
-        longitude: longitude,
-        distance_km: distanceKm,
-      })
-      navigate(`/orders/${order.id}`)
-    }
-    catch (error: any) {
-      const errors: string[] = error.response?.data.error
-
-      errors.forEach((error) => {
-        toast.error(error)
-      })
-      return
-
-
-    }
-
   }
 
   return (
@@ -245,15 +258,10 @@ export const Create = () => {
             <Label htmlFor="coordinates">Ubicación (lat, lng)</Label>
             <Input
               id="coordinates"
+              name="coordinates"
               className="mt-1.5"
-              value={coordinatesInput}
-              onChange={(ev) => {
-                setCoordinatesInput(ev.target.value)
-                setCoordsError("")
-                setPreviewError("")
-                setDistanceKm(null)
-                setDeliveryFee("0.00")
-              }}
+              value={values.coordinates}
+              onChange={handleChange}
               placeholder="-17.741364, -63.190680"
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -274,23 +282,23 @@ export const Create = () => {
               variant="secondary"
               className="mt-2 w-full rounded-lg px-3 py-2 text-xs"
               onClick={calculateDeliveryQuote}
-              disabled={!coordinatesInput.trim() || isCalculating}
+              disabled={!values.coordinates.trim() || isCalculating}
             >
               {isCalculating ? "Calculando..." : "Calcular envío"}
             </Button>
           </div>
 
-          {distanceKm && (
+          {values.distance_km != null && (
             <div className="mt-3 rounded-lg bg-brand-light px-3 py-2.5">
               <dl className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <dt className="text-xs text-gray-500">Distancia</dt>
-                  <dd className="mt-0.5 font-semibold text-gray-900">{distanceKm} km</dd>
+                  <dd className="mt-0.5 font-semibold text-gray-900">{values.distance_km} km</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-gray-500">Envío</dt>
                   <dd className="mt-0.5 font-semibold text-brand">
-                    {formatCurrency(deliveryFee)}
+                    {formatCurrency(values.delivery_fee)}
                   </dd>
                 </div>
               </dl>
@@ -301,12 +309,13 @@ export const Create = () => {
             <Label htmlFor="discount">Descuento</Label>
             <Input
               id="discount"
+              name="discount"
               className="mt-1.5"
               type="number"
               min="0"
               step="0.01"
-              value={discount}
-              onChange={(ev) => setDiscount(ev.target.value)}
+              value={values.discount}
+              onChange={handleChange}
             />
           </div>
 
@@ -317,11 +326,15 @@ export const Create = () => {
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-gray-500">Envío</dt>
-              <dd className="font-medium tabular-nums text-gray-900">{formatCurrency(deliveryFee)}</dd>
+              <dd className="font-medium tabular-nums text-gray-900">
+                {formatCurrency(values.delivery_fee)}
+              </dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-gray-500">Descuento</dt>
-              <dd className="font-medium tabular-nums text-gray-900">-{formatCurrency(discount)}</dd>
+              <dd className="font-medium tabular-nums text-gray-900">
+                -{formatCurrency(values.discount)}
+              </dd>
             </div>
             <div className="flex justify-between gap-2 border-t border-gray-100 pt-2">
               <dt className="font-semibold text-gray-900">Total</dt>
@@ -331,10 +344,10 @@ export const Create = () => {
           <div className="mt-4 flex flex-col gap-2">
             <Button
               type="submit"
-              disabled={cart.length === 0 || !distanceKm || isCalculating}
+              disabled={cart.length === 0 || values.distance_km == null || isCalculating || isSubmitting}
               className="w-full rounded-lg py-2.5"
             >
-              Crear pedido
+              {isSubmitting ? "Creando..." : "Crear pedido"}
             </Button>
             <Button
               type="button"

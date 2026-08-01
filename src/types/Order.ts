@@ -6,9 +6,13 @@ export type TOrderStatus = "pending" | "ready" | "cancelled"
 export type TOrder = {
   id: number
   status: TOrderStatus
-  total_amount: string
-  delivery_fee: string
-  discount: string
+  total_amount: number
+  delivery_fee: number
+  discount: number
+  latitude: number
+  longitude: number
+  distance_km: number | null
+  notes?: string | null
   created_at: string
   updated_at: string
   items: TOrderItem[]
@@ -19,12 +23,14 @@ export type TOrder = {
 
 export type TOrderForm = {
   items_attributes: TOrderItemForm[]
-  delivery_fee: string
-  discount: string
-  total_amount: string
+  delivery_fee: number
+  discount: number
   latitude: number | null
   longitude: number | null
-  distance_km: string | null
+  distance_km: number | null
+  coordinates: string
+  notes?: string
+  total_amount?: number
 }
 
 export type TOrderUpdate = {
