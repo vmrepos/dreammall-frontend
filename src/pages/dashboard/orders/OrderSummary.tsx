@@ -99,6 +99,17 @@ export const OrderSummary = ({
         onChange={onChange}
       />
     </div>
+    <div className="mt-3">
+      <Label htmlFor="notes">Notas</Label>
+      <Input
+        id="notes"
+        name="notes"
+        className="mt-1.5"
+        type="text"
+        value={values.notes ?? ""}
+        onChange={onChange}
+      />
+    </div>
 
     <dl className="mt-4 space-y-2 border-t border-gray-100 pt-3 text-sm">
       <div className="flex justify-between gap-2">

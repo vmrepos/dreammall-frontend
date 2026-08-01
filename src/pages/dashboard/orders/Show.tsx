@@ -25,7 +25,8 @@ export const Show = () => {
   const order = getOrder(orderId)
   const [loading, setLoading] = useState(!order)
   const [notFound, setNotFound] = useState(false)
-  const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<"ready" | "cancel" | null>(null)
+  const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -70,14 +71,19 @@ export const Show = () => {
   const nextStatus = getNextOrderStatus(order.status)
   const nextLabel = nextActionLabel[order.status]
 
-  const advanceStatus = async () => {
-    if (!nextStatus) return
-    await updateOrder(order.id, nextStatus)
-  }
-
-  const cancelOrder = async () => {
-    await updateOrder(order.id, "cancelled")
-    setShowCancelDialog(false)
+  const handleConfirm = async () => {
+    if (!confirmAction) return
+    setConfirming(true)
+    try {
+      if (confirmAction === "ready" && nextStatus) {
+        await updateOrder(order.id, nextStatus)
+      } else if (confirmAction === "cancel") {
+        await updateOrder(order.id, "cancelled")
+      }
+      setConfirmAction(null)
+    } finally {
+      setConfirming(false)
+    }
   }
 
   return (
@@ -107,10 +113,10 @@ export const Show = () => {
 
         <div className="flex gap-3">
           {nextLabel && (
-            <Button onClick={advanceStatus}>{nextLabel}</Button>
+            <Button onClick={() => setConfirmAction("ready")}>{nextLabel}</Button>
           )}
           {canCancelOrder(order.status) && (
-            <Button variant="danger" onClick={() => setShowCancelDialog(true)}>
+            <Button variant="danger" onClick={() => setConfirmAction("cancel")}>
               Cancelar pedido
             </Button>
           )}
@@ -134,6 +140,12 @@ export const Show = () => {
           <Card padding="md">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Resumen</h2>
             <DetailRow label="Subtotal" value={formatCurrency(order.total_amount)} />
+            {order.notes?.trim() && (
+              <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Notas</p>
+                <p className="mt-1 text-sm leading-relaxed text-gray-700">{order.notes}</p>
+              </div>
+            )}
             <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-2">
               <span className="flex flex-col gap-1">
                 <span className="font-semibold text-gray-900">Código de entrega</span>
@@ -164,13 +176,25 @@ export const Show = () => {
       </div>
 
       <ConfirmDialog
-        open={showCancelDialog}
+        open={confirmAction === "ready"}
+        title="Marcar pedido listo"
+        message={`¿Confirmas que el pedido #${order.id} está listo para entrega?`}
+        confirmLabel="Sí, marcar listo"
+        confirmVariant="primary"
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={() => !confirming && setConfirmAction(null)}
+      />
+
+      <ConfirmDialog
+        open={confirmAction === "cancel"}
         title="Cancelar pedido"
         message="¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer."
         confirmLabel="Sí, cancelar"
-        onConfirm={cancelOrder}
-        onCancel={() => setShowCancelDialog(false)}
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={() => !confirming && setConfirmAction(null)}
       />
-    </div >
+    </div>
   )
 }

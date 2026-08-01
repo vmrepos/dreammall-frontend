@@ -22,6 +22,7 @@ const initialValues: TOrderForm = {
   longitude: null,
   distance_km: null,
   coordinates: "",
+  notes: "",
 }
 
 export const Create = () => {

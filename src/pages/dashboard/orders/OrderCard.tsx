@@ -1,0 +1,216 @@
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faBoxOpen, faMotorcycle } from "@fortawesome/free-solid-svg-icons"
+import { toast } from "sonner"
+import { Button } from "../../../components/atoms/Button"
+import { Card } from "../../../components/atoms/Card"
+import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
+import { OrderStatusBadge, DeliveryStatusBadge } from "../../../components/molecules/StatusBadge"
+import { useOrders } from "../../../context/OrdersContext"
+import type { TOrder } from "../../../types/Order"
+import { canCancelOrder, getNextOrderStatus } from "../../../utils/status"
+import { cn, formatCurrency, formatDateTime } from "../../../utils/format"
+
+const MAX_VISIBLE_ITEMS = 4
+
+type ConfirmAction = "ready" | "cancel" | null
+
+type Props = {
+  order: TOrder
+}
+
+export const OrderCard = ({ order }: Props) => {
+  const navigate = useNavigate()
+  const { updateOrder } = useOrders()
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
+  const [confirming, setConfirming] = useState(false)
+
+  const items = order.items ?? []
+  const visibleItems = items.slice(0, MAX_VISIBLE_ITEMS)
+  const hiddenCount = Math.max(0, items.length - MAX_VISIBLE_ITEMS)
+  const canMarkReady = getNextOrderStatus(order.status) === "ready"
+  const canCancel = canCancelOrder(order.status)
+  const showActions = canMarkReady || canCancel
+
+  const closeConfirm = () => {
+    if (confirming) return
+    setConfirmAction(null)
+  }
+
+  const handleConfirm = async () => {
+    if (!confirmAction) return
+    setConfirming(true)
+    try {
+      if (confirmAction === "ready") {
+        await updateOrder(order.id, "ready")
+        toast.success(`Pedido #${order.id} marcado como listo`)
+      } else {
+        await updateOrder(order.id, "cancelled")
+        toast.success(`Pedido #${order.id} cancelado`)
+      }
+      setConfirmAction(null)
+    } catch {
+      toast.error(
+        confirmAction === "ready"
+          ? "No se pudo marcar el pedido como listo"
+          : "No se pudo cancelar el pedido",
+      )
+    } finally {
+      setConfirming(false)
+    }
+  }
+
+  return (
+    <div className="h-full">
+      <Card
+        className={cn(
+          "flex h-full flex-col border-2 border-gray-300/90 transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08),0_12px_28px_rgba(12,107,61,0.12)]",
+          order.status === "cancelled" && "opacity-80",
+        )}
+      >
+        <button
+          type="button"
+          onClick={() => navigate(`/orders/${order.id}`)}
+          className="flex min-h-0 flex-1 cursor-pointer flex-col p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        >
+          <div className="flex shrink-0 items-start justify-between gap-2">
+            <div>
+              <p className="text-lg font-bold tabular-nums text-ink">#{order.id}</p>
+              <p className="mt-0.5 text-xs text-ink-muted">{formatDateTime(order.created_at)}</p>
+            </div>
+            <OrderStatusBadge status={order.status} />
+          </div>
+
+          <div className="mt-3 flex min-h-[8.5rem] flex-1 flex-col">
+            {items.length === 0 ? (
+              <p className="text-sm text-ink-muted">Sin ítems</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {visibleItems.map((item) => (
+                  <li key={item.id} className="truncate text-sm text-ink">
+                    <span className="font-semibold tabular-nums text-brand">{item.quantity}×</span>{" "}
+                    {item.product_name}
+                  </li>
+                ))}
+                {hiddenCount > 0 && (
+                  <li className="text-xs font-medium text-ink-muted">
+                    +{hiddenCount} {hiddenCount === 1 ? "ítem más" : "ítems más"}
+                  </li>
+                )}
+              </ul>
+            )}
+
+            <div className="mt-3 min-h-[2.5rem]">
+              {order.notes?.trim() ? (
+                <p className="line-clamp-2 text-xs leading-relaxed text-ink-muted">
+                  <span className="font-semibold text-ink">Notas:</span> {order.notes}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="mt-auto flex min-h-7 items-center gap-2 pt-3">
+              {order.delivery ? (
+                <>
+                  <FontAwesomeIcon
+                    icon={faMotorcycle}
+                    className="size-3.5 shrink-0 text-ink-muted"
+                    aria-hidden
+                  />
+                  <DeliveryStatusBadge status={order.delivery.status} />
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-3 flex shrink-0 items-end justify-between gap-3 border-t border-gray-100 pt-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+                Total
+              </p>
+              <p className="mt-0.5 text-base font-bold tabular-nums text-brand">
+                {formatCurrency(order.total_amount)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] text-ink-muted">Recogida</p>
+              <p className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-ink">
+                {order.pick_up_code}
+              </p>
+            </div>
+          </div>
+        </button>
+
+        <div className="flex min-h-[3.25rem] shrink-0 gap-2 border-t border-gray-100 px-4 py-3">
+          {showActions ? (
+            <>
+              {canMarkReady && (
+                <Button
+                  className="flex-1 rounded-lg px-3 py-2 text-xs"
+                  onClick={() => setConfirmAction("ready")}
+                >
+                  Marcar listo
+                </Button>
+              )}
+              {canCancel && (
+                <Button
+                  variant="danger"
+                  className="flex-1 rounded-lg px-3 py-2 text-xs"
+                  onClick={() => setConfirmAction("cancel")}
+                >
+                  Cancelar
+                </Button>
+              )}
+            </>
+          ) : (
+            <Button
+              variant="secondary"
+              className="flex-1 rounded-lg px-3 py-2 text-xs"
+              onClick={() => navigate(`/orders/${order.id}`)}
+            >
+              Ver detalle
+            </Button>
+          )}
+        </div>
+      </Card>
+
+      <ConfirmDialog
+        open={confirmAction === "ready"}
+        title="Marcar pedido listo"
+        message={`¿Confirmas que el pedido #${order.id} está listo para entrega?`}
+        confirmLabel="Sí, marcar listo"
+        confirmVariant="primary"
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={closeConfirm}
+      />
+
+      <ConfirmDialog
+        open={confirmAction === "cancel"}
+        title="Cancelar pedido"
+        message={`¿Estás seguro de cancelar el pedido #${order.id}? Esta acción no se puede deshacer.`}
+        confirmLabel="Sí, cancelar"
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={closeConfirm}
+      />
+    </div>
+  )
+}
+
+export const OrdersEmptyState = ({ onCreate }: { onCreate: () => void }) => (
+  <Card>
+    <div className="flex flex-col items-center px-6 py-16 text-center">
+      <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-brand-light text-brand">
+        <FontAwesomeIcon icon={faBoxOpen} className="size-6" aria-hidden />
+      </div>
+      <h2 className="text-lg font-semibold text-gray-900">Sin pedidos todavía</h2>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-gray-500">
+        Crea un pedido manual para verlo aquí con estado, ítems y total.
+      </p>
+      <Button className="mt-6" onClick={onCreate}>
+        Crear primer pedido
+      </Button>
+    </div>
+  </Card>
+)
