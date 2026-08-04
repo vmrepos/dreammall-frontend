@@ -70,6 +70,10 @@ export const Show = () => {
 
   const nextStatus = getNextOrderStatus(order.status)
   const nextLabel = nextActionLabel[order.status]
+  const subtotal = order.items.reduce(
+    (sum, item) => sum + Number(item.unit_price) * item.quantity,
+    0,
+  )
 
   const handleConfirm = async () => {
     if (!confirmAction) return
@@ -139,7 +143,9 @@ export const Show = () => {
         <div className="space-y-6">
           <Card padding="md">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Resumen</h2>
-            <DetailRow label="Subtotal" value={formatCurrency(order.total_amount)} />
+            <DetailRow label="Subtotal" value={formatCurrency(subtotal)} />
+            <DetailRow label="Envío" value={formatCurrency(order.delivery_fee)} />
+            <DetailRow label="Descuento" value={`-${formatCurrency(order.discount)}`} />
             {order.notes?.trim() && (
               <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2.5">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Notas</p>
@@ -159,7 +165,7 @@ export const Show = () => {
             <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
               <span className="font-semibold text-gray-900">Total</span>
               <span className="text-lg font-bold text-brand">
-                {formatCurrency(Number(order.total_amount))}
+                {formatCurrency(order.total_amount)}
               </span>
             </div>
           </Card>

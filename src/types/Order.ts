@@ -19,6 +19,7 @@ export type TOrder = {
   delivery: TDelivery | null
   delivery_code: string
   pick_up_code: string
+  cancel_reason?: string | null
 }
 
 export type TOrderForm = {
