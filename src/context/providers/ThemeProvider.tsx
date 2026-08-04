@@ -2,7 +2,7 @@ import { type ReactNode, useState, useEffect } from "react"
 import { ThemeContext, type Theme } from "../ThemeContext"
 
 
-const STORAGE_KEY = "dreammall-theme"
+const STORAGE_KEY = "pedi2-theme"
 
 const getInitialTheme = (): Theme => {
   if (typeof window === "undefined") return "light"

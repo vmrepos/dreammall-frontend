@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons"
 import { useAuth } from "../../context/AuthContext"
 import { useTheme } from "../../context/ThemeContext"
-import { BrandMark } from "../../components/atoms/BrandMark"
+import { BrandLogo } from "../../components/atoms/BrandLogo"
 import { Toggle } from "../../components/atoms/Toggle"
 import { SidebarSubscriptionWidget } from "../../components/molecules/SidebarSubscriptionWidget"
 
@@ -42,9 +42,8 @@ export const Sidebar = () => {
       />
 
       <div className="mb-6">
-        <div className="mb-2 flex items-center gap-2">
-          <p className="text-lg font-semibold tracking-tight text-white">Dream Mall</p>
-          <BrandMark />
+        <div className="mb-2">
+          <BrandLogo variant="dark" className="h-14 w-[11.5rem]" />
         </div>
         <h1 className="truncate text-sm font-medium text-white/65">
           {restaurant?.name ?? "Mi restaurante"}

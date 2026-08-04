@@ -1,6 +1,6 @@
 # Restaurant frontend (SPA)
 
-React + Vite + TypeScript dashboard for **restaurant owners** (Dream Mall / Virtualmall). Talks to the Rails API under `/api/v1` with cookie-based OAuth (Doorkeeper). This is **not** the driver or customer app.
+React + Vite + TypeScript dashboard for **restaurant owners** (Pedi2). Talks to the Rails API under `/api/v1` with cookie-based OAuth (Doorkeeper). This is **not** the driver or customer app.
 
 ## Domain (what this app owns)
 

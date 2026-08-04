@@ -1,7 +1,7 @@
 import type { TDelivery } from "./Delivery"
 import type { TOrderItem, TOrderItemForm } from "./OrderItem"
 
-export type TOrderStatus = "pending" | "ready" | "cancelled"
+export type TOrderStatus = "pending" | "ready" | "cancelled" | "completed"
 
 export type TOrder = {
   id: number

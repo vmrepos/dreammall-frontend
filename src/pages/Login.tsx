@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons"
-import { BrandMark } from "../components/atoms/BrandMark"
+import { BrandLogo } from "../components/atoms/BrandLogo"
 import { FormField, PasswordField } from "../components/molecules/FormField"
 import { useAuth } from "../context/AuthContext"
 
@@ -33,11 +33,9 @@ export const Login = () => {
     <div className="flex min-h-svh items-center justify-center bg-surface px-8 py-8">
       <div className="w-full max-w-md rounded-[20px] border border-gray-200/80 bg-surface-elevated p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(12,107,61,0.06)]">
         <header className="mb-8">
-          <div className="mb-4 flex items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-brand-light px-3 py-1.5 text-[13px] font-semibold text-brand">
-              Dream Mall · Comercio
-            </span>
-            <BrandMark />
+          <div className="mb-4">
+            <BrandLogo className="h-14" />
+            <p className="mt-2 text-[13px] font-semibold text-brand">Comercio</p>
           </div>
           <h1 className="mb-2 text-[1.75rem] font-bold leading-tight text-brand">
             Iniciar sesión

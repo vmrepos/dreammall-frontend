@@ -10,6 +10,7 @@ export const orderStatusConfig: Record<TOrderStatus, StatusConfig> = {
   pending: { label: "Pendiente", variant: "warning" },
   ready: { label: "Listo", variant: "success" },
   cancelled: { label: "Cancelado", variant: "danger" },
+  completed: { label: "Completado", variant: "success" },
 }
 
 export const deliveryStatusConfig: Record<TDeliveryStatus, StatusConfig> = {
