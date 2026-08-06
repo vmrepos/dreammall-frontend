@@ -3,6 +3,7 @@ name: Deploy Heroku
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 env:
   HEROKU_APP: virtualmall-frontend
