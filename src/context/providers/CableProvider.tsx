@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useAuth } from "../AuthContext";
-import { CableContext } from "../CableContext";
+import { CableContext, type ChannelMessage } from "../CableContext";
 import type { Consumer, Subscription } from "@rails/actioncable";
 import { subscribeRestaurantsChannel } from "../../services/cable";
 
@@ -45,7 +45,7 @@ export const CableProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [restaurant, notify])
 
-  const subscribe = useCallback((callback: (data: unknown) => void) => {
+  const subscribe = useCallback((callback: (data: ChannelMessage) => void) => {
     listenersRef.current.add(callback);
     return () => {
       listenersRef.current.delete(callback);
