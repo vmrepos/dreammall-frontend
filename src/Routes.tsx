@@ -20,42 +20,45 @@ import { Menu } from "./pages/dashboard/menu/Menu"
 import { Products } from "./pages/dashboard/menu/products/Products"
 import { ForgotPassword } from "./pages/ForgotPassword"
 import { ResetPassword } from "./pages/ResetPassword"
+import { CableProvider } from "./context/providers/CableProvider"
 
 export const AppRoutes = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<PublicRoute />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-          </Route>
+      <CableProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<PublicRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+            </Route>
 
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Dashboard />}>
-              <Route index element={<Navigate to="/orders" replace />} />
-              <Route path="orders" element={<Orders.Index />} />
-              <Route path="orders/new" element={<Orders.Create />} />
-              <Route path="orders/:id" element={<Orders.Show />} />
-              <Route path="deliveries" element={<DeliveriesPage />} />
-              <Route path="deliveries/new" element={<DeliveryCreatePage />} />
-              <Route path="deliveries/:id" element={<DeliveryShowPage />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="subscription" element={<SubscriptionPage />} />
-              <Route path="menu" element={<MenuLayout />}>
-                <Route index element={<Menu.Index />} />
-                <Route path="new" element={<Menu.New />} />
-                <Route path=":menuId/products/new" element={<Products.Form />} />
-                <Route path=":menuId/products/:productId/edit" element={<Products.Form />} />
-                <Route path=":menuId" element={<Menu.Show />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Dashboard />}>
+                <Route index element={<Navigate to="/orders" replace />} />
+                <Route path="orders" element={<Orders.Index />} />
+                <Route path="orders/new" element={<Orders.Create />} />
+                <Route path="orders/:id" element={<Orders.Show />} />
+                <Route path="deliveries" element={<DeliveriesPage />} />
+                <Route path="deliveries/new" element={<DeliveryCreatePage />} />
+                <Route path="deliveries/:id" element={<DeliveryShowPage />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="subscription" element={<SubscriptionPage />} />
+                <Route path="menu" element={<MenuLayout />}>
+                  <Route index element={<Menu.Index />} />
+                  <Route path="new" element={<Menu.New />} />
+                  <Route path=":menuId/products/new" element={<Products.Form />} />
+                  <Route path=":menuId/products/:productId/edit" element={<Products.Form />} />
+                  <Route path=":menuId" element={<Menu.Show />} />
+                </Route>
               </Route>
             </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </CableProvider>
     </AuthProvider>
   )
 }

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxOpen, faMotorcycle } from "@fortawesome/free-solid-svg-icons"
@@ -11,6 +11,7 @@ import { useOrders } from "../../../context/OrdersContext"
 import type { TOrder } from "../../../types/Order"
 import { canCancelOrder, getNextOrderStatus } from "../../../utils/status"
 import { cn, formatCurrency, formatDateTime } from "../../../utils/format"
+import { useCable } from "../../../context/CableContext"
 
 const MAX_VISIBLE_ITEMS = 4
 
@@ -21,6 +22,7 @@ type Props = {
 }
 
 export const OrderCard = ({ order }: Props) => {
+
   const navigate = useNavigate()
   const { updateOrder } = useOrders()
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
@@ -32,6 +34,8 @@ export const OrderCard = ({ order }: Props) => {
   const canMarkReady = getNextOrderStatus(order.status) === "ready"
   const canCancel = canCancelOrder(order.status)
   const showActions = canMarkReady || canCancel
+
+
 
   const closeConfirm = () => {
     if (confirming) return
@@ -135,7 +139,7 @@ export const OrderCard = ({ order }: Props) => {
             <div className="text-right">
               <p className="text-[11px] text-ink-muted">Recogida</p>
               <p className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-ink">
-                {order.pick_up_code}
+                {order.delivery_code}
               </p>
             </div>
           </div>

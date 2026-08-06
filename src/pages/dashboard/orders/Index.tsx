@@ -1,34 +1,55 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faClipboardList, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../components/atoms/Button"
 import { PageHeader } from "../../../components/molecules/PageHeader"
 import { useOrders } from "../../../context/OrdersContext"
-import type { TOrderStatus } from "../../../types/Order"
+import type { TOrder, TOrderStatus } from "../../../types/Order"
 import { orderStatusConfig } from "../../../utils/status"
 import { cn } from "../../../utils/format"
 import { OrderCard, OrdersEmptyState } from "./OrderCard"
+import { useCable } from "../../../context/CableContext"
 
 type StatusFilter = "all" | TOrderStatus
 
 const filters: { id: StatusFilter; label: string }[] = [
-  { id: "all", label: "Todos" },
+
   { id: "pending", label: orderStatusConfig.pending.label },
   { id: "ready", label: orderStatusConfig.ready.label },
+  { id: "completed", label: orderStatusConfig.completed.label },
   { id: "cancelled", label: orderStatusConfig.cancelled.label },
+
+  { id: "all", label: "Todos" },
 ]
 
 export const Index = () => {
   const navigate = useNavigate()
-  const { orders } = useOrders()
+  const { subscribe } = useCable()
+  const { orders, updateOrder } = useOrders()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
+
+
+  useEffect(() => {
+    return subscribe((data) => {
+      switch (data.type) {
+        case "order_picked_up":
+          let o = data.message as TOrder;
+          updateOrder(o.id, o.status as TOrderStatus)
+      }
+      return () => {
+        console.log("unsubscribed")
+      }
+    })
+  }, [subscribe])
+
 
   const counts: Record<StatusFilter, number> = {
     all: orders.length,
     pending: orders.filter((order) => order.status === "pending").length,
     ready: orders.filter((order) => order.status === "ready").length,
     cancelled: orders.filter((order) => order.status === "cancelled").length,
+    completed: orders.filter((order) => order.status === "completed").length,
   }
 
   const filteredOrders =
