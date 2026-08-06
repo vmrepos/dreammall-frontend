@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-type ChannelMessage = {
+export type ChannelMessage = {
   type: string;
   message: unknown;
 }

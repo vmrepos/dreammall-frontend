@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxOpen, faMotorcycle } from "@fortawesome/free-solid-svg-icons"
@@ -11,7 +11,6 @@ import { useOrders } from "../../../context/OrdersContext"
 import type { TOrder } from "../../../types/Order"
 import { canCancelOrder, getNextOrderStatus } from "../../../utils/status"
 import { cn, formatCurrency, formatDateTime } from "../../../utils/format"
-import { useCable } from "../../../context/CableContext"
 
 const MAX_VISIBLE_ITEMS = 4
 

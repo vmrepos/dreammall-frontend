@@ -2,11 +2,12 @@ import { type ReactNode, useState, useCallback, useEffect } from "react"
 import { apiClient } from "../../services/apiClient"
 import type { TOrder, TOrderForm, TOrderStatus } from "../../types/Order"
 import { OrdersContext } from "../OrdersContext"
+import { useCable } from "../CableContext"
+import { toast } from "sonner"
 
 export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<TOrder[]>([])
-
-
+  const { subscribe } = useCable()
   // This syncs the order list
   const upsertOrder = useCallback((order: TOrder) => {
     setOrders((current) => {
@@ -17,6 +18,30 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
       return next
     })
   }, [])
+
+  useEffect(() => {
+    return subscribe((data) => {
+      console.log("New Message Received", data)
+      let o = data.message as TOrder;
+      switch (data.type) {
+        case "order_picked_up":
+          toast.warning(`La orden numero ${o.id} ha sido tomada por el repartidor`)
+          break;
+        case "order_delivered":
+          toast.success(`La orden numero ${o.id} ha sido entregada`)
+          break;
+        case "order_cancelled":
+          toast.error(`La orden numero ${o.id} ha sido cancelada`)
+          break;
+      }
+      upsertOrder(o)
+      return () => {
+        console.log("unsubscribed")
+      }
+    })
+  }, [subscribe, upsertOrder])
+
+
 
 
   const refreshOrders = useCallback(async () => {
