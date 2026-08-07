@@ -21,6 +21,7 @@ import { Products } from "./pages/dashboard/menu/products/Products"
 import { ForgotPassword } from "./pages/ForgotPassword"
 import { ResetPassword } from "./pages/ResetPassword"
 import { CableProvider } from "./context/providers/CableProvider"
+import { ReportsPage } from "./pages/dashboard/reports/Page"
 
 export const AppRoutes = () => {
   return (
@@ -47,6 +48,7 @@ export const AppRoutes = () => {
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="subscription" element={<SubscriptionPage />} />
+                <Route path="reports" element={<ReportsPage />} />
                 <Route path="menu" element={<MenuLayout />}>
                   <Route index element={<Menu.Index />} />
                   <Route path="new" element={<Menu.New />} />

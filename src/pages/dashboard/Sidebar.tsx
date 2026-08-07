@@ -21,6 +21,7 @@ const navItems = [
   { to: "/deliveries", label: "Entregas" },
   { to: "/profile", label: "Perfil" },
   { to: "/settings", label: "Configuración" },
+  { to: "/reports", label: "Reportes" },
 
 ] as const
 
