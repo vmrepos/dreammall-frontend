@@ -9,10 +9,18 @@ import { useCart } from "../../../hooks/useCart"
 import { useForm } from "../../../hooks/useForm"
 import { apiClient } from "../../../services/apiClient"
 import type { TOrderForm } from "../../../types/Order"
+import type { TOrderItemOption } from "../../../types/OrderItem"
+import type { TProduct } from "../../../types/Product"
 import { parseCoordinates } from "../../../utils/coordinates"
 import { AvailableProducts } from "./AvailableProducts"
 import { OrderCartPanel } from "./OrderCartPanel"
 import { OrderSummary } from "./OrderSummary"
+import { ProductOptionsDialog } from "./ProductOptionsDialog"
+
+const productHasOptions = (product: TProduct) =>
+  (product.product_option_groups ?? []).some((group) =>
+    (group.product_options ?? []).some((option) => option.active !== false),
+  )
 
 const initialValues: TOrderForm = {
   items_attributes: [],
@@ -33,8 +41,10 @@ export const Create = () => {
   const [previewError, setPreviewError] = useState("")
   const [isCalculating, setIsCalculating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [customizing, setCustomizing] = useState<TProduct | null>(null)
+  const [customizeKey, setCustomizeKey] = useState(0)
 
-  const { values, handleChange, handleSubmit, mutate } = useForm<TOrderForm>({
+  const { values, handleChange, handleSubmit, mutate, setValues } = useForm<TOrderForm>({
     initialValues,
     onSubmit: async (formValues) => {
       if (formValues.items_attributes.length === 0 || formValues.distance_km == null) return
@@ -54,8 +64,28 @@ export const Create = () => {
 
   const cart = useCart({
     items: values.items_attributes,
-    setItems: (items) => mutate({ items_attributes: items }),
+    setItems: (updater) => {
+      setValues((current) => ({
+        ...current,
+        items_attributes: updater(current.items_attributes),
+      }))
+    },
   })
+
+  const handleAddProduct = (product: TProduct) => {
+    if (productHasOptions(product)) {
+      setCustomizeKey((key) => key + 1)
+      setCustomizing(product)
+      return
+    }
+    cart.add(product)
+  }
+
+  const handleConfirmOptions = (options: TOrderItemOption[]) => {
+    if (!customizing) return
+    cart.add(customizing, options)
+    setCustomizing(null)
+  }
 
   const total = cart.subtotal + Number(values.delivery_fee) - Number(values.discount)
 
@@ -112,7 +142,7 @@ export const Create = () => {
         className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.95fr)_minmax(16rem,0.85fr)] lg:gap-5"
         onSubmit={handleSubmit}
       >
-        <AvailableProducts products={products} onAdd={cart.add} />
+        <AvailableProducts products={products} onAdd={handleAddProduct} />
         <OrderCartPanel
           items={cart.items}
           updateQuantity={cart.updateQuantity}
@@ -137,6 +167,15 @@ export const Create = () => {
           onCancel={() => navigate("/orders")}
         />
       </form>
+
+      {customizing && (
+        <ProductOptionsDialog
+          key={customizeKey}
+          product={customizing}
+          onConfirm={handleConfirmOptions}
+          onCancel={() => setCustomizing(null)}
+        />
+      )}
     </div>
   )
 }

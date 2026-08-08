@@ -91,6 +91,11 @@ export const ProductTable = ({ menuId, products, onProductsChange }: Props) => {
                       {product.description && (
                         <p className="mt-1 text-xs text-gray-500">{product.description}</p>
                       )}
+                      {(product.product_option_groups?.length ?? 0) > 0 && (
+                        <Badge variant="brand" className="mt-2">
+                          Personalizable
+                        </Badge>
+                      )}
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900">
                       {formatCurrency(product.price)}
