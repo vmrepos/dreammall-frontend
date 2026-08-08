@@ -4,8 +4,8 @@ import { CartItem } from "./CartItem"
 
 type Props = {
   items: TOrderItemForm[]
-  updateQuantity: (productId: number, quantity: number) => void
-  removeFromCart: (productId: number) => void
+  updateQuantity: (clientKey: string, quantity: number) => void
+  removeFromCart: (clientKey: string) => void
 }
 
 export const OrderCartPanel = ({ items, updateQuantity, removeFromCart }: Props) => (
@@ -19,7 +19,7 @@ export const OrderCartPanel = ({ items, updateQuantity, removeFromCart }: Props)
       <div className="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto px-4 pb-3">
         {items.map((line) => (
           <CartItem
-            key={line.product_id}
+            key={line.clientKey}
             line={line}
             updateQuantity={updateQuantity}
             removeFromCart={removeFromCart}

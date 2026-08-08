@@ -28,6 +28,14 @@ export const OrderItemsTable = ({ items }: OrderItemsTableProps) => {
             <tr key={item.id}>
               <td className="px-6 py-4">
                 <p className="font-medium text-gray-900">{item.product_name}</p>
+                {(item.order_item_options ?? []).map((option) => (
+                  <p
+                    key={`${option.id ?? option.option_name}-${option.option_group_name}`}
+                    className="mt-0.5 text-xs text-gray-500"
+                  >
+                    {option.option_group_name}: {option.option_name}
+                  </p>
+                ))}
                 {item.notes && <p className="mt-1 text-xs text-gray-500">{item.notes}</p>}
               </td>
               <td className="px-6 py-4 text-gray-700">{item.quantity}</td>

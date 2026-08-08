@@ -34,8 +34,11 @@ export const AvailableProducts = ({ products, onAdd }: Props) => (
             {products.map((product) => (
               <tr key={product.id} className="hover:bg-gray-50/60">
                 <td className="px-4 py-1.5">
-                  <p className="text-sm font-medium text-gray-900">{product.name}</p>
-                </td>
+                        <p className="text-sm font-medium text-gray-900">{product.name}</p>
+                        {(product.product_option_groups?.length ?? 0) > 0 && (
+                          <p className="text-[11px] text-gray-500">Personalizable</p>
+                        )}
+                      </td>
                 <td className="px-4 py-1.5 text-sm font-medium tabular-nums text-gray-900">
                   {formatCurrency(product.price)}
                 </td>

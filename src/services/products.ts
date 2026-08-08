@@ -10,7 +10,7 @@ export const ProductsAPI = {
     })
     return response.data.data as TProduct
   },
-  update: async (menuId: number, productId: number, product: Partial<TProduct>): Promise<TProduct> => {
+  update: async (menuId: number, productId: number, product: TProductForm): Promise<TProduct> => {
     const response = await axiosInstance.patch(
       `/restaurants/menus/${menuId}/products/${productId}`,
       { product },
