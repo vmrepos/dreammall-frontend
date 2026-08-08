@@ -6,13 +6,28 @@ import { GoBack } from "../../../../components/atoms/GoBack"
 import { Input } from "../../../../components/atoms/Input"
 import { Label } from "../../../../components/atoms/Label"
 import { Toggle } from "../../../../components/atoms/Toggle"
+import { useForm } from "../../../../hooks/useForm"
 import { apiClient } from "../../../../services/apiClient"
 import type { TMenu } from "../../../../types/Menu"
-import type { TProduct } from "../../../../types/Product"
+import type { TProduct, TProductForm } from "../../../../types/Product"
+import { OptionGroupsEditor } from "./OptionGroupsEditor"
+import {
+  groupsFromProduct,
+  toGroupsAttributes,
+  type TProductOptionGroupForm,
+} from "./optionGroups"
+
+type ProductEditorValues = {
+  name: string
+  description: string
+  price: string
+  active: boolean
+  combo: boolean
+  product_option_groups: TProductOptionGroupForm[]
+}
 
 export const Form = () => {
   const { menuId, productId } = useParams()
-  const navigate = useNavigate()
 
   const parsedMenuId = Number(menuId)
   const parsedProductId = productId ? Number(productId) : null
@@ -21,14 +36,7 @@ export const Form = () => {
   const [menu, setMenu] = useState<TMenu | null>(null)
   const [existingProduct, setExistingProduct] = useState<TProduct | null | undefined>(undefined)
   const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [price, setPrice] = useState("")
-  const [active, setActive] = useState(true)
-  const [combo, setCombo] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -50,14 +58,6 @@ export const Form = () => {
 
         const product = loadedMenu.products?.find((item) => item.id === parsedProductId) ?? null
         setExistingProduct(product)
-
-        if (product) {
-          setName(product.name)
-          setDescription(product.description ?? "")
-          setPrice(product.price)
-          setActive(product.active)
-          setCombo(product.combo)
-        }
       })
       .catch(() => {
         if (!cancelled) {
@@ -106,32 +106,72 @@ export const Form = () => {
     )
   }
 
-  const handleSubmit = async (ev: React.FormEvent) => {
-    ev.preventDefault()
-    setSubmitting(true)
-    setError(null)
+  return (
+    <ProductEditor
+      menu={menu}
+      product={existingProduct ?? null}
+      parsedMenuId={parsedMenuId}
+      parsedProductId={parsedProductId}
+      isEditing={isEditing}
+    />
+  )
+}
 
-    const input = {
-      name: name.trim(),
-      description: description.trim(),
-      price: price.trim(),
-      active,
-      combo,
-    }
+type ProductEditorProps = {
+  menu: TMenu
+  product: TProduct | null
+  parsedMenuId: number
+  parsedProductId: number | null
+  isEditing: boolean
+}
 
-    try {
-      if (isEditing && parsedProductId !== null) {
-        await apiClient.products.update(parsedMenuId, parsedProductId, input)
-      } else {
-        await apiClient.products.create(parsedMenuId, input)
+const ProductEditor = ({
+  menu,
+  product,
+  parsedMenuId,
+  parsedProductId,
+  isEditing,
+}: ProductEditorProps) => {
+  const navigate = useNavigate()
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const { values, handleChange, handleSubmit, mutate } = useForm<ProductEditorValues>({
+    initialValues: {
+      name: product?.name ?? "",
+      description: product?.description ?? "",
+      price: product?.price ?? "",
+      active: product?.active ?? true,
+      combo: product?.combo ?? false,
+      product_option_groups: groupsFromProduct(product),
+    },
+    onSubmit: async (formValues) => {
+      setSubmitting(true)
+      setError(null)
+
+      const input: TProductForm = {
+        name: formValues.name.trim(),
+        description: formValues.description.trim(),
+        price: formValues.price.trim(),
+        active: formValues.active,
+        combo: formValues.combo,
+        product_option_groups_attributes: toGroupsAttributes(formValues.product_option_groups),
       }
 
-      navigate(`/menu/${menu.id}`)
-    } catch {
-      setError("No se pudo guardar el producto. Intenta de nuevo.")
-      setSubmitting(false)
-    }
-  }
+      try {
+        if (isEditing && parsedProductId !== null) {
+          await apiClient.products.update(parsedMenuId, parsedProductId, input)
+        } else {
+          await apiClient.products.create(parsedMenuId, input)
+        }
+
+        navigate(`/menu/${menu.id}`)
+      } catch {
+        setError("No se pudo guardar el producto. Intenta de nuevo.")
+        setSubmitting(false)
+      }
+    },
+  })
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -154,9 +194,10 @@ export const Form = () => {
             <Label htmlFor="product-name">Nombre</Label>
             <Input
               id="product-name"
+              name="name"
               className="mt-2"
-              value={name}
-              onChange={(ev) => setName(ev.target.value)}
+              value={values.name}
+              onChange={handleChange}
               placeholder="Ej. Hamburguesa clásica"
               required
             />
@@ -166,9 +207,10 @@ export const Form = () => {
             <Label htmlFor="product-description">Descripción</Label>
             <Input
               id="product-description"
+              name="description"
               className="mt-2"
-              value={description}
-              onChange={(ev) => setDescription(ev.target.value)}
+              value={values.description}
+              onChange={handleChange}
               placeholder="Opcional"
             />
           </div>
@@ -181,8 +223,8 @@ export const Form = () => {
               type="number"
               min="0"
               step="0.01"
-              value={price}
-              onChange={(ev) => setPrice(ev.target.value)}
+              value={values.price}
+              onChange={(ev) => mutate({ price: ev.target.value })}
               placeholder="0.00"
               required
             />
@@ -194,9 +236,9 @@ export const Form = () => {
               <p className="text-xs text-gray-500">Visible y disponible en este menú</p>
             </div>
             <Toggle
-              checked={active}
+              checked={values.active}
               label="Activar producto"
-              onChange={setActive}
+              onChange={(active) => mutate({ active })}
             />
           </div>
 
@@ -206,9 +248,16 @@ export const Form = () => {
               <p className="text-xs text-gray-500">Marcar si este producto es un bundle</p>
             </div>
             <Toggle
-              checked={combo}
+              checked={values.combo}
               label="Marcar como combo"
-              onChange={setCombo}
+              onChange={(combo) => mutate({ combo })}
+            />
+          </div>
+
+          <div className="border-t border-gray-100 pt-5">
+            <OptionGroupsEditor
+              groups={values.product_option_groups}
+              onChange={(product_option_groups) => mutate({ product_option_groups })}
             />
           </div>
 

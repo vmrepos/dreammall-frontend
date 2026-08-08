@@ -7,12 +7,21 @@ const toCreatePayload = (input: TOrderForm) => {
   return {
     order: {
       ...rest,
-      items_attributes: items_attributes.map(({ product_id, name, quantity, unit_price }) => ({
-        product_id,
-        product_name: name,
-        quantity,
-        unit_price,
-      })),
+      items_attributes: items_attributes.map(
+        ({ product_id, name, quantity, unit_price, order_item_options }) => ({
+          product_id,
+          product_name: name,
+          quantity,
+          unit_price,
+          order_item_options_attributes: order_item_options.map(
+            ({ option_group_name, option_name, price_modifier }) => ({
+              option_group_name,
+              option_name,
+              price_modifier,
+            }),
+          ),
+        }),
+      ),
     },
   }
 }
