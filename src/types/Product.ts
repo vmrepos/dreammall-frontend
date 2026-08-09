@@ -11,6 +11,7 @@ export type TProductOptionGroup = {
   id: number
   name: string
   required: boolean
+  multiple: boolean
   position: number
   product_options: TProductOption[]
 }
@@ -43,6 +44,7 @@ export type TProductOptionGroupWrite = {
   id?: number
   name: string
   required: boolean
+  multiple: boolean
   position: number
   _destroy?: boolean
   product_options_attributes?: TProductOptionWrite[]

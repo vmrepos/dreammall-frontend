@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"
-import { Link, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
   faArrowLeft,
   faMotorcycle,
   faTruck,
 } from "@fortawesome/free-solid-svg-icons"
+import { toast } from "sonner"
 import { Button } from "../../../components/atoms/Button"
 import { Card, CardHeader } from "../../../components/atoms/Card"
 import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
@@ -13,12 +14,13 @@ import { DeliveryStatusProgress } from "../../../components/molecules/DeliverySt
 import { DeliveryStatusBadge } from "../../../components/molecules/StatusBadge"
 import { DetailRow } from "../../../components/organisms/OrderItemsTable"
 import type { TDelivery, TDeliveryStatus } from "../../../types/Delivery"
-import { canCancelDelivery, deliveryStatusConfig } from "../../../utils/status"
+import { canCancelDelivery, canConfirmReturn, deliveryStatusConfig } from "../../../utils/status"
 import { formatCurrency, formatDate } from "../../../utils/format"
 import { apiClient } from "../../../services/apiClient"
 
 export const DeliveryShowPage = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   useEffect(() => {
     apiClient.deliveries.show(Number(id)).then((delivery) => {
       setDelivery(delivery)
@@ -26,6 +28,10 @@ export const DeliveryShowPage = () => {
   }, [id])
   const [delivery, setDelivery] = useState<TDelivery | undefined>(undefined)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const [showReturnDialog, setShowReturnDialog] = useState(false)
+  const [showRetryDialog, setShowRetryDialog] = useState(false)
+  const [confirmingReturn, setConfirmingReturn] = useState(false)
+  const [retrying, setRetrying] = useState(false)
 
   if (!delivery) {
     return (
@@ -45,6 +51,34 @@ export const DeliveryShowPage = () => {
         : current,
     )
     setShowCancelDialog(false)
+  }
+
+  const confirmReturn = async () => {
+    setConfirmingReturn(true)
+    try {
+      const updated = await apiClient.deliveries.confirmReturn(delivery.id)
+      setDelivery(updated)
+      setShowReturnDialog(false)
+      toast.success("Devolución confirmada")
+    } catch {
+      toast.error("No se pudo confirmar la devolución")
+    } finally {
+      setConfirmingReturn(false)
+    }
+  }
+
+  const retryDelivery = async () => {
+    setRetrying(true)
+    try {
+      const created = await apiClient.deliveries.create(delivery.order_id)
+      setShowRetryDialog(false)
+      toast.success("Buscando un nuevo repartidor")
+      navigate(`/deliveries/${created.id}`)
+    } catch {
+      toast.error("No se pudo reenviar la entrega. Revisa tus créditos.")
+    } finally {
+      setRetrying(false)
+    }
   }
 
   return (
@@ -76,12 +110,35 @@ export const DeliveryShowPage = () => {
           </p>
         </div>
 
-        {canCancelDelivery(delivery.status) && (
-          <Button variant="danger" onClick={() => setShowCancelDialog(true)}>
-            Cancelar entrega
-          </Button>
-        )}
+        <div className="flex gap-3">
+          {canConfirmReturn(delivery) && (
+            <Button onClick={() => setShowReturnDialog(true)}>Confirmar devolución</Button>
+          )}
+          {delivery.status === "returned" && (
+            <Button onClick={() => setShowRetryDialog(true)}>Reenviar entrega</Button>
+          )}
+          {canCancelDelivery(delivery.status) && (
+            <Button variant="danger" onClick={() => setShowCancelDialog(true)}>
+              Cancelar entrega
+            </Button>
+          )}
+        </div>
       </div>
+
+      {delivery.status === "absent_customer" && !delivery.driver_returned_at && (
+        <p className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Cliente ausente. Esperando que el repartidor vuelva al local.
+        </p>
+      )}
+      {delivery.status === "returned" && (
+        <p className="mb-4 rounded-xl bg-brand-light px-4 py-3 text-sm text-brand">
+          Pedido recibido de vuelta. Puedes reenviar o cancelar el pedido{" "}
+          <Link to={`/orders/${delivery.order_id}`} className="font-semibold underline">
+            #{delivery.order_id}
+          </Link>
+          .
+        </p>
+      )}
 
       <Card padding="md" className="mb-6">
         <DeliveryStatusProgress delivery={delivery} />
@@ -135,6 +192,28 @@ export const DeliveryShowPage = () => {
         confirmLabel="Sí, cancelar"
         onConfirm={cancelDelivery}
         onCancel={() => setShowCancelDialog(false)}
+      />
+
+      <ConfirmDialog
+        open={showReturnDialog}
+        title="Confirmar devolución"
+        message="¿Confirmas que el pedido volvió al local? El repartidor quedará libre."
+        confirmLabel="Sí, recibí el pedido"
+        confirmVariant="primary"
+        confirming={confirmingReturn}
+        onConfirm={confirmReturn}
+        onCancel={() => !confirmingReturn && setShowReturnDialog(false)}
+      />
+
+      <ConfirmDialog
+        open={showRetryDialog}
+        title="Reenviar entrega"
+        message="Se buscará un nuevo repartidor y se usará 1 crédito. ¿Deseas continuar?"
+        confirmLabel="Sí, reenviar"
+        confirmVariant="primary"
+        confirming={retrying}
+        onConfirm={retryDelivery}
+        onCancel={() => !retrying && setShowRetryDialog(false)}
       />
     </div>
   )

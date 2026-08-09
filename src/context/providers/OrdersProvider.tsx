@@ -33,6 +33,15 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         case "order_cancelled":
           toast.error(`La orden numero ${o.id} ha sido cancelada`)
           break;
+        case "order_absent_customer":
+          toast.error(`Pedido #${o.id}: cliente ausente`)
+          break;
+        case "order_driver_returned":
+          toast.warning(`Pedido #${o.id}: el repartidor volvió al local`)
+          break;
+        case "order_returned":
+          toast.success(`Pedido #${o.id}: devolución confirmada`)
+          break;
       }
       upsertOrder(o)
       return () => {

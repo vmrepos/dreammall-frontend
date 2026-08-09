@@ -7,6 +7,7 @@ export type TDeliveryStatus =
   | "in_transit"
   | "delivered"
   | "absent_customer"
+  | "returned"
   | "cancelled"
 
 export type TDelivery = {
@@ -26,5 +27,7 @@ export type TDelivery = {
   delivered_at: string | null
   cancelled_at: string | null
   absent_customer_at: string | null
+  driver_returned_at: string | null
+  returned_at: string | null
   driver: TDriver | null
 }

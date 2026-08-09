@@ -7,9 +7,11 @@ import { Card, CardHeader } from "../../../components/atoms/Card"
 import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
 import { OrderStatusBadge } from "../../../components/molecules/StatusBadge"
 import { DetailRow, OrderItemsTable } from "../../../components/organisms/OrderItemsTable"
+import { toast } from "sonner"
 import { useOrders } from "../../../context/OrdersContext"
+import { apiClient } from "../../../services/apiClient"
 import type { TOrderStatus } from "../../../types/Order"
-import { canCancelOrder, getNextOrderStatus, orderStatusConfig } from "../../../utils/status"
+import { canCancelOrder, canConfirmReturn, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../utils/status"
 import { formatCurrency, formatDate } from "../../../utils/format"
 import { DeliveryCard } from "./DeliveryCard"
 
@@ -25,7 +27,7 @@ export const Show = () => {
   const order = getOrder(orderId)
   const [loading, setLoading] = useState(!order)
   const [notFound, setNotFound] = useState(false)
-  const [confirmAction, setConfirmAction] = useState<"ready" | "cancel" | null>(null)
+  const [confirmAction, setConfirmAction] = useState<"ready" | "cancel" | "return" | "retry" | null>(null)
   const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
@@ -83,8 +85,23 @@ export const Show = () => {
         await updateOrder(order.id, nextStatus)
       } else if (confirmAction === "cancel") {
         await updateOrder(order.id, "cancelled")
+      } else if (confirmAction === "return" && order.delivery) {
+        await apiClient.deliveries.confirmReturn(order.delivery.id)
+        await fetchOrder(order.id)
+        toast.success("Devolución confirmada")
+      } else if (confirmAction === "retry") {
+        const delivery = await apiClient.deliveries.create(order.id)
+        await fetchOrder(order.id)
+        toast.success("Buscando un nuevo repartidor")
+        navigate(`/deliveries/${delivery.id}`)
       }
       setConfirmAction(null)
+    } catch {
+      toast.error(
+        confirmAction === "retry"
+          ? "No se pudo reenviar la entrega. Revisa tus créditos."
+          : "No se pudo actualizar el pedido.",
+      )
     } finally {
       setConfirming(false)
     }
@@ -119,7 +136,13 @@ export const Show = () => {
           {nextLabel && (
             <Button onClick={() => setConfirmAction("ready")}>{nextLabel}</Button>
           )}
-          {canCancelOrder(order.status) && (
+          {order.delivery && canConfirmReturn(order.delivery) && (
+            <Button onClick={() => setConfirmAction("return")}>Confirmar devolución</Button>
+          )}
+          {canRetryDelivery(order.status, order.delivery) && (
+            <Button onClick={() => setConfirmAction("retry")}>Reenviar entrega</Button>
+          )}
+          {canCancelOrder(order.status, order.delivery) && (
             <Button variant="danger" onClick={() => setConfirmAction("cancel")}>
               Cancelar pedido
             </Button>
@@ -197,6 +220,28 @@ export const Show = () => {
         title="Cancelar pedido"
         message="¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer."
         confirmLabel="Sí, cancelar"
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={() => !confirming && setConfirmAction(null)}
+      />
+
+      <ConfirmDialog
+        open={confirmAction === "return"}
+        title="Confirmar devolución"
+        message="¿Confirmas que el pedido volvió al local? El repartidor quedará libre."
+        confirmLabel="Sí, recibí el pedido"
+        confirmVariant="primary"
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={() => !confirming && setConfirmAction(null)}
+      />
+
+      <ConfirmDialog
+        open={confirmAction === "retry"}
+        title="Reenviar entrega"
+        message="Se buscará un nuevo repartidor y se usará 1 crédito. ¿Deseas continuar?"
+        confirmLabel="Sí, reenviar"
+        confirmVariant="primary"
         confirming={confirming}
         onConfirm={handleConfirm}
         onCancel={() => !confirming && setConfirmAction(null)}

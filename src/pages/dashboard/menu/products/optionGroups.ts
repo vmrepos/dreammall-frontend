@@ -15,6 +15,7 @@ export type TProductOptionGroupForm = {
   id?: number
   name: string
   required: boolean
+  multiple: boolean
   _destroy?: boolean
   product_options: TProductOptionForm[]
 }
@@ -31,6 +32,7 @@ export const emptyGroup = (): TProductOptionGroupForm => ({
   clientKey: crypto.randomUUID(),
   name: "",
   required: false,
+  multiple: false,
   product_options: [emptyOption()],
 })
 
@@ -40,6 +42,7 @@ export const groupsFromProduct = (product: TProduct | null): TProductOptionGroup
     id: group.id,
     name: group.name,
     required: group.required,
+    multiple: Boolean(group.multiple),
     product_options: (group.product_options ?? []).map((option) => ({
       clientKey: String(option.id),
       id: option.id,
@@ -66,6 +69,7 @@ export const toGroupsAttributes = (
         ...(group.id ? { id: group.id } : {}),
         name: group.name.trim(),
         required: group.required,
+        multiple: group.multiple,
         position: groupIndex,
         ...(group._destroy ? { _destroy: true } : {}),
         product_options_attributes: group.product_options.flatMap((option, optionIndex) => {

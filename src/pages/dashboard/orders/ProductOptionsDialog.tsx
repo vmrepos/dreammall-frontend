@@ -3,7 +3,7 @@ import { Button } from "../../../components/atoms/Button"
 import { Card } from "../../../components/atoms/Card"
 import type { TOrderItemOption } from "../../../types/OrderItem"
 import type { TProduct, TProductOption, TProductOptionGroup } from "../../../types/Product"
-import { formatCurrency } from "../../../utils/format"
+import { cn, formatCurrency } from "../../../utils/format"
 
 type Props = {
   product: TProduct
@@ -19,12 +19,13 @@ const initialSelection = (product: TProduct) => {
 
   for (const group of product.product_option_groups ?? []) {
     const options = activeOptions(group)
-    if (group.required) {
-      const fallback = options.find((option) => option.default) ?? options[0]
-      selected[group.id] = fallback ? [fallback.id] : []
-    } else {
+    if (group.multiple) {
       selected[group.id] = options.filter((option) => option.default).map((option) => option.id)
+      continue
     }
+
+    const fallback = options.find((option) => option.default) ?? (group.required ? options[0] : undefined)
+    selected[group.id] = fallback ? [fallback.id] : []
   }
 
   return selected
@@ -59,11 +60,17 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
     (group) => group.required && (selected[group.id] ?? []).length === 0,
   )
 
-  const selectRequired = (groupId: number, optionId: number) => {
-    setSelected((current) => ({ ...current, [groupId]: [optionId] }))
+  const selectSingle = (group: TProductOptionGroup, optionId: number) => {
+    setSelected((current) => {
+      const currentIds = current[group.id] ?? []
+      if (!group.required && currentIds.includes(optionId)) {
+        return { ...current, [group.id]: [] }
+      }
+      return { ...current, [group.id]: [optionId] }
+    })
   }
 
-  const toggleOptional = (groupId: number, option: TProductOption) => {
+  const toggleMultiple = (groupId: number, option: TProductOption) => {
     setSelected((current) => {
       const currentIds = current[groupId] ?? []
       const nextIds = currentIds.includes(option.id)
@@ -75,7 +82,7 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
-      <Card padding="lg" className="w-full max-w-md">
+      <Card padding="lg" className="w-full max-w-xl">
         <h2 className="text-lg font-bold text-gray-900">Personalizar {product.name}</h2>
         <p className="mt-1 text-sm text-gray-500">Elige las opciones de este producto.</p>
 
@@ -89,8 +96,9 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
                 <legend className="px-1 text-sm font-semibold text-gray-900">
                   {group.name}
                   {group.required && <span className="ml-1 text-xs font-medium text-gray-500">Obligatorio</span>}
+                  {group.multiple && <span className="ml-1 text-xs font-medium text-gray-500">Varias</span>}
                 </legend>
-                <div className="mt-2 grid gap-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {options.map((option) => {
                     const checked = selectedIds.includes(option.id)
                     const inputId = `option-${group.id}-${option.id}`
@@ -99,24 +107,28 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
                       <label
                         key={option.id}
                         htmlFor={inputId}
-                        className="flex cursor-pointer items-center justify-between gap-3 rounded-lg bg-surface-elevated px-3 py-2 text-sm"
+                        className={cn(
+                          "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition",
+                          checked
+                            ? "border-brand bg-brand-light text-brand"
+                            : "border-gray-200 bg-surface-elevated text-gray-900 hover:border-gray-300",
+                        )}
                       >
-                        <span className="flex items-center gap-2 text-gray-900">
-                          <input
-                            id={inputId}
-                            type={group.required ? "radio" : "checkbox"}
-                            name={`group-${group.id}`}
-                            checked={checked}
-                            onChange={() =>
-                              group.required
-                                ? selectRequired(group.id, option.id)
-                                : toggleOptional(group.id, option)
-                            }
-                          />
-                          {option.name}
-                        </span>
+                        <input
+                          id={inputId}
+                          type={group.multiple ? "checkbox" : "radio"}
+                          name={`group-${group.id}`}
+                          checked={checked}
+                          className="sr-only"
+                          onChange={() =>
+                            group.multiple
+                              ? toggleMultiple(group.id, option)
+                              : selectSingle(group, option.id)
+                          }
+                        />
+                        {option.name}
                         {Number(option.price_modifier) > 0 && (
-                          <span className="text-xs tabular-nums text-gray-500">
+                          <span className={cn("text-xs tabular-nums", checked ? "text-brand" : "text-gray-500")}>
                             +{formatCurrency(option.price_modifier)}
                           </span>
                         )}

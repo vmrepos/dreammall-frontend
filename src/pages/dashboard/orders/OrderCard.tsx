@@ -8,13 +8,14 @@ import { Card } from "../../../components/atoms/Card"
 import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
 import { OrderStatusBadge, DeliveryStatusBadge } from "../../../components/molecules/StatusBadge"
 import { useOrders } from "../../../context/OrdersContext"
+import { apiClient } from "../../../services/apiClient"
 import type { TOrder } from "../../../types/Order"
-import { canCancelOrder, getNextOrderStatus } from "../../../utils/status"
+import { canCancelOrder, canConfirmReturn, canRetryDelivery, getNextOrderStatus } from "../../../utils/status"
 import { cn, formatCurrency, formatDateTime } from "../../../utils/format"
 
 const MAX_VISIBLE_ITEMS = 4
 
-type ConfirmAction = "ready" | "cancel" | null
+type ConfirmAction = "ready" | "cancel" | "return" | "retry" | null
 
 type Props = {
   order: TOrder
@@ -23,7 +24,7 @@ type Props = {
 export const OrderCard = ({ order }: Props) => {
 
   const navigate = useNavigate()
-  const { updateOrder } = useOrders()
+  const { updateOrder, fetchOrder } = useOrders()
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
   const [confirming, setConfirming] = useState(false)
 
@@ -31,8 +32,10 @@ export const OrderCard = ({ order }: Props) => {
   const visibleItems = items.slice(0, MAX_VISIBLE_ITEMS)
   const hiddenCount = Math.max(0, items.length - MAX_VISIBLE_ITEMS)
   const canMarkReady = getNextOrderStatus(order.status) === "ready"
-  const canCancel = canCancelOrder(order.status)
-  const showActions = canMarkReady || canCancel
+  const canCancel = canCancelOrder(order.status, order.delivery)
+  const canReturn = order.delivery ? canConfirmReturn(order.delivery) : false
+  const canRetry = canRetryDelivery(order.status, order.delivery)
+  const showActions = canMarkReady || canCancel || canReturn || canRetry
 
 
 
@@ -48,6 +51,14 @@ export const OrderCard = ({ order }: Props) => {
       if (confirmAction === "ready") {
         await updateOrder(order.id, "ready")
         toast.success(`Pedido #${order.id} marcado como listo`)
+      } else if (confirmAction === "return" && order.delivery) {
+        await apiClient.deliveries.confirmReturn(order.delivery.id)
+        await fetchOrder(order.id)
+        toast.success(`Pedido #${order.id}: devolución confirmada`)
+      } else if (confirmAction === "retry") {
+        await apiClient.deliveries.create(order.id)
+        await fetchOrder(order.id)
+        toast.success(`Pedido #${order.id}: buscando un nuevo repartidor`)
       } else {
         await updateOrder(order.id, "cancelled")
         toast.success(`Pedido #${order.id} cancelado`)
@@ -57,7 +68,11 @@ export const OrderCard = ({ order }: Props) => {
       toast.error(
         confirmAction === "ready"
           ? "No se pudo marcar el pedido como listo"
-          : "No se pudo cancelar el pedido",
+          : confirmAction === "return"
+            ? "No se pudo confirmar la devolución"
+            : confirmAction === "retry"
+              ? "No se pudo reenviar la entrega. Revisa tus créditos."
+              : "No se pudo cancelar el pedido",
       )
     } finally {
       setConfirming(false)
@@ -165,6 +180,22 @@ export const OrderCard = ({ order }: Props) => {
                   Marcar listo
                 </Button>
               )}
+              {canReturn && (
+                <Button
+                  className="flex-1 rounded-lg px-3 py-2 text-xs"
+                  onClick={() => setConfirmAction("return")}
+                >
+                  Confirmar devolución
+                </Button>
+              )}
+              {canRetry && (
+                <Button
+                  className="flex-1 rounded-lg px-3 py-2 text-xs"
+                  onClick={() => setConfirmAction("retry")}
+                >
+                  Reenviar
+                </Button>
+              )}
               {canCancel && (
                 <Button
                   variant="danger"
@@ -203,6 +234,28 @@ export const OrderCard = ({ order }: Props) => {
         title="Cancelar pedido"
         message={`¿Estás seguro de cancelar el pedido #${order.id}? Esta acción no se puede deshacer.`}
         confirmLabel="Sí, cancelar"
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={closeConfirm}
+      />
+
+      <ConfirmDialog
+        open={confirmAction === "return"}
+        title="Confirmar devolución"
+        message={`¿Confirmas que el pedido #${order.id} volvió al local? El repartidor quedará libre.`}
+        confirmLabel="Sí, recibí el pedido"
+        confirmVariant="primary"
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={closeConfirm}
+      />
+
+      <ConfirmDialog
+        open={confirmAction === "retry"}
+        title="Reenviar entrega"
+        message={`Se buscará un nuevo repartidor para el pedido #${order.id} y se usará 1 crédito.`}
+        confirmLabel="Sí, reenviar"
+        confirmVariant="primary"
         confirming={confirming}
         onConfirm={handleConfirm}
         onCancel={closeConfirm}

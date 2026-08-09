@@ -19,6 +19,7 @@ const filters: { id: StatusFilter; label: string }[] = [
   { id: "ready", label: orderStatusConfig.ready.label },
   { id: "completed", label: orderStatusConfig.completed.label },
   { id: "cancelled", label: orderStatusConfig.cancelled.label },
+  { id: "absent_customer", label: "Cliente ausente" },
 
   { id: "all", label: "Todos" },
 ]
@@ -37,6 +38,7 @@ export const Index = () => {
     ready: orders.filter((order) => order.status === "ready").length,
     cancelled: orders.filter((order) => order.status === "cancelled").length,
     completed: orders.filter((order) => order.status === "completed").length,
+    absent_customer: orders.filter((order) => order.status === "absent_customer").length,
   }
 
   const filteredOrders =

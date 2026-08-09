@@ -174,7 +174,7 @@ const ProductEditor = ({
   })
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-6xl">
       <GoBack text={`Volver a ${menu.name}`} route={`/menu/${menu.id}`} />
 
       <div className="mb-6">
@@ -184,11 +184,18 @@ const ProductEditor = ({
         <p className="mt-1 text-[15px] text-gray-500">{menu.name}</p>
       </div>
 
-      <Card padding="lg">
-        <form className="grid gap-5" onSubmit={handleSubmit}>
-          {error && (
-            <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-          )}
+      <form
+        className="grid items-start gap-4 lg:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]"
+        onSubmit={handleSubmit}
+      >
+        {error && (
+          <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 lg:col-span-2">
+            {error}
+          </p>
+        )}
+
+        <Card padding="lg" className="grid gap-5">
+          <h2 className="text-sm font-semibold text-gray-900">Información general</h2>
 
           <div>
             <Label htmlFor="product-name">Nombre</Label>
@@ -253,28 +260,28 @@ const ProductEditor = ({
               onChange={(combo) => mutate({ combo })}
             />
           </div>
+        </Card>
 
-          <div className="border-t border-gray-100 pt-5">
-            <OptionGroupsEditor
-              groups={values.product_option_groups}
-              onChange={(product_option_groups) => mutate({ product_option_groups })}
-            />
-          </div>
+        <Card padding="lg">
+          <OptionGroupsEditor
+            groups={values.product_option_groups}
+            onChange={(product_option_groups) => mutate({ product_option_groups })}
+          />
+        </Card>
 
-          <div className="flex justify-end gap-3 border-t border-gray-100 pt-6">
-            <Button type="button" variant="secondary" onClick={() => navigate(`/menu/${menu.id}`)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting
-                ? "Guardando..."
-                : isEditing
-                  ? "Guardar cambios"
-                  : "Crear producto"}
-            </Button>
-          </div>
-        </form>
-      </Card>
+        <div className="flex justify-end gap-3 lg:col-span-2">
+          <Button type="button" variant="secondary" onClick={() => navigate(`/menu/${menu.id}`)}>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={submitting}>
+            {submitting
+              ? "Guardando..."
+              : isEditing
+                ? "Guardar cambios"
+                : "Crear producto"}
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }

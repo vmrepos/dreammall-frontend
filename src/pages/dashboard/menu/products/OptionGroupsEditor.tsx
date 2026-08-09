@@ -126,7 +126,7 @@ export const OptionGroupsEditor = ({ groups, onChange }: Props) => {
                   </Button>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div className="grid gap-3">
                   <div>
                     <Label htmlFor={`group-name-${group.clientKey}`}>Nombre del grupo</Label>
                     <Input
@@ -138,94 +138,108 @@ export const OptionGroupsEditor = ({ groups, onChange }: Props) => {
                       required
                     />
                   </div>
-                  <div className="flex items-end justify-between gap-3 rounded-xl bg-surface-elevated px-3 py-2 sm:min-w-40">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Obligatorio</p>
-                      <p className="text-xs text-gray-500">El cliente debe elegir una</p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="flex items-center justify-between gap-3 rounded-xl bg-surface-elevated px-3 py-2">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Obligatorio</p>
+                        <p className="text-xs text-gray-500">Debe elegir al menos una</p>
+                      </div>
+                      <Toggle
+                        checked={group.required}
+                        label={`Grupo ${group.name || groupIndex + 1} obligatorio`}
+                        onChange={(required) => updateGroup(group.clientKey, { required })}
+                      />
                     </div>
-                    <Toggle
-                      checked={group.required}
-                      label={`Grupo ${group.name || groupIndex + 1} obligatorio`}
-                      onChange={(required) => updateGroup(group.clientKey, { required })}
-                    />
+                    <div className="flex items-center justify-between gap-3 rounded-xl bg-surface-elevated px-3 py-2">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Múltiple</p>
+                        <p className="text-xs text-gray-500">Puede elegir varias</p>
+                      </div>
+                      <Toggle
+                        checked={group.multiple}
+                        label={`Grupo ${group.name || groupIndex + 1} múltiple`}
+                        onChange={(multiple) => updateGroup(group.clientKey, { multiple })}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-2">
-                  <div className="hidden grid-cols-[1fr_7rem_auto_auto_auto] gap-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:grid">
-                    <span>Opción</span>
-                    <span>Recargo</span>
-                    <span>Default</span>
-                    <span>Activa</span>
-                    <span />
-                  </div>
-
+                <div className="mt-4 flex flex-wrap gap-2">
                   {visibleOptions.map((option) => (
                     <div
                       key={option.clientKey}
-                      className="grid gap-2 rounded-lg bg-surface-elevated p-2 sm:grid-cols-[1fr_7rem_auto_auto_auto] sm:items-center"
+                      className="flex min-w-[12.5rem] flex-1 basis-[12.5rem] flex-col gap-1.5 rounded-lg border border-gray-200 bg-surface-elevated p-2"
                     >
-                      <Input
-                        value={option.name}
-                        onChange={(ev) =>
-                          updateOption(group.clientKey, option.clientKey, { name: ev.target.value })
-                        }
-                        placeholder="Ej. Grande"
-                        required
-                      />
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={option.price_modifier}
-                        onChange={(ev) =>
-                          updateOption(group.clientKey, option.clientKey, {
-                            price_modifier: ev.target.value,
-                          })
-                        }
-                        aria-label={`Recargo de ${option.name || "opción"}`}
-                      />
-                      <div className="flex items-center justify-between gap-2 sm:justify-center">
-                        <span className="text-xs text-gray-500 sm:hidden">Default</span>
-                        <Toggle
-                          checked={option.default}
-                          label={`Opción ${option.name || "sin nombre"} por defecto`}
-                          onChange={(isDefault) =>
-                            updateOption(group.clientKey, option.clientKey, { default: isDefault })
+                      <div className="flex items-center gap-1">
+                        <input
+                          value={option.name}
+                          onChange={(ev) =>
+                            updateOption(group.clientKey, option.clientKey, { name: ev.target.value })
                           }
+                          placeholder="Ej. Grande"
+                          required
+                          className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-surface px-2 py-1.5 text-sm text-ink outline-none placeholder:text-ink-muted/60 focus:border-brand"
                         />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="shrink-0 px-2 py-1.5 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          onClick={() => removeOption(group.clientKey, option.clientKey)}
+                          aria-label="Quitar opción"
+                        >
+                          <FontAwesomeIcon icon={faTrash} className="size-3.5" aria-hidden />
+                        </Button>
                       </div>
-                      <div className="flex items-center justify-between gap-2 sm:justify-center">
-                        <span className="text-xs text-gray-500 sm:hidden">Activa</span>
-                        <Toggle
-                          checked={option.active}
-                          label={`Opción ${option.name || "sin nombre"} activa`}
-                          onChange={(active) =>
-                            updateOption(group.clientKey, option.clientKey, { active })
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={option.price_modifier}
+                          onChange={(ev) =>
+                            updateOption(group.clientKey, option.clientKey, {
+                              price_modifier: ev.target.value,
+                            })
                           }
+                          aria-label={`Recargo de ${option.name || "opción"}`}
+                          className="w-20 rounded-lg border border-gray-200 bg-surface px-2 py-1 text-sm tabular-nums text-ink outline-none focus:border-brand"
                         />
+                        <label className="flex items-center gap-1 text-[11px] text-gray-500">
+                          <input
+                            type="checkbox"
+                            checked={option.default}
+                            onChange={(ev) =>
+                              updateOption(group.clientKey, option.clientKey, {
+                                default: ev.target.checked,
+                              })
+                            }
+                          />
+                          Default
+                        </label>
+                        <label className="flex items-center gap-1 text-[11px] text-gray-500">
+                          <input
+                            type="checkbox"
+                            checked={option.active}
+                            onChange={(ev) =>
+                              updateOption(group.clientKey, option.clientKey, {
+                                active: ev.target.checked,
+                              })
+                            }
+                          />
+                          Activa
+                        </label>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="justify-self-end px-2 py-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                        onClick={() => removeOption(group.clientKey, option.clientKey)}
-                        aria-label="Quitar opción"
-                      >
-                        <FontAwesomeIcon icon={faTrash} className="size-3.5" aria-hidden />
-                      </Button>
                     </div>
                   ))}
 
-                  <Button
+                  <button
                     type="button"
-                    variant="secondary"
-                    className="mt-1 w-fit gap-1 rounded-lg px-3 py-1.5 text-xs"
+                    className="flex min-h-[4.75rem] min-w-[12.5rem] flex-1 basis-[12.5rem] items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 px-3 text-xs font-semibold text-ink-muted transition hover:border-brand hover:text-brand"
                     onClick={() => addOption(group.clientKey)}
                   >
                     <FontAwesomeIcon icon={faPlus} className="size-3" aria-hidden />
                     Agregar opción
-                  </Button>
+                  </button>
                 </div>
               </div>
             )
