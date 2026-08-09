@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBookOpen, faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faBookOpen, faImage, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { Badge } from "../../../components/atoms/Badge"
 import { Button } from "../../../components/atoms/Button"
 import { Toggle } from "../../../components/atoms/Toggle"
@@ -9,17 +9,21 @@ import { apiClient } from "../../../services/apiClient"
 import type { TMenu } from "../../../types/Menu"
 import type { TProduct } from "../../../types/Product"
 import { ProductTable } from "./ProductTable"
+import { MenuShareDialog } from "./MenuShareDialog"
 import { MenuNotFound } from "./NotFound"
 import { GoBack } from "../../../components/atoms/GoBack"
 import { useMenuContext } from "../../../context/MenuContext"
+import { useRestaurant } from "../../../context/RestaurantContext"
 
 export const Show = () => {
   const { menuId } = useParams()
   const navigate = useNavigate()
   const parsedMenuId = Number(menuId)
   const { toggleMenu } = useMenuContext()
+  const { restaurant } = useRestaurant()
   const [menu, setMenu] = useState<TMenu | null>(null)
   const [loading, setLoading] = useState(true)
+  const [shareOpen, setShareOpen] = useState(false)
 
   const fetchMenu = useCallback(async () => {
     try {
@@ -87,6 +91,14 @@ export const Show = () => {
             label={`${menu.active ? "Desactivar" : "Activar"} ${menu.name}`}
             onChange={(active) => toggleMenu(menu.id, active)}
           />
+          <Button
+            variant="secondary"
+            onClick={() => setShareOpen(true)}
+            disabled={(menu.products ?? []).length === 0}
+          >
+            <FontAwesomeIcon icon={faImage} className="size-4" aria-hidden />
+            Imagen del menú
+          </Button>
           <Button onClick={() => navigate(`/menu/${menu.id}/products/new`)}>
             <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
             Nuevo producto
@@ -98,6 +110,16 @@ export const Show = () => {
         menuId={menu.id}
         products={menu.products ?? []}
         onProductsChange={handleProductsChange}
+      />
+
+      <MenuShareDialog
+        open={shareOpen}
+        menuName={menu.name}
+        restaurantName={restaurant?.name ?? "Mi restaurante"}
+        address={restaurant?.address}
+        whatsapp={restaurant?.whatsapp}
+        products={menu.products ?? []}
+        onClose={() => setShareOpen(false)}
       />
     </div>
   )
