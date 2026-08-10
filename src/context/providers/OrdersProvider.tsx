@@ -1,5 +1,6 @@
 import { type ReactNode, useState, useCallback, useEffect } from "react"
 import { apiClient } from "../../services/apiClient"
+import { toOrder } from "../../services/orders"
 import type { TOrder, TOrderForm, TOrderStatus } from "../../types/Order"
 import { OrdersContext } from "../OrdersContext"
 import { useCable } from "../CableContext"
@@ -22,8 +23,9 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     return subscribe((data) => {
       console.log("New Message Received", data)
-      let o = data.message as TOrder;
-      switch (data.type) {
+      const type = data.type === "order_absent_customer" ? "order_driving_back" : data.type
+      const o = toOrder(data.message as Parameters<typeof toOrder>[0])
+      switch (type) {
         case "order_picked_up":
           toast.warning(`La orden numero ${o.id} ha sido tomada por el repartidor`)
           break;
@@ -33,8 +35,8 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         case "order_cancelled":
           toast.error(`La orden numero ${o.id} ha sido cancelada`)
           break;
-        case "order_absent_customer":
-          toast.error(`Pedido #${o.id}: cliente ausente`)
+        case "order_driving_back":
+          toast.error(`Pedido #${o.id}: el repartidor vuelve al local`)
           break;
         case "order_driver_returned":
           toast.warning(`Pedido #${o.id}: el repartidor volvió al local`)

@@ -27,7 +27,7 @@ export type TDelivery = {
   picked_up_at: string | null
   delivered_at: string | null
   cancelled_at: string | null
-  absent_customer_at: string | null
+  driving_back_at: string | null
   driver_returned_at: string | null
   returned_at: string | null
   driver: TDriver | null

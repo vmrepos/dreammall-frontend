@@ -56,7 +56,7 @@ export const getDeliveryStepTimestamp = (
     picked_up_at: string | null
     delivered_at: string | null
     cancelled_at: string | null
-    absent_customer_at: string | null
+    driving_back_at: string | null
     driver_returned_at?: string | null
     returned_at?: string | null
   },
@@ -76,7 +76,7 @@ export const getDeliveryStepTimestamp = (
     case "cancelled":
       return delivery.cancelled_at
     case "driving_back":
-      return delivery.absent_customer_at
+      return delivery.driving_back_at
     case "returned":
       return delivery.returned_at ?? null
     default:
