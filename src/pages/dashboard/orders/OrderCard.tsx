@@ -32,7 +32,8 @@ export const OrderCard = ({ order }: Props) => {
   const items = order.items ?? []
   const visibleItems = items.slice(0, MAX_VISIBLE_ITEMS)
   const hiddenCount = Math.max(0, items.length - MAX_VISIBLE_ITEMS)
-  const canMarkReady = getNextOrderStatus(order.status) === "ready"
+  const nextStatus = getNextOrderStatus(order.status)
+  const canMarkReady = nextStatus === "preparing" || nextStatus === "ready"
   const canCancel = canCancelOrder(order.status, order.delivery)
   const canReturn = order.delivery ? canConfirmReturn(order.delivery) : false
   const canRetry = canRetryDelivery(order.status, order.delivery)
@@ -49,9 +50,13 @@ export const OrderCard = ({ order }: Props) => {
     if (!confirmAction) return
     setConfirming(true)
     try {
-      if (confirmAction === "ready") {
-        await updateOrder(order.id, "ready")
-        toast.success(`Pedido #${order.id} marcado como listo`)
+      if (confirmAction === "ready" && nextStatus) {
+        await updateOrder(order.id, nextStatus)
+        toast.success(
+          nextStatus === "preparing"
+            ? `Pedido #${order.id} en preparación`
+            : `Pedido #${order.id} marcado como listo`,
+        )
       } else if (confirmAction === "return" && order.delivery) {
         await apiClient.deliveries.confirmReturn(order.delivery.id)
         await fetchOrder(order.id)
@@ -188,7 +193,7 @@ export const OrderCard = ({ order }: Props) => {
                   className="flex-1 rounded-lg px-3 py-2 text-xs"
                   onClick={() => setConfirmAction("ready")}
                 >
-                  Marcar listo
+                  {nextStatus === "preparing" ? "Preparando" : "Marcar listo"}
                 </Button>
               )}
               {canReturn && (

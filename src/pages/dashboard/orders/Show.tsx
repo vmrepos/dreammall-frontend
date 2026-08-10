@@ -161,7 +161,7 @@ export const Show = () => {
               Cancelar pedido
             </Button>
           )}
-          {order.status === "ready" && order.delivery && (
+          {(order.status === "ready" || order.status === "dispatched") && order.delivery && (
             <Button variant="secondary" onClick={() => navigate(`/deliveries/${order.delivery?.id}`)}>
               Ver entrega
             </Button>
