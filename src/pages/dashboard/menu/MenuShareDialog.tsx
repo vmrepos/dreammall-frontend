@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { Button } from "../../../components/atoms/Button"
 import type { TProduct } from "../../../types/Product"
 import { formatCurrency } from "../../../utils/format"
+import logoPedi2 from "../../../assets/logo-pedi2-horizontal-light.png"
 
 const FLYER_BG = "#fffaf2"
 const FLYER_INK = "#1c241f"
@@ -65,6 +66,16 @@ export const MenuShareDialog = ({
     const node = flyerRef.current
     if (!node) throw new Error("flyer missing")
     await document.fonts.ready
+    await Promise.all(
+      [...node.querySelectorAll("img")].map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              img.addEventListener("load", () => resolve(), { once: true })
+              img.addEventListener("error", () => resolve(), { once: true })
+            }),
+      ),
+    )
     return node
   }
 
@@ -130,6 +141,7 @@ export const MenuShareDialog = ({
               <div
                 ref={flyerRef}
                 style={{
+                  position: "relative",
                   width: FLYER_WIDTH,
                   boxSizing: "border-box",
                   background: FLYER_BG,
@@ -138,6 +150,19 @@ export const MenuShareDialog = ({
                   padding: "48px 44px 40px",
                 }}
               >
+                <img
+                  src={logoPedi2}
+                  alt="Pedi2"
+                  style={{
+                    position: "absolute",
+                    top: 16,
+                    right: 18,
+                    height: 22,
+                    width: "auto",
+                    opacity: 0.78,
+                    objectFit: "contain",
+                  }}
+                />
                 <p
                   style={{
                     margin: 0,
