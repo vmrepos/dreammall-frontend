@@ -41,6 +41,9 @@ export type TOrderForm = {
   total_amount?: number
 }
 
+export type TOrderCancelReason = "customer_cancelled" | "restaurant_cancelled" | "other"
+
 export type TOrderUpdate = {
   status: TOrderStatus
+  cancel_reason?: string
 }

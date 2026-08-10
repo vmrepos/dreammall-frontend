@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { Button } from "../../../components/atoms/Button"
 import { Card } from "../../../components/atoms/Card"
 import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
+import { CancelOrderDialog } from "./CancelOrderDialog"
 import { OrderStatusBadge, DeliveryStatusBadge } from "../../../components/molecules/StatusBadge"
 import { useOrders } from "../../../context/OrdersContext"
 import { apiClient } from "../../../services/apiClient"
@@ -59,9 +60,6 @@ export const OrderCard = ({ order }: Props) => {
         await apiClient.deliveries.create(order.id)
         await fetchOrder(order.id)
         toast.success(`Pedido #${order.id}: buscando un nuevo repartidor`)
-      } else {
-        await updateOrder(order.id, "cancelled")
-        toast.success(`Pedido #${order.id} cancelado`)
       }
       setConfirmAction(null)
     } catch {
@@ -72,8 +70,21 @@ export const OrderCard = ({ order }: Props) => {
             ? "No se pudo confirmar la devolución"
             : confirmAction === "retry"
               ? "No se pudo reenviar la entrega. Revisa tus créditos."
-              : "No se pudo cancelar el pedido",
+              : "No se pudo actualizar el pedido",
       )
+    } finally {
+      setConfirming(false)
+    }
+  }
+
+  const handleCancelOrder = async (reason: string) => {
+    setConfirming(true)
+    try {
+      await updateOrder(order.id, "cancelled", reason)
+      toast.success(`Pedido #${order.id} cancelado`)
+      setConfirmAction(null)
+    } catch {
+      toast.error("No se pudo cancelar el pedido")
     } finally {
       setConfirming(false)
     }
@@ -229,13 +240,10 @@ export const OrderCard = ({ order }: Props) => {
         onCancel={closeConfirm}
       />
 
-      <ConfirmDialog
+      <CancelOrderDialog
         open={confirmAction === "cancel"}
-        title="Cancelar pedido"
-        message={`¿Estás seguro de cancelar el pedido #${order.id}? Esta acción no se puede deshacer.`}
-        confirmLabel="Sí, cancelar"
         confirming={confirming}
-        onConfirm={handleConfirm}
+        onConfirm={handleCancelOrder}
         onCancel={closeConfirm}
       />
 

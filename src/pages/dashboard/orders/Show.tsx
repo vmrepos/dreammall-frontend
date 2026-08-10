@@ -5,18 +5,21 @@ import { faArrowLeft, faClipboardList } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../components/atoms/Button"
 import { Card, CardHeader } from "../../../components/atoms/Card"
 import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
+import { CancelOrderDialog } from "./CancelOrderDialog"
 import { OrderStatusBadge } from "../../../components/molecules/StatusBadge"
 import { DetailRow, OrderItemsTable } from "../../../components/organisms/OrderItemsTable"
 import { toast } from "sonner"
 import { useOrders } from "../../../context/OrdersContext"
 import { apiClient } from "../../../services/apiClient"
 import type { TOrderStatus } from "../../../types/Order"
-import { canCancelOrder, canConfirmReturn, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../utils/status"
+import { canCancelOrder, canConfirmReturn, cancelReasonLabel, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../utils/status"
 import { formatCurrency, formatDate } from "../../../utils/format"
 import { DeliveryCard } from "./DeliveryCard"
 
 const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
-  pending: "Marcar listo",
+  pending: "Preparando",
+  preparing: "Marcar listo",
+  returned: "Marcar listo",
 }
 
 export const Show = () => {
@@ -83,8 +86,6 @@ export const Show = () => {
     try {
       if (confirmAction === "ready" && nextStatus) {
         await updateOrder(order.id, nextStatus)
-      } else if (confirmAction === "cancel") {
-        await updateOrder(order.id, "cancelled")
       } else if (confirmAction === "return" && order.delivery) {
         await apiClient.deliveries.confirmReturn(order.delivery.id)
         await fetchOrder(order.id)
@@ -102,6 +103,19 @@ export const Show = () => {
           ? "No se pudo reenviar la entrega. Revisa tus créditos."
           : "No se pudo actualizar el pedido.",
       )
+    } finally {
+      setConfirming(false)
+    }
+  }
+
+  const handleCancelOrder = async (reason: string) => {
+    setConfirming(true)
+    try {
+      await updateOrder(order.id, "cancelled", reason)
+      toast.success("Pedido cancelado")
+      setConfirmAction(null)
+    } catch {
+      toast.error("No se pudo cancelar el pedido.")
     } finally {
       setConfirming(false)
     }
@@ -175,6 +189,14 @@ export const Show = () => {
                 <p className="mt-1 text-sm leading-relaxed text-gray-700">{order.notes}</p>
               </div>
             )}
+            {order.status === "cancelled" && cancelReasonLabel(order.cancel_reason) && (
+              <div className="mt-3 rounded-lg bg-red-50 px-3 py-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-red-700">Motivo de cancelación</p>
+                <p className="mt-1 text-sm leading-relaxed text-red-900">
+                  {cancelReasonLabel(order.cancel_reason)}
+                </p>
+              </div>
+            )}
             <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-2">
               <span className="flex flex-col gap-1">
                 <span className="font-semibold text-gray-900">Código de entrega</span>
@@ -215,13 +237,10 @@ export const Show = () => {
         onCancel={() => !confirming && setConfirmAction(null)}
       />
 
-      <ConfirmDialog
+      <CancelOrderDialog
         open={confirmAction === "cancel"}
-        title="Cancelar pedido"
-        message="¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer."
-        confirmLabel="Sí, cancelar"
         confirming={confirming}
-        onConfirm={handleConfirm}
+        onConfirm={handleCancelOrder}
         onCancel={() => !confirming && setConfirmAction(null)}
       />
 

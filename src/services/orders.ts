@@ -39,9 +39,12 @@ export const OrdersAPI = {
     const response = await axiosInstance.get(`/restaurants/orders/${id}`)
     return response.data.data as TOrder
   },
-  update: async (id: number, status: TOrderStatus): Promise<TOrder> => {
+  update: async (id: number, status: TOrderStatus, cancelReason?: string): Promise<TOrder> => {
     const response = await axiosInstance.patch(`/restaurants/orders/${id}`, {
-      order: { status },
+      order: {
+        status,
+        ...(cancelReason ? { cancel_reason: cancelReason } : {}),
+      },
     })
     return response.data.data as TOrder
   },

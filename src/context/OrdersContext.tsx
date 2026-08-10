@@ -7,7 +7,7 @@ type OrdersContextType = {
   createOrder: (input: TOrderForm) => Promise<TOrder>
   getOrder: (id: number) => TOrder | undefined
   fetchOrder: (id: number) => Promise<TOrder>
-  updateOrder: (id: number, status: TOrderStatus) => Promise<TOrder>
+  updateOrder: (id: number, status: TOrderStatus, cancelReason?: string) => Promise<TOrder>
 }
 
 export const OrdersContext = createContext<OrdersContextType | null>(null)

@@ -83,8 +83,8 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   )
 
   const updateOrder = useCallback(
-    async (id: number, status: TOrderStatus) => {
-      const order = await apiClient.orders.update(id, status)
+    async (id: number, status: TOrderStatus, cancelReason?: string) => {
+      const order = await apiClient.orders.update(id, status, cancelReason)
       upsertOrder(order)
       return order
     },
