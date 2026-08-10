@@ -16,10 +16,12 @@ type StatusFilter = "all" | TOrderStatus
 const filters: { id: StatusFilter; label: string }[] = [
 
   { id: "pending", label: orderStatusConfig.pending.label },
+  { id: "preparing", label: orderStatusConfig.preparing.label },
   { id: "ready", label: orderStatusConfig.ready.label },
+  { id: "dispatched", label: orderStatusConfig.dispatched.label },
+  { id: "returned", label: orderStatusConfig.returned.label },
   { id: "completed", label: orderStatusConfig.completed.label },
   { id: "cancelled", label: orderStatusConfig.cancelled.label },
-  { id: "absent_customer", label: "Cliente ausente" },
 
   { id: "all", label: "Todos" },
 ]
@@ -35,10 +37,12 @@ export const Index = () => {
   const counts: Record<StatusFilter, number> = {
     all: orders.length,
     pending: orders.filter((order) => order.status === "pending").length,
+    preparing: orders.filter((order) => order.status === "preparing").length,
     ready: orders.filter((order) => order.status === "ready").length,
+    dispatched: orders.filter((order) => order.status === "dispatched").length,
+    returned: orders.filter((order) => order.status === "returned").length,
     cancelled: orders.filter((order) => order.status === "cancelled").length,
     completed: orders.filter((order) => order.status === "completed").length,
-    absent_customer: orders.filter((order) => order.status === "absent_customer").length,
   }
 
   const filteredOrders =

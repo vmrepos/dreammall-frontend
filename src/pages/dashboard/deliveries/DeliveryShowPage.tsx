@@ -125,7 +125,7 @@ export const DeliveryShowPage = () => {
         </div>
       </div>
 
-      {delivery.status === "absent_customer" && !delivery.driver_returned_at && (
+      {delivery.status === "driving_back" && !delivery.driver_returned_at && (
         <p className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
           Cliente ausente. Esperando que el repartidor vuelva al local.
         </p>

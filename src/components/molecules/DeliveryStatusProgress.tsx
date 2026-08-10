@@ -73,7 +73,7 @@ export const DeliveryStatusProgress = ({ delivery }: DeliveryStatusProgressProps
           {deliveryProgressSteps.map((step, index) => {
             const reached = !cancelled && currentIndex >= index
             const isCurrent = !failed && status === step
-            const isFailedAtStep = status === "absent_customer" && step === "in_transit"
+            const isFailedAtStep = status === "driving_back" && step === "in_transit"
             const timestamp = getDeliveryStepTimestamp(delivery, step)
             const timeLabel = stepTimeLabel(timestamp, reached || isFailedAtStep)
 

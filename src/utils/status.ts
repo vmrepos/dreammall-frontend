@@ -7,9 +7,11 @@ type StatusConfig = {
 }
 
 export const orderStatusConfig: Record<TOrderStatus, StatusConfig> = {
-  absent_customer: { label: "Cliente ausente", variant: "danger" },
   pending: { label: "Pendiente", variant: "warning" },
+  preparing: { label: "Preparando", variant: "warning" },
   ready: { label: "Listo", variant: "success" },
+  dispatched: { label: "Despachado", variant: "info" },
+  returned: { label: "Devuelto al local", variant: "info" },
   cancelled: { label: "Cancelado", variant: "danger" },
   completed: { label: "Completado", variant: "success" },
 }
@@ -18,9 +20,10 @@ export const deliveryStatusConfig: Record<TDeliveryStatus, StatusConfig> = {
   pending: { label: "Pendiente", variant: "warning" },
   awaiting_driver: { label: "Buscando repartidor", variant: "warning" },
   assigned: { label: "Asignada", variant: "info" },
+  awaiting_pickup: { label: "Esperando recogida", variant: "info" },
   in_transit: { label: "En camino", variant: "info" },
   delivered: { label: "Entregada", variant: "success" },
-  absent_customer: { label: "Cliente ausente", variant: "danger" },
+  driving_back: { label: "Regresando al local", variant: "danger" },
   returned: { label: "Devuelta al local", variant: "info" },
   cancelled: { label: "Cancelada", variant: "danger" },
 }
@@ -35,10 +38,10 @@ export const deliveryProgressSteps: TDeliveryStatus[] = [
 ]
 
 export const isTerminalDeliveryFailure = (status: TDeliveryStatus) =>
-  status === "cancelled" || status === "absent_customer"
+  status === "cancelled" || status === "driving_back" || status === "returned"
 
 export const getDeliveryProgressIndex = (status: TDeliveryStatus): number => {
-  if (status === "absent_customer" || status === "returned") {
+  if (status === "driving_back" || status === "returned") {
     return deliveryProgressSteps.indexOf("in_transit")
   }
   const index = deliveryProgressSteps.indexOf(status)
@@ -72,7 +75,7 @@ export const getDeliveryStepTimestamp = (
       return delivery.delivered_at
     case "cancelled":
       return delivery.cancelled_at
-    case "absent_customer":
+    case "driving_back":
       return delivery.absent_customer_at
     case "returned":
       return delivery.returned_at ?? null
@@ -82,13 +85,14 @@ export const getDeliveryStepTimestamp = (
 }
 
 export const getNextOrderStatus = (status: TOrderStatus): TOrderStatus | null => {
-  if (status === "pending") return "ready"
+  if (status === "pending") return "preparing"
+  if (status === "preparing" || status === "returned") return "ready"
   return null
 }
 
 export const canCancelOrder = (status: TOrderStatus, delivery: { status: TDeliveryStatus } | null = null) => {
-  if (status === "pending") return true
-  if (status === "absent_customer" && !delivery) return true
+  if (status === "pending" || status === "preparing" || status === "ready") return true
+  if (status === "returned" && !delivery) return true
   return false
 }
 
@@ -98,9 +102,23 @@ export const canCancelDelivery = (status: TDeliveryStatus) =>
 export const canConfirmReturn = (delivery: {
   status: TDeliveryStatus
   driver_returned_at?: string | null
-}) => delivery.status === "absent_customer" && Boolean(delivery.driver_returned_at)
+}) => delivery.status === "driving_back" && Boolean(delivery.driver_returned_at)
 
 export const canRetryDelivery = (
   status: TOrderStatus,
   delivery: { status: TDeliveryStatus } | null = null,
-) => status === "absent_customer" && !delivery
+) => status === "returned" && !delivery
+
+export const orderCancelReasonOptions = [
+  { id: "customer_cancelled", label: "Cancelado por el cliente" },
+  { id: "restaurant_cancelled", label: "Cancelado por el restaurant" },
+  { id: "other", label: "Otro" },
+] as const
+
+export const cancelReasonLabel = (reason: string | null | undefined) => {
+  if (!reason) return null
+  if (reason === "customer_cancelled") return "Cancelado por el cliente"
+  if (reason === "restaurant_cancelled") return "Cancelado por el restaurant"
+  if (reason === "other") return "Otro"
+  return reason
+}

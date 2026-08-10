@@ -2,7 +2,7 @@ import { orderStatusConfig } from "../utils/status"
 import type { TOrderStatus } from "../types/Order"
 import type { TReportOrders } from "../types/Report"
 
-const STATUS_ORDER: TOrderStatus[] = ["pending", "ready", "completed", "cancelled"]
+const STATUS_ORDER: TOrderStatus[] = ["pending", "preparing", "ready", "dispatched", "returned", "completed", "cancelled"]
 
 type OrdersWidgetProps = {
   orders: TReportOrders

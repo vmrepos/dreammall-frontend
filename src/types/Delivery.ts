@@ -4,9 +4,10 @@ export type TDeliveryStatus =
   | "pending"
   | "awaiting_driver"
   | "assigned"
+  | "awaiting_pickup"
   | "in_transit"
   | "delivered"
-  | "absent_customer"
+  | "driving_back"
   | "returned"
   | "cancelled"
 
