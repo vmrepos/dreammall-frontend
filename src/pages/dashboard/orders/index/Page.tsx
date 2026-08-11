@@ -15,7 +15,7 @@ import type { StatusFilter } from "./statusFilters"
 export const Page = () => {
   const navigate = useNavigate()
   const { orders } = useOrders()
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending")
 
   const counts: Record<StatusFilter, number> = {
     all: orders.length,
