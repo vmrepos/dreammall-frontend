@@ -27,6 +27,7 @@ export type TOrder = {
   delivery_code: string
   pick_up_code: string
   cancel_reason?: string | null
+  ready_countdown: number | null
 }
 
 export type TOrderForm = {
