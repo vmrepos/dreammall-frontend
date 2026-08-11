@@ -6,9 +6,13 @@ const HIGHLIGHT: TDeliveryStatus[] = ["delivered", "cancelled", "in_transit", "a
 
 type DeliveriesWidgetProps = {
   deliveries: TReportDeliveries
+  periodLabel?: string
 }
 
-export const DeliveriesWidget = ({ deliveries }: DeliveriesWidgetProps) => {
+export const DeliveriesWidget = ({
+  deliveries,
+  periodLabel = "Este mes",
+}: DeliveriesWidgetProps) => {
   const rows = HIGHLIGHT.map((status) => ({
     status,
     label: deliveryStatusConfig[status]?.label ?? status,
@@ -19,7 +23,7 @@ export const DeliveriesWidget = ({ deliveries }: DeliveriesWidgetProps) => {
     <div className="flex flex-1 flex-col gap-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-sm text-ink-muted">Este mes</p>
+          <p className="text-sm text-ink-muted">{periodLabel}</p>
           <p className="mt-1 text-3xl font-bold tracking-tight text-ink">{deliveries.total}</p>
           <p className="mt-1 text-sm text-ink-muted">entregas</p>
         </div>

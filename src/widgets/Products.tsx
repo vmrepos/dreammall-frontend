@@ -2,13 +2,17 @@ import type { TReportProduct } from "../types/Report"
 
 type ProductsWidgetProps = {
   products: TReportProduct[]
+  emptyMessage?: string
 }
 
-export const ProductsWidget = ({ products }: ProductsWidgetProps) => {
+export const ProductsWidget = ({
+  products,
+  emptyMessage = "Sin ventas de productos este mes.",
+}: ProductsWidgetProps) => {
   if (products.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center text-center">
-        <p className="text-sm text-ink-muted">Sin ventas de productos este mes.</p>
+        <p className="text-sm text-ink-muted">{emptyMessage}</p>
       </div>
     )
   }

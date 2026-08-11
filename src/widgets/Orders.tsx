@@ -6,16 +6,16 @@ const STATUS_ORDER: TOrderStatus[] = ["pending", "preparing", "ready", "dispatch
 
 type OrdersWidgetProps = {
   orders: TReportOrders
+  periodLabel?: string
 }
 
-export const OrdersWidget = ({ orders }: OrdersWidgetProps) => {
+export const OrdersWidget = ({ orders, periodLabel = "Este mes" }: OrdersWidgetProps) => {
   const rows = STATUS_ORDER.map((status) => ({
     status,
     label: orderStatusConfig[status]?.label ?? status,
     count: orders.by_status[status] ?? 0,
   })).filter((row) => row.count > 0 || STATUS_ORDER.includes(row.status))
 
-  // Also show unknown statuses (e.g. preparing) if present
   const known = new Set<string>(STATUS_ORDER)
   const extras = Object.entries(orders.by_status)
     .filter(([status]) => !known.has(status))
@@ -30,7 +30,7 @@ export const OrdersWidget = ({ orders }: OrdersWidgetProps) => {
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div>
-        <p className="text-sm text-ink-muted">Este mes</p>
+        <p className="text-sm text-ink-muted">{periodLabel}</p>
         <p className="mt-1 text-3xl font-bold tracking-tight text-ink">{orders.total}</p>
         <p className="mt-1 text-sm text-ink-muted">
           {orders.total === 1 ? "pedido" : "pedidos"}
