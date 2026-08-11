@@ -16,6 +16,7 @@ import type { TOrderStatus } from "../../../../types/Order"
 import { canCancelOrder, canConfirmReturn, cancelReasonLabel, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../../utils/status"
 import { formatCurrency, formatDate } from "../../../../utils/format"
 import { DeliveryCard } from "../shared/DeliveryCard"
+import { ReadyCountdown } from "../shared/ReadyCountdown"
 
 const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
   pending: "Preparando",
@@ -144,6 +145,12 @@ export const Page = () => {
           </div>
           <p className="mt-1 text-[15px] text-gray-500">
             Creado el {formatDate(order.created_at)}
+            {order.ready_countdown != null && (
+              <>
+                {" · "}
+                <ReadyCountdown seconds={order.ready_countdown} className="text-[15px]" />
+              </>
+            )}
           </p>
         </div>
 

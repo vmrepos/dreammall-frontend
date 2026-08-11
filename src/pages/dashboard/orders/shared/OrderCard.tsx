@@ -13,6 +13,7 @@ import { apiClient } from "../../../../services/apiClient"
 import type { TOrder } from "../../../../types/Order"
 import { canCancelOrder, canConfirmReturn, canRetryDelivery, getNextOrderStatus } from "../../../../utils/status"
 import { cn, formatCurrency, formatDateTime } from "../../../../utils/format"
+import { ReadyCountdown } from "./ReadyCountdown"
 
 const MAX_VISIBLE_ITEMS = 4
 
@@ -38,6 +39,8 @@ export const OrderCard = ({ order }: Props) => {
   const canReturn = order.delivery ? canConfirmReturn(order.delivery) : false
   const canRetry = canRetryDelivery(order.status, order.delivery)
   const showActions = canMarkReady || canCancel || canReturn || canRetry
+
+
 
 
 
@@ -111,9 +114,18 @@ export const OrderCard = ({ order }: Props) => {
           <div className="flex shrink-0 items-start justify-between gap-2">
             <div>
               <p className="text-lg font-bold tabular-nums text-ink">#{order.id}</p>
-              <p className="mt-0.5 text-xs text-ink-muted">{formatDateTime(order.created_at)}</p>
+              <p className="mt-0.5 text-xs text-ink-muted">
+                {formatDateTime(order.created_at)}
+                {order.ready_countdown != null && (
+                  <>
+                    {" · "}
+                    <ReadyCountdown seconds={order.ready_countdown} />
+                  </>
+                )}
+              </p>
             </div>
             <OrderStatusBadge status={order.status} />
+
           </div>
 
           <div className="mt-3 flex min-h-[8.5rem] flex-1 flex-col">
@@ -227,7 +239,7 @@ export const OrderCard = ({ order }: Props) => {
               variant="secondary"
               className="flex-1 rounded-lg px-3 py-2 text-xs"
               onClick={() => navigate(`/orders/${order.id}`)}
-            >
+              >
               Ver detalle
             </Button>
           )}
