@@ -1,6 +1,14 @@
 import type { TDeliveryStatus } from "./Delivery"
 import type { TOrderStatus } from "./Order"
 
+/** Overview comparison window sent as `?period=` */
+export type TReportPeriodPreset = "day" | "week" | "month"
+
+export type TReportDateRange = {
+  from: string
+  to: string
+}
+
 export type TReportPeriod = {
   start: string
   end: string
@@ -41,4 +49,21 @@ export type TReport = {
   orders: TReportOrders
   products: TReportProduct[]
   deliveries: TReportDeliveries
+}
+
+/** Lean row for the report Orders table (`GET …/report/orders`). */
+export type TReportOrderRow = {
+  id: number
+  created_at: string
+  status: TOrderStatus
+  total_amount: string | number
+}
+
+/** Lean row for the report Deliveries table (`GET …/report/deliveries`). */
+export type TReportDeliveryRow = {
+  id: number
+  created_at: string
+  order_id: number
+  status: TDeliveryStatus
+  driver: { id: number; name: string } | null
 }

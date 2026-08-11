@@ -8,9 +8,15 @@ const percentChange = (current: number, previous: number) => {
 
 type SalesWidgetProps = {
   sales: TReportSales
+  currentLabel?: string
+  previousLabel?: string
 }
 
-export const SalesWidget = ({ sales }: SalesWidgetProps) => {
+export const SalesWidget = ({
+  sales,
+  currentLabel = "Este mes",
+  previousLabel = "Mes anterior",
+}: SalesWidgetProps) => {
   const current = Number(sales.current.total_amount)
   const previous = Number(sales.previous.total_amount)
   const change = percentChange(current, previous)
@@ -19,7 +25,7 @@ export const SalesWidget = ({ sales }: SalesWidgetProps) => {
   return (
     <div className="flex flex-1 flex-col justify-between gap-4">
       <div>
-        <p className="text-sm text-ink-muted">Este mes</p>
+        <p className="text-sm text-ink-muted">{currentLabel}</p>
         <p className="mt-1 text-3xl font-bold tracking-tight text-ink">
           {formatCurrency(current)}
         </p>
@@ -31,7 +37,9 @@ export const SalesWidget = ({ sales }: SalesWidgetProps) => {
 
       <div className="flex items-end justify-between gap-3 border-t border-gray-100 pt-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">Mes anterior</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
+            {previousLabel}
+          </p>
           <p className="mt-0.5 text-sm font-semibold text-ink">{formatCurrency(previous)}</p>
         </div>
         <p

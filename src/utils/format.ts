@@ -22,8 +22,20 @@ export const formatTime = (value: string) =>
 export const formatCurrency = (value: string | number) =>
   new Intl.NumberFormat("es", { style: "currency", currency: "BOB" }).format(Number(value))
 
+export const formatCountdown = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  if (minutes > 0) return `${minutes}:${String(secs).padStart(2, "0")}`
+  return `${secs} s`
+}
+
 export const cn = (...classes: (string | false | null | undefined)[]) =>
   classes.filter(Boolean).join(" ")
+
+export const tableRowLinkClass = cn(
+  "transition hover:bg-gray-50/60",
+  "cursor-pointer",
+)
 
 export const formatCoords = (latitude?: number | null, longitude?: number | null) => {
   if (latitude == null || longitude == null || Number.isNaN(latitude) || Number.isNaN(longitude)) {
