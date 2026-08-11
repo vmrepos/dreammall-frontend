@@ -20,28 +20,56 @@ UI copy is largely **Spanish**. Prefer matching nearby strings.
 
 ```
 src/
-  pages/                 # Route screens (auth + dashboard/*)
+  pages/
+    auth/{login,register,…}/Page.tsx   # public auth screens
+    dashboard/<domain>/
+      <Domain>.tsx                     # barrel: { Index, Create, Show, … }
+      shared/                          # domain presentation (2+ screens)
+      index|new|show|form/
+        Page.tsx                       # route orchestrator
+        LocalWidget.tsx                # page-local presentation (optional)
   components/
-    atoms/               # Button, Input, Card, Label, …
-    molecules/           # FormField, PageHeader, ConfirmDialog, …
-    organisms/           # Larger composites (e.g. OrderItemsTable)
-    auth/                # ProtectedRoute, PublicRoute
-  context/               # *Context.tsx (shape) + providers/*Provider.tsx
-  hooks/                 # Reusable hooks (useForm, useCart, …)
-  services/              # HTTP modules + apiClient
-  types/                 # T* domain types (mirror API JSON)
-  utils/                 # format, coordinates, status helpers
-  Routes.tsx             # BrowserRouter + route tree
+    atoms/                             # Button, Input, Card, …
+    molecules/                         # FormField, PageHeader, EmptyList, DetailRow, …
+    organisms/                         # cross-domain composites only (add when needed)
+    auth/                              # ProtectedRoute, PublicRoute
+  context/                             # *Context.tsx + providers/*Provider.tsx
+  hooks/  services/  types/  utils/
+  Routes.tsx
 ```
 
-Feature-local UI can live next to the page (e.g. `pages/dashboard/orders/CartItem.tsx`). Prefer that over dumping one-off widgets into `components/` unless reused.
+Dashboard shell (`Dashboard.tsx`, `Sidebar.tsx`) is layout, not a domain Page.
 
-Namespace exports when a feature has several screens:
+---
+
+## Page vs Presentation
+
+### Page (`**/Page.tsx`)
+
+- Owns route params, loading, context/hooks wiring, toasts, navigation.
+- Composes presentation; does **not** own large JSX trees (tables, dialogs, cards).
+- Export `Page` from the file; re-export via the domain barrel (`Orders.Index`, `Menu.Show`, …).
+
+### Presentation (props in, callbacks out)
+
+1. **Global** — `components/atoms|molecules|organisms` — only when used across domains.
+2. **Domain `shared/`** — used by 2+ screens in the same domain (e.g. `orders/shared/OrderCard.tsx`).
+3. **Page-local** — sibling of that screen’s `Page.tsx` when used by one screen only.
+
+Promote to a higher layer only when a second consumer appears. Do not dump one-off UI into `components/`.
+
+### Barrels
 
 ```ts
 // pages/dashboard/orders/Orders.tsx
+import { Page as Index } from "./index/Page"
+import { Page as Create } from "./new/Page"
+import { Page as Show } from "./show/Page"
+
 export const Orders = { Index, Create, Show }
 ```
+
+`Routes.tsx` should import barrels (`Orders.Index`, `Deliveries.Show`), not deep page paths.
 
 ---
 
@@ -49,38 +77,35 @@ export const Orders = { Index, Create, Show }
 
 ### Data flow
 
-1. **`services/*`** — Axios calls; map API ↔ app types when shapes differ (e.g. strip UI-only fields, rename `name` → `product_name`).
-2. **`context/providers/*`** — Shared domain state (orders list, menus, restaurant, subscription). Call services; expose actions to pages.
-3. **Pages** — Compose UI + wire hooks/context. Keep screens readable; extract presentational pieces when JSX gets heavy.
-4. **Hooks** — Reusable behavior (`useForm`, `useCart`). Do **not** add a page-specific “god hook” that only wraps `useForm` for one screen.
+1. **`services/*`** — Axios calls; map API ↔ app types when shapes differ.
+2. **`context/providers/*`** — Shared domain state; call services; expose actions to Pages.
+3. **Pages** — Orchestrate: wire hooks/context → pass props/callbacks into presentation.
+4. **Hooks** — Reusable behavior (`useForm`, `useCart`). No page-specific “god hook” that only wraps `useForm`.
 
 ### HTTP / auth
 
 - Base client: `axiosInstance` in `services/apiClient.ts` (`baseURL` = `VITE_API_URL` + `/api/v1`, `withCredentials: true`).
 - Public surface: `apiClient.orders | menus | products | deliveries | restaurants | subscriptions | users`.
-- Auth helpers live in `services/authService.ts`; session via `AuthProvider` (`/auth/me`, login/logout/refresh).
-- 401 interceptor refreshes once (`/auth/refresh` + `VITE_OAUTH_CLIENT_ID`), then dispatches `auth:unauthorized` (clears session).
-- Expect Rails envelopes: success `{ data, meta? }`, errors `{ error }`. Prefer reading `response.data.data` in services.
+- Auth helpers: `services/authService.ts`; session via `AuthProvider`.
+- 401 interceptor refreshes once, then dispatches `auth:unauthorized`.
+- Rails envelopes: success `{ data, meta? }`, errors `{ error }`. Prefer `response.data.data` in services.
 
 ### Forms
 
-- Prefer **`useForm<T>`** for field state: `values`, `handleChange` (needs `name` on inputs), `handleSubmit`, `mutate` / `setValues` for multi-field updates.
-- Cart lines that are part of an order form stay in form state (`items_attributes`); use **`useCart({ items, setItems })`** for add/qty/remove — no second cart store.
-- Derived money (subtotal / total) is **not** form input: compute for display and at submit (or eventually on the server).
-- Special inputs (e.g. pasted `"lat, lng"`) → custom handler + `mutate`, not clever `handleChange` cases.
+- Prefer **`useForm<T>`**: `values`, `handleChange` (needs `name`), `handleSubmit`, `mutate` / `setValues`.
+- Cart lines in form state (`items_attributes`); use **`useCart({ items, setItems })`**.
+- Derived money is display/submit-only, not form input.
+- Special inputs (e.g. `"lat, lng"`) → custom handler + `mutate`.
 
 ### UI
 
-- Tailwind v4 + design tokens (`brand`, `surface`, `ink`, accents). Reuse `components/atoms/*` (`Button`, `Input`, `Card`, …).
-- Icons: Font Awesome (`@fortawesome/react-fontawesome`).
-- Toasts: `sonner` (`toast.success` / `toast.error`).
-- Formatting: `utils/format.ts` (`formatCurrency`, dates, `cn`).
+- Tailwind v4 + tokens (`brand`, `surface`, `ink`). Reuse atoms/molecules.
+- Icons: Font Awesome. Toasts: `sonner`. Formatting: `utils/format.ts`.
 
 ### Types
 
-- Prefix with **`T`**: `TOrder`, `TOrderForm`, `TProduct`, …
-- API entity vs write payload: `TOrder` vs `TOrderForm` (form may include UI-only fields like `coordinates`).
-- Align field names with the API where practical; map in **services** when the wire format differs.
+- Prefix with **`T`**: `TOrder`, `TOrderForm`, …
+- Map wire-format differences in **services**.
 
 ---
 
@@ -88,25 +113,25 @@ export const Orders = { Index, Create, Show }
 
 - TypeScript strict; match nearby files (imports, naming, Spanish copy).
 - Prefer small, explicit components over deep abstraction.
-- Context split: `FooContext.tsx` + `providers/FooProvider.tsx` + `useFoo` from the context module.
+- Context split: `FooContext.tsx` + `providers/FooProvider.tsx` + `useFoo`.
 - No new state libraries / form libraries / router patterns unless asked.
-- Don’t invent parallel API clients or auth schemes.
 
 ## Avoid
 
-- Duplicating cart/form state outside `useForm` when the form already owns it
-- Fat page files that mix large JSX trees with lots of business logic — extract UI pieces or a small reusable hook, not a one-off “useThisPage” wrapper
-- Calling Axios directly from components when a `services/*` module exists
-- Hardcoding API base URLs (use env + `apiClient`)
-- English-only new UI strings in flows that are already Spanish
-- Over-genericizing after one use
+- Fat Pages that mix large JSX with business logic
+- Presentation that fetches or owns domain state
+- Duplicating cart/form state outside `useForm`
+- Calling Axios from components when a `services/*` module exists
+- Hardcoding API base URLs
+- English-only UI strings in Spanish flows
+- Over-genericizing after one use / dumping into `components/` too early
 
 ## Before implementing
 
-1. Find a similar page/service/context and mirror it.
-2. Add or extend `types/` when the API shape changes.
-3. Wire HTTP in `services/`, then context or page.
-4. Keep changes localized to the feature folder when possible.
+1. Mirror a similar Page + `shared/` in the same domain.
+2. Extend `types/` when the API shape changes.
+3. Wire HTTP in `services/`, then context or Page.
+4. Put new UI in page-local → promote to `shared/` → promote to `components/` only as reuse appears.
 5. Run `yarn typecheck` / `yarn lint` when touching types or shared hooks.
 
 ## Local ops (short)

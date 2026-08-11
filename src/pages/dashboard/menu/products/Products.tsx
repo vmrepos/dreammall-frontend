@@ -1,4 +1,4 @@
-import { Form } from "./Form"
+import { Page as Form } from "./form/Page"
 
 export const Products = {
   Form,

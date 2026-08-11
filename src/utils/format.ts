@@ -25,6 +25,11 @@ export const formatCurrency = (value: string | number) =>
 export const cn = (...classes: (string | false | null | undefined)[]) =>
   classes.filter(Boolean).join(" ")
 
+export const tableRowLinkClass = cn(
+  "transition hover:bg-gray-50/60",
+  "cursor-pointer",
+)
+
 export const formatCoords = (latitude?: number | null, longitude?: number | null) => {
   if (latitude == null || longitude == null || Number.isNaN(latitude) || Number.isNaN(longitude)) {
     return ""

@@ -7,9 +7,9 @@ import { DeliveriesWidget } from "../../../widgets/Deliveries"
 import { OrdersWidget } from "../../../widgets/Orders"
 import { ProductsWidget } from "../../../widgets/Products"
 import { SalesWidget } from "../../../widgets/Sales"
-import { WidgetCard } from "./WidgetCard"
+import { WidgetCard } from "./shared/WidgetCard"
 
-export const ReportsPage = () => {
+export const Page = () => {
   const [report, setReport] = useState<TReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
