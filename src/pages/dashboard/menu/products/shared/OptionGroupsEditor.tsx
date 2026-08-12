@@ -4,6 +4,7 @@ import { Button } from "../../../../../components/atoms/Button"
 import { Input } from "../../../../../components/atoms/Input"
 import { Label } from "../../../../../components/atoms/Label"
 import { Toggle } from "../../../../../components/atoms/Toggle"
+import { groupSelectionHint } from "../../../../../utils/productOptions"
 import {
   emptyGroup,
   emptyOption,
@@ -83,7 +84,7 @@ export const OptionGroupsEditor = ({ groups, onChange }: Props) => {
         <div>
           <h2 className="text-sm font-semibold text-gray-900">Personalización</h2>
           <p className="mt-1 text-xs text-gray-500">
-            Grupos como tamaño o extras, con opciones y recargo.
+            Grupos como tamaño o extras. Con múltiple puedes limitar cuántas elige (ej. 2 acompañamientos).
           </p>
         </div>
         <Button
@@ -142,12 +143,19 @@ export const OptionGroupsEditor = ({ groups, onChange }: Props) => {
                     <div className="flex items-center justify-between gap-3 rounded-xl bg-surface-elevated px-3 py-2">
                       <div>
                         <p className="text-sm font-semibold text-gray-900">Obligatorio</p>
-                        <p className="text-xs text-gray-500">Debe elegir al menos una</p>
+                        <p className="text-xs text-gray-500">Debe elegir al menos el mínimo</p>
                       </div>
                       <Toggle
                         checked={group.required}
                         label={`Grupo ${group.name || groupIndex + 1} obligatorio`}
-                        onChange={(required) => updateGroup(group.clientKey, { required })}
+                        onChange={(required) =>
+                          updateGroup(group.clientKey, {
+                            required,
+                            min_select: required
+                              ? Math.max(group.min_select, 1)
+                              : 0,
+                          })
+                        }
                       />
                     </div>
                     <div className="flex items-center justify-between gap-3 rounded-xl bg-surface-elevated px-3 py-2">
@@ -158,10 +166,69 @@ export const OptionGroupsEditor = ({ groups, onChange }: Props) => {
                       <Toggle
                         checked={group.multiple}
                         label={`Grupo ${group.name || groupIndex + 1} múltiple`}
-                        onChange={(multiple) => updateGroup(group.clientKey, { multiple })}
+                        onChange={(multiple) =>
+                          updateGroup(group.clientKey, {
+                            multiple,
+                            min_select: multiple ? (group.required ? Math.max(group.min_select, 1) : 0) : 0,
+                            max_select: multiple ? group.max_select : null,
+                          })
+                        }
                       />
                     </div>
                   </div>
+
+                  {group.multiple && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <Label htmlFor={`group-min-${group.clientKey}`}>Mínimo</Label>
+                        <Input
+                          id={`group-min-${group.clientKey}`}
+                          className="mt-1.5 py-2.5"
+                          type="number"
+                          min={group.required ? 1 : 0}
+                          max={group.max_select ?? undefined}
+                          value={group.min_select}
+                          onChange={(ev) => {
+                            const min_select = Math.max(0, Number(ev.target.value) || 0)
+                            updateGroup(group.clientKey, {
+                              min_select,
+                              required: min_select > 0,
+                              max_select:
+                                group.max_select != null && group.max_select < min_select
+                                  ? min_select
+                                  : group.max_select,
+                            })
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`group-max-${group.clientKey}`}>Máximo</Label>
+                        <Input
+                          id={`group-max-${group.clientKey}`}
+                          className="mt-1.5 py-2.5"
+                          type="number"
+                          min={Math.max(group.min_select, 1)}
+                          value={group.max_select ?? ""}
+                          placeholder="Sin límite"
+                          onChange={(ev) => {
+                            const raw = ev.target.value.trim()
+                            if (raw === "") {
+                              updateGroup(group.clientKey, { max_select: null })
+                              return
+                            }
+                            const max_select = Math.max(1, Number(raw) || 1)
+                            updateGroup(group.clientKey, {
+                              max_select,
+                              min_select: Math.min(group.min_select, max_select),
+                            })
+                          }}
+                        />
+                        <p className="mt-1 text-[11px] text-gray-500">
+                          Vacío = sin límite · {groupSelectionHint(group)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
