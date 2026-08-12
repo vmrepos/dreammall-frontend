@@ -4,6 +4,7 @@ import { Card } from "../../../../components/atoms/Card"
 import type { TOrderItemOption } from "../../../../types/OrderItem"
 import type { TProduct, TProductOption, TProductOptionGroup } from "../../../../types/Product"
 import { cn, formatCurrency } from "../../../../utils/format"
+import { groupMaxSelect, groupMinSelect, groupSelectionHint } from "../../../../utils/productOptions"
 
 type Props = {
   product: TProduct
@@ -20,7 +21,9 @@ const initialSelection = (product: TProduct) => {
   for (const group of product.product_option_groups ?? []) {
     const options = activeOptions(group)
     if (group.multiple) {
-      selected[group.id] = options.filter((option) => option.default).map((option) => option.id)
+      const defaults = options.filter((option) => option.default).map((option) => option.id)
+      const max = groupMaxSelect(group)
+      selected[group.id] = max != null ? defaults.slice(0, max) : defaults
       continue
     }
 
@@ -56,9 +59,12 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
   const previewPrice = (
     Number(product.price) + snapshots.reduce((sum, option) => sum + Number(option.price_modifier), 0)
   ).toFixed(2)
-  const missingRequired = groups.some(
-    (group) => group.required && (selected[group.id] ?? []).length === 0,
-  )
+  const invalidSelection = groups.some((group) => {
+    const count = (selected[group.id] ?? []).length
+    const min = groupMinSelect(group)
+    const max = groupMaxSelect(group)
+    return count < min || (max != null && count > max)
+  })
 
   const selectSingle = (group: TProductOptionGroup, optionId: number) => {
     setSelected((current) => {
@@ -70,13 +76,15 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
     })
   }
 
-  const toggleMultiple = (groupId: number, option: TProductOption) => {
+  const toggleMultiple = (group: TProductOptionGroup, option: TProductOption) => {
     setSelected((current) => {
-      const currentIds = current[groupId] ?? []
-      const nextIds = currentIds.includes(option.id)
-        ? currentIds.filter((id) => id !== option.id)
-        : [...currentIds, option.id]
-      return { ...current, [groupId]: nextIds }
+      const currentIds = current[group.id] ?? []
+      if (currentIds.includes(option.id)) {
+        return { ...current, [group.id]: currentIds.filter((id) => id !== option.id) }
+      }
+      const max = groupMaxSelect(group)
+      if (max != null && currentIds.length >= max) return current
+      return { ...current, [group.id]: [...currentIds, option.id] }
     })
   }
 
@@ -90,17 +98,21 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
           {groups.map((group) => {
             const options = activeOptions(group)
             const selectedIds = selected[group.id] ?? []
+            const max = groupMaxSelect(group)
+            const atMax = max != null && selectedIds.length >= max
 
             return (
               <fieldset key={group.id} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
                 <legend className="px-1 text-sm font-semibold text-gray-900">
                   {group.name}
-                  {group.required && <span className="ml-1 text-xs font-medium text-gray-500">Obligatorio</span>}
-                  {group.multiple && <span className="ml-1 text-xs font-medium text-gray-500">Varias</span>}
+                  <span className="ml-1 text-xs font-medium text-gray-500">
+                    {groupSelectionHint(group)}
+                  </span>
                 </legend>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {options.map((option) => {
                     const checked = selectedIds.includes(option.id)
+                    const disabled = group.multiple && atMax && !checked
                     const inputId = `option-${group.id}-${option.id}`
 
                     return (
@@ -111,7 +123,9 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
                           "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition",
                           checked
                             ? "border-brand bg-brand-light text-brand"
-                            : "border-gray-200 bg-surface-elevated text-gray-900 hover:border-gray-300",
+                            : disabled
+                              ? "cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400"
+                              : "border-gray-200 bg-surface-elevated text-gray-900 hover:border-gray-300",
                         )}
                       >
                         <input
@@ -119,10 +133,11 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
                           type={group.multiple ? "checkbox" : "radio"}
                           name={`group-${group.id}`}
                           checked={checked}
+                          disabled={disabled}
                           className="sr-only"
                           onChange={() =>
                             group.multiple
-                              ? toggleMultiple(group.id, option)
+                              ? toggleMultiple(group, option)
                               : selectSingle(group, option.id)
                           }
                         />
@@ -151,7 +166,7 @@ export const ProductOptionsDialog = ({ product, onConfirm, onCancel }: Props) =>
             </Button>
             <Button
               type="button"
-              disabled={missingRequired}
+              disabled={invalidSelection}
               onClick={() => onConfirm(toSnapshots(product, selected))}
             >
               Agregar
