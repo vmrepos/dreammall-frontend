@@ -5,6 +5,7 @@ import { faCircleInfo, faEnvelope, faLock } from "@fortawesome/free-solid-svg-ic
 import { BrandLogo } from "../../../components/atoms/BrandLogo"
 import { FormField, PasswordField } from "../../../components/molecules/FormField"
 import { useAuth } from "../../../context/AuthContext"
+import axios from "axios"
 
 export const Page = () => {
   const [error, setError] = useState("")
@@ -22,8 +23,15 @@ export const Page = () => {
     try {
       await login(email, password)
       navigate("/", { replace: true })
-    } catch {
-      setError("Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.")
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        setError(e.response?.data.error)
+
+      }
+      else {
+        setError("Error Desconocido")
+      }
+
     } finally {
       setIsSubmitting(false)
     }
