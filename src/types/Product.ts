@@ -12,6 +12,10 @@ export type TProductOptionGroup = {
   name: string
   required: boolean
   multiple: boolean
+  /** Minimum picks when `multiple`. 0 = optional. Ignored when not multiple. */
+  min_select?: number | null
+  /** Maximum picks when `multiple`. `null` = unlimited. Ignored when not multiple. */
+  max_select?: number | null
   position: number
   product_options: TProductOption[]
 }
@@ -45,6 +49,8 @@ export type TProductOptionGroupWrite = {
   name: string
   required: boolean
   multiple: boolean
+  min_select?: number | null
+  max_select?: number | null
   position: number
   _destroy?: boolean
   product_options_attributes?: TProductOptionWrite[]
