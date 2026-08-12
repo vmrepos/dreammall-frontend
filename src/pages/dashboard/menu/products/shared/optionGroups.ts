@@ -16,6 +16,8 @@ export type TProductOptionGroupForm = {
   name: string
   required: boolean
   multiple: boolean
+  min_select: number
+  max_select: number | null
   _destroy?: boolean
   product_options: TProductOptionForm[]
 }
@@ -33,6 +35,8 @@ export const emptyGroup = (): TProductOptionGroupForm => ({
   name: "",
   required: false,
   multiple: false,
+  min_select: 0,
+  max_select: null,
   product_options: [emptyOption()],
 })
 
@@ -43,6 +47,8 @@ export const groupsFromProduct = (product: TProduct | null): TProductOptionGroup
     name: group.name,
     required: group.required,
     multiple: Boolean(group.multiple),
+    min_select: group.min_select ?? (group.required ? 1 : 0),
+    max_select: group.max_select ?? null,
     product_options: (group.product_options ?? []).map((option) => ({
       clientKey: String(option.id),
       id: option.id,
@@ -70,6 +76,8 @@ export const toGroupsAttributes = (
         name: group.name.trim(),
         required: group.required,
         multiple: group.multiple,
+        min_select: group.multiple ? group.min_select : group.required ? 1 : 0,
+        max_select: group.multiple ? group.max_select : 1,
         position: groupIndex,
         ...(group._destroy ? { _destroy: true } : {}),
         product_options_attributes: group.product_options.flatMap((option, optionIndex) => {
