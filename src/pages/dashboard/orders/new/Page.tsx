@@ -22,6 +22,17 @@ const productHasOptions = (product: TProduct) =>
     (group.product_options ?? []).some((option) => option.active !== false),
   )
 
+const toMoney = (n: number) => Math.round(Number(n) * 100) / 100
+
+const lineSubtotal = (items: TOrderForm["items_attributes"]) =>
+  items.reduce((sum, line) => sum + line.quantity * Number(line.unit_price), 0)
+
+const clampDiscount = (discount: number, subtotal: number, deliveryFee: number) => {
+  const max = toMoney(Math.max(0, subtotal + Number(deliveryFee)))
+  if (!Number.isFinite(discount) || discount < 0) return 0
+  return Math.min(toMoney(discount), max)
+}
+
 const initialValues: TOrderForm = {
   items_attributes: [],
   delivery_fee: 0,
@@ -49,6 +60,11 @@ export const Page = () => {
     onSubmit: async (formValues) => {
       if (formValues.items_attributes.length === 0 || formValues.distance_km == null) return
       if (formValues.latitude == null || formValues.longitude == null) return
+      const subtotal = lineSubtotal(formValues.items_attributes)
+      if (toMoney(Number(formValues.discount)) > toMoney(subtotal + Number(formValues.delivery_fee))) {
+        toast.error("El descuento no puede ser mayor al total")
+        return
+      }
       setIsSubmitting(true)
       try {
         const order = await createOrder({ ...formValues })
@@ -65,10 +81,18 @@ export const Page = () => {
   const cart = useCart({
     items: values.items_attributes,
     setItems: (updater) => {
-      setValues((current) => ({
-        ...current,
-        items_attributes: updater(current.items_attributes),
-      }))
+      setValues((current) => {
+        const items_attributes = updater(current.items_attributes)
+        return {
+          ...current,
+          items_attributes,
+          discount: clampDiscount(
+            Number(current.discount),
+            lineSubtotal(items_attributes),
+            current.delivery_fee,
+          ),
+        }
+      })
     },
   })
 
@@ -87,7 +111,17 @@ export const Page = () => {
     setCustomizing(null)
   }
 
-  const total = cart.subtotal + Number(values.delivery_fee) - Number(values.discount)
+  const maxDiscount = toMoney(Math.max(0, cart.subtotal + Number(values.delivery_fee)))
+  const discount = toMoney(Number(values.discount))
+  const discountTooHigh = discount > maxDiscount
+  const total = Math.max(0, cart.subtotal + Number(values.delivery_fee) - discount)
+
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value
+    mutate({
+      discount: clampDiscount(raw === "" ? 0 : Number(raw), cart.subtotal, values.delivery_fee),
+    })
+  }
 
   const calculateDeliveryQuote = async () => {
     setCoordsError("")
@@ -96,7 +130,13 @@ export const Page = () => {
     const parsed = parseCoordinates(values.coordinates)
     if (!parsed) {
       setCoordsError("Usa el formato latitud, longitud. Ej. -17.741364, -63.190680")
-      mutate({ delivery_fee: 0, distance_km: null, latitude: null, longitude: null })
+      mutate({
+        delivery_fee: 0,
+        distance_km: null,
+        latitude: null,
+        longitude: null,
+        discount: clampDiscount(Number(values.discount), cart.subtotal, 0),
+      })
       return
     }
 
@@ -108,10 +148,17 @@ export const Page = () => {
         distance_km: Number(preview.distance_km),
         latitude: parsed.latitude,
         longitude: parsed.longitude,
+        discount: clampDiscount(Number(values.discount), cart.subtotal, Number(preview.fee)),
       })
     } catch {
       setPreviewError("No se pudo calcular la tarifa. Revisa las coordenadas e intenta de nuevo.")
-      mutate({ delivery_fee: 0, distance_km: null, latitude: null, longitude: null })
+      mutate({
+        delivery_fee: 0,
+        distance_km: null,
+        latitude: null,
+        longitude: null,
+        discount: clampDiscount(Number(values.discount), cart.subtotal, 0),
+      })
     } finally {
       setIsCalculating(false)
     }
@@ -156,13 +203,24 @@ export const Page = () => {
           previewError={previewError}
           isCalculating={isCalculating}
           isSubmitting={isSubmitting}
+          maxDiscount={maxDiscount}
+          discountError={
+            discountTooHigh ? "El descuento no puede ser mayor al total" : ""
+          }
           canSubmit={
             cart.items.length > 0 &&
             values.distance_km != null &&
             !isCalculating &&
-            !isSubmitting
+            !isSubmitting &&
+            !discountTooHigh
           }
-          onChange={handleChange}
+          onChange={(e) => {
+            if (e.target.name === "discount") {
+              handleDiscountChange(e)
+              return
+            }
+            handleChange(e)
+          }}
           onCalculateDelivery={calculateDeliveryQuote}
           onCancel={() => navigate("/orders")}
         />

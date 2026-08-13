@@ -9,6 +9,8 @@ type Props = {
   values: TOrderForm
   subtotal: number
   total: number
+  maxDiscount: number
+  discountError: string
   coordsError: string
   previewError: string
   isCalculating: boolean
@@ -23,6 +25,8 @@ export const OrderSummary = ({
   values,
   subtotal,
   total,
+  maxDiscount,
+  discountError,
   coordsError,
   previewError,
   isCalculating,
@@ -94,10 +98,16 @@ export const OrderSummary = ({
         className="mt-1.5"
         type="number"
         min="0"
+        max={maxDiscount}
         step="0.01"
         value={values.discount}
         onChange={onChange}
       />
+      {discountError ? (
+        <p className="mt-1.5 text-sm text-red-600" role="alert">
+          {discountError}
+        </p>
+      ) : null}
     </div>
     <div className="mt-3">
       <Label htmlFor="notes">Notas</Label>
