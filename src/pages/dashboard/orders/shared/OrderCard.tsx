@@ -11,75 +11,66 @@ import { OrderStatusBadge, DeliveryStatusBadge } from "../../../../components/mo
 import { useOrders } from "../../../../context/OrdersContext"
 import { apiClient } from "../../../../services/apiClient"
 import type { TOrder } from "../../../../types/Order"
-import { canCancelOrder, canConfirmReturn, canRetryDelivery, getNextOrderStatus } from "../../../../utils/status"
 import { cn, formatCurrency, formatDateTime } from "../../../../utils/format"
 import { ReadyCountdown } from "./ReadyCountdown"
-
-const MAX_VISIBLE_ITEMS = 4
-
-type ConfirmAction = "ready" | "cancel" | "return" | "retry" | null
+import { OrderCardItems } from "./OrderCardItems"
+import {
+  getOrderCardActions,
+  orderCardConfirmCopy,
+  orderCardErrorMessage,
+  type TOrderCardAction,
+} from "./orderCardActions"
 
 type Props = {
   order: TOrder
 }
 
 export const OrderCard = ({ order }: Props) => {
-
   const navigate = useNavigate()
-  const { updateOrder, fetchOrder } = useOrders()
-  const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
+  const { markPreparing, updateOrder, fetchOrder } = useOrders()
+  const [confirmAction, setConfirmAction] = useState<TOrderCardAction | null>(null)
   const [confirming, setConfirming] = useState(false)
 
-  const items = order.items ?? []
-  const visibleItems = items.slice(0, MAX_VISIBLE_ITEMS)
-  const hiddenCount = Math.max(0, items.length - MAX_VISIBLE_ITEMS)
-  const nextStatus = getNextOrderStatus(order.status)
-  const canMarkReady = nextStatus === "preparing" || nextStatus === "ready"
-  const canCancel = canCancelOrder(order.status, order.delivery)
-  const canReturn = order.delivery ? canConfirmReturn(order.delivery) : false
-  const canRetry = canRetryDelivery(order.status, order.delivery)
-  const showActions = canMarkReady || canCancel || canReturn || canRetry
-
-
-
-
+  const actions = getOrderCardActions(order)
+  const confirmCopy =
+    confirmAction && confirmAction !== "cancel"
+      ? orderCardConfirmCopy[confirmAction](order.id)
+      : null
 
   const closeConfirm = () => {
-    if (confirming) return
-    setConfirmAction(null)
+    if (!confirming) setConfirmAction(null)
+  }
+
+  const runAction = {
+    preparing: async () => {
+      await markPreparing(order.id)
+      toast.success(`Pedido #${order.id} en preparación`)
+    },
+    ready: async () => {
+      await updateOrder(order.id, "ready")
+      toast.success(`Pedido #${order.id} marcado como listo`)
+    },
+    return: async () => {
+      if (!order.delivery) return
+      await apiClient.deliveries.confirmReturn(order.delivery.id)
+      await fetchOrder(order.id)
+      toast.success(`Pedido #${order.id}: devolución confirmada`)
+    },
+    retry: async () => {
+      await apiClient.deliveries.create(order.id)
+      await fetchOrder(order.id)
+      toast.success(`Pedido #${order.id}: buscando un nuevo repartidor`)
+    },
   }
 
   const handleConfirm = async () => {
-    if (!confirmAction) return
+    if (!confirmAction || confirmAction === "cancel") return
     setConfirming(true)
     try {
-      if (confirmAction === "ready" && nextStatus) {
-        await updateOrder(order.id, nextStatus)
-        toast.success(
-          nextStatus === "preparing"
-            ? `Pedido #${order.id} en preparación`
-            : `Pedido #${order.id} marcado como listo`,
-        )
-      } else if (confirmAction === "return" && order.delivery) {
-        await apiClient.deliveries.confirmReturn(order.delivery.id)
-        await fetchOrder(order.id)
-        toast.success(`Pedido #${order.id}: devolución confirmada`)
-      } else if (confirmAction === "retry") {
-        await apiClient.deliveries.create(order.id)
-        await fetchOrder(order.id)
-        toast.success(`Pedido #${order.id}: buscando un nuevo repartidor`)
-      }
+      await runAction[confirmAction]()
       setConfirmAction(null)
     } catch {
-      toast.error(
-        confirmAction === "ready"
-          ? "No se pudo marcar el pedido como listo"
-          : confirmAction === "return"
-            ? "No se pudo confirmar la devolución"
-            : confirmAction === "retry"
-              ? "No se pudo reenviar la entrega. Revisa tus créditos."
-              : "No se pudo actualizar el pedido",
-      )
+      toast.error(orderCardErrorMessage[confirmAction])
     } finally {
       setConfirming(false)
     }
@@ -92,11 +83,13 @@ export const OrderCard = ({ order }: Props) => {
       toast.success(`Pedido #${order.id} cancelado`)
       setConfirmAction(null)
     } catch {
-      toast.error("No se pudo cancelar el pedido")
+      toast.error(orderCardErrorMessage.cancel)
     } finally {
       setConfirming(false)
     }
   }
+
+  const openOrder = () => navigate(`/orders/${order.id}`)
 
   return (
     <div className="h-full">
@@ -108,7 +101,7 @@ export const OrderCard = ({ order }: Props) => {
       >
         <button
           type="button"
-          onClick={() => navigate(`/orders/${order.id}`)}
+          onClick={openOrder}
           className="flex min-h-0 flex-1 cursor-pointer flex-col p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           <div className="flex shrink-0 items-start justify-between gap-2">
@@ -125,37 +118,10 @@ export const OrderCard = ({ order }: Props) => {
               </p>
             </div>
             <OrderStatusBadge status={order.status} />
-
           </div>
 
           <div className="mt-3 flex min-h-[8.5rem] flex-1 flex-col">
-            {items.length === 0 ? (
-              <p className="text-sm text-ink-muted">Sin ítems</p>
-            ) : (
-              <ul className="space-y-1.5">
-                {visibleItems.map((item) => {
-                  const options = item.order_item_options ?? []
-                  return (
-                    <li key={item.id} className="text-sm text-ink">
-                      <p className="truncate">
-                        <span className="font-semibold tabular-nums text-brand">{item.quantity}×</span>{" "}
-                        {item.product_name}
-                      </p>
-                      {options.length > 0 && (
-                        <p className="truncate pl-5 text-xs text-ink-muted">
-                          {options.map((option) => option.option_name).join(" · ")}
-                        </p>
-                      )}
-                    </li>
-                  )
-                })}
-                {hiddenCount > 0 && (
-                  <li className="text-xs font-medium text-ink-muted">
-                    +{hiddenCount} {hiddenCount === 1 ? "ítem más" : "ítems más"}
-                  </li>
-                )}
-              </ul>
-            )}
+            <OrderCardItems items={order.items} />
 
             <div className="mt-3 min-h-[2.5rem]">
               {order.notes?.trim() ? (
@@ -198,64 +164,41 @@ export const OrderCard = ({ order }: Props) => {
         </button>
 
         <div className="flex min-h-[3.25rem] shrink-0 gap-2 border-t border-gray-100 px-4 py-3">
-          {showActions ? (
-            <>
-              {canMarkReady && (
-                <Button
-                  className="flex-1 rounded-lg px-3 py-2 text-xs"
-                  onClick={() => setConfirmAction("ready")}
-                >
-                  {nextStatus === "preparing" ? "Preparando" : "Marcar listo"}
-                </Button>
-              )}
-              {canReturn && (
-                <Button
-                  className="flex-1 rounded-lg px-3 py-2 text-xs"
-                  onClick={() => setConfirmAction("return")}
-                >
-                  Confirmar devolución
-                </Button>
-              )}
-              {canRetry && (
-                <Button
-                  className="flex-1 rounded-lg px-3 py-2 text-xs"
-                  onClick={() => setConfirmAction("retry")}
-                >
-                  Reenviar
-                </Button>
-              )}
-              {canCancel && (
-                <Button
-                  variant="danger"
-                  className="flex-1 rounded-lg px-3 py-2 text-xs"
-                  onClick={() => setConfirmAction("cancel")}
-                >
-                  Cancelar
-                </Button>
-              )}
-            </>
+          {actions.length > 0 ? (
+            actions.map((action) => (
+              <Button
+                key={action.id}
+                variant={action.variant}
+                className="flex-1 rounded-lg px-3 py-2 text-xs"
+                onClick={() => setConfirmAction(action.id)}
+              >
+                {action.label}
+              </Button>
+            ))
           ) : (
             <Button
               variant="secondary"
               className="flex-1 rounded-lg px-3 py-2 text-xs"
-              onClick={() => navigate(`/orders/${order.id}`)}
-              >
+              onClick={openOrder}
+            >
               Ver detalle
             </Button>
           )}
         </div>
       </Card>
 
-      <ConfirmDialog
-        open={confirmAction === "ready"}
-        title="Marcar pedido listo"
-        message={`¿Confirmas que el pedido #${order.id} está listo para entrega?`}
-        confirmLabel="Sí, marcar listo"
-        confirmVariant="primary"
-        confirming={confirming}
-        onConfirm={handleConfirm}
-        onCancel={closeConfirm}
-      />
+      {confirmCopy && (
+        <ConfirmDialog
+          open
+          title={confirmCopy.title}
+          message={confirmCopy.message}
+          confirmLabel={confirmCopy.confirmLabel}
+          confirmVariant="primary"
+          confirming={confirming}
+          onConfirm={handleConfirm}
+          onCancel={closeConfirm}
+        />
+      )}
 
       <CancelOrderDialog
         open={confirmAction === "cancel"}
@@ -263,29 +206,6 @@ export const OrderCard = ({ order }: Props) => {
         onConfirm={handleCancelOrder}
         onCancel={closeConfirm}
       />
-
-      <ConfirmDialog
-        open={confirmAction === "return"}
-        title="Confirmar devolución"
-        message={`¿Confirmas que el pedido #${order.id} volvió al local? El repartidor quedará libre.`}
-        confirmLabel="Sí, recibí el pedido"
-        confirmVariant="primary"
-        confirming={confirming}
-        onConfirm={handleConfirm}
-        onCancel={closeConfirm}
-      />
-
-      <ConfirmDialog
-        open={confirmAction === "retry"}
-        title="Reenviar entrega"
-        message={`Se buscará un nuevo repartidor para el pedido #${order.id} y se usará 1 crédito.`}
-        confirmLabel="Sí, reenviar"
-        confirmVariant="primary"
-        confirming={confirming}
-        onConfirm={handleConfirm}
-        onCancel={closeConfirm}
-      />
     </div>
   )
 }
-

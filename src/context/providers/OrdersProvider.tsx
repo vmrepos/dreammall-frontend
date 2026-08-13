@@ -84,6 +84,15 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     [upsertOrder],
   )
 
+  const markPreparing = useCallback(
+    async (id: number) => {
+      const order = await apiClient.orders.markPreparing(id)
+      upsertOrder(order)
+      return order
+    },
+    [upsertOrder],
+  )
+
   const updateOrder = useCallback(
     async (id: number, status: TOrderStatus, cancelReason?: string) => {
       const order = await apiClient.orders.update(id, status, cancelReason)
@@ -99,7 +108,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <OrdersContext.Provider
-      value={{ orders, createOrder, getOrder, fetchOrder, updateOrder }}
+      value={{ orders, createOrder, getOrder, fetchOrder, markPreparing, updateOrder }}
     >
       {children}
     </OrdersContext.Provider>

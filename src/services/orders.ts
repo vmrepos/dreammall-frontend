@@ -60,6 +60,10 @@ export const OrdersAPI = {
     const response = await axiosInstance.get(`/restaurants/orders/${id}`)
     return toOrder(response.data.data as TOrderWire)
   },
+  markPreparing: async (id: number): Promise<TOrder> => {
+    const response = await axiosInstance.patch(`/restaurants/orders/${id}/mark_preparing`)
+    return toOrder(response.data.data as TOrderWire)
+  },
   update: async (id: number, status: TOrderStatus, cancelReason?: string): Promise<TOrder> => {
     const response = await axiosInstance.patch(`/restaurants/orders/${id}`, {
       order: {

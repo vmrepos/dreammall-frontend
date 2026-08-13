@@ -28,11 +28,11 @@ export const Page = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const orderId = Number(id)
-  const { getOrder, fetchOrder, updateOrder } = useOrders()
+  const { getOrder, fetchOrder, markPreparing, updateOrder } = useOrders()
   const order = getOrder(orderId)
   const [loading, setLoading] = useState(!order)
   const [notFound, setNotFound] = useState(false)
-  const [confirmAction, setConfirmAction] = useState<"ready" | "cancel" | "return" | "retry" | null>(null)
+  const [confirmAction, setConfirmAction] = useState<"preparing" | "ready" | "cancel" | "return" | "retry" | null>(null)
   const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
@@ -86,8 +86,11 @@ export const Page = () => {
     if (!confirmAction) return
     setConfirming(true)
     try {
-      if (confirmAction === "ready" && nextStatus) {
-        await updateOrder(order.id, nextStatus)
+      if (confirmAction === "preparing") {
+        await markPreparing(order.id)
+        toast.success(`Pedido #${order.id} en preparación`)
+      } else if (confirmAction === "ready") {
+        await updateOrder(order.id, "ready")
       } else if (confirmAction === "return" && order.delivery) {
         await apiClient.deliveries.confirmReturn(order.delivery.id)
         await fetchOrder(order.id)
@@ -101,9 +104,11 @@ export const Page = () => {
       setConfirmAction(null)
     } catch {
       toast.error(
-        confirmAction === "retry"
-          ? "No se pudo reenviar la entrega. Revisa tus créditos."
-          : "No se pudo actualizar el pedido.",
+        confirmAction === "preparing"
+          ? "No se pudo preparar el pedido. Revisa tus créditos."
+          : confirmAction === "retry"
+            ? "No se pudo reenviar la entrega. Revisa tus créditos."
+            : "No se pudo actualizar el pedido.",
       )
     } finally {
       setConfirming(false)
@@ -156,7 +161,9 @@ export const Page = () => {
 
         <div className="flex gap-3">
           {nextLabel && (
-            <Button onClick={() => setConfirmAction("ready")}>{nextLabel}</Button>
+            <Button onClick={() => setConfirmAction(nextStatus === "preparing" ? "preparing" : "ready")}>
+              {nextLabel}
+            </Button>
           )}
           {order.delivery && canConfirmReturn(order.delivery) && (
             <Button onClick={() => setConfirmAction("return")}>Confirmar devolución</Button>
@@ -233,6 +240,17 @@ export const Page = () => {
           </Card>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmAction === "preparing"}
+        title="Preparar pedido"
+        message={`El pedido #${order.id} pasará a preparación, se buscará un repartidor y se usará 1 crédito.`}
+        confirmLabel="Sí, preparar"
+        confirmVariant="primary"
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={() => !confirming && setConfirmAction(null)}
+      />
 
       <ConfirmDialog
         open={confirmAction === "ready"}
