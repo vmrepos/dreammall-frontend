@@ -17,6 +17,7 @@ import { canCancelOrder, canConfirmReturn, cancelReasonLabel, canRetryDelivery, 
 import { formatCurrency, formatDate } from "../../../../utils/format"
 import { DeliveryCard } from "../shared/DeliveryCard"
 import { ReadyCountdown } from "../shared/ReadyCountdown"
+import { CopyOrderLinkButton } from "./CopyOrderLinkButton"
 
 const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
   pending: "Preparando",
@@ -157,6 +158,16 @@ export const Page = () => {
               </>
             )}
           </p>
+          {order.public_token ? (
+            <>
+              <p className="mt-3 text-sm text-gray-500">
+                El cliente completa nombre, teléfono y ubicación con este enlace.
+              </p>
+              <div className="mt-3">
+                <CopyOrderLinkButton publicToken={order.public_token} />
+              </div>
+            </>
+          ) : null}
         </div>
 
         <div className="flex gap-3">
@@ -198,6 +209,20 @@ export const Page = () => {
             <DetailRow label="Subtotal" value={formatCurrency(subtotal)} />
             <DetailRow label="Envío" value={formatCurrency(order.delivery_fee)} />
             <DetailRow label="Descuento" value={`-${formatCurrency(order.discount)}`} />
+            {(order.customer_name || order.customer_phone) && (
+              <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Cliente</p>
+                {order.customer_name ? (
+                  <p className="mt-1 text-sm text-gray-900">{order.customer_name}</p>
+                ) : null}
+                {order.customer_phone ? (
+                  <p className="text-sm text-gray-700">{order.customer_phone}</p>
+                ) : null}
+              </div>
+            )}
+            {order.distance_km != null && (
+              <DetailRow label="Distancia" value={`${Number(order.distance_km).toFixed(2)} km`} />
+            )}
             {order.notes?.trim() && (
               <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2.5">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Notas</p>

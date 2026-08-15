@@ -7,6 +7,7 @@ import { UsersAPI } from "./users";
 import { SubscriptionsAPI } from "./subscriptions";
 import { RestaurantsAPI } from "./restaurants";
 import { ReportsAPI } from "./reports";
+import { PublicOrdersAPI } from "./publicOrders";
 
 export const axiosInstance = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL ?? ""}/api/v1`,
@@ -75,4 +76,5 @@ export const apiClient = {
   restaurants: RestaurantsAPI,
   subscriptions: SubscriptionsAPI,
   reports: ReportsAPI,
+  publicOrders: PublicOrdersAPI,
 }

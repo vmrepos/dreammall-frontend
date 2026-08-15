@@ -9,10 +9,10 @@ type Props = {
 }
 
 export const OrderCartPanel = ({ items, updateQuantity, removeFromCart }: Props) => (
-  <Card className="flex min-h-0 flex-col border-2 !border-accent-sun/55 lg:h-[min(36rem,calc(100svh-12rem))]">
+  <Card className="flex h-full min-h-0 flex-col border-2 !border-accent-sun/55">
     <CardHeader title="Ítems del pedido" description="Ajusta cantidades y notas" />
     {items.length === 0 ? (
-      <p className="px-4 pb-4 text-sm text-gray-500">
+      <p className="min-h-0 flex-1 px-4 pb-4 text-sm text-gray-500">
         Agrega al menos un producto para continuar.
       </p>
     ) : (

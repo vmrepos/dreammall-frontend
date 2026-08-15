@@ -14,6 +14,7 @@ import { Profile } from "./pages/dashboard/profile/Profile"
 import { Reports } from "./pages/dashboard/reports/Reports"
 import { Settings } from "./pages/dashboard/settings/Settings"
 import { Subscription } from "./pages/dashboard/subscription/Subscription"
+import { PublicOrder } from "./pages/public/order/Order"
 
 export const AppRoutes = () => {
   return (
@@ -21,6 +22,8 @@ export const AppRoutes = () => {
       <CableProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/pedido/:token" element={<PublicOrder.Complete />} />
+
             <Route element={<PublicRoute />}>
               <Route path="/login" element={<Auth.Login />} />
               <Route path="/register" element={<Auth.Register />} />

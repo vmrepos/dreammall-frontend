@@ -16,11 +16,11 @@ export const toOrder = (raw: TOrderWire): TOrder => {
         : "returned"
       : (raw.status as TOrderStatus)
 
-  return { ...raw, status, delivery }
+  return { ...raw, status, delivery, public_token: raw.public_token ?? null, customer_name: raw.customer_name ?? null, customer_phone: raw.customer_phone ?? null }
 }
 
 const toCreatePayload = (input: TOrderForm) => {
-  const { coordinates: _coordinates, items_attributes, ...rest } = input
+  const { items_attributes, ...rest } = input
 
   return {
     order: {
