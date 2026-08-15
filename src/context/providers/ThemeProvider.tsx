@@ -13,9 +13,16 @@ const getInitialTheme = (): Theme => {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 }
 
+const THEME_COLORS = {
+  light: "#0c6b3d",
+  dark: "#070f0b",
+} as const
+
 const applyTheme = (theme: Theme) => {
   document.documentElement.classList.toggle("dark", theme === "dark")
   document.documentElement.style.colorScheme = theme
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) meta.setAttribute("content", THEME_COLORS[theme])
 }
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {

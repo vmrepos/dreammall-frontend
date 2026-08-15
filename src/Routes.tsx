@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { AuthProvider } from "./context/providers/AuthProvider"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { PublicRoute } from "./components/auth/PublicRoute"
+import { PwaInstallBanner } from "./components/molecules/PwaInstallBanner"
 import { CableProvider } from "./context/providers/CableProvider"
 import { Auth } from "./pages/auth/Auth"
 import { Dashboard } from "./pages/dashboard/Dashboard"
@@ -21,6 +22,7 @@ export const AppRoutes = () => {
     <AuthProvider>
       <CableProvider>
         <BrowserRouter>
+          <PwaInstallBanner />
           <Routes>
             <Route path="/pedido/:token" element={<PublicOrder.Complete />} />
 
