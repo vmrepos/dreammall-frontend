@@ -21,7 +21,7 @@ export default defineConfig({
         theme_color: brand,
         background_color: splash,
         display: "standalone",
-        orientation: "any",
+        orientation: "landscape",
         start_url: "/",
         scope: "/",
         categories: ["business", "food"],
