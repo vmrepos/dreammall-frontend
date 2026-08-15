@@ -117,7 +117,7 @@ export const Orders = { Index, Create, Show }
 - No new state libraries / form libraries / router patterns unless asked.
 
 ## Avoid
-
+- Editing code outside of this repo unless explicitly requested
 - Fat Pages that mix large JSX with business logic
 - Presentation that fetches or owns domain state
 - Duplicating cart/form state outside `useForm`

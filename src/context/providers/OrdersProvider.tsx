@@ -44,6 +44,9 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         case "order_returned":
           toast.success(`Pedido #${o.id}: devolución confirmada`)
           break;
+        case "order_location_updated":
+          toast.success(`Pedido #${o.id}: el cliente confirmó la ubicación`)
+          break;
       }
       upsertOrder(o)
       return () => {

@@ -16,8 +16,8 @@ export type TOrder = {
   total_amount: number
   delivery_fee: number
   discount: number
-  latitude: number
-  longitude: number
+  latitude: number | null
+  longitude: number | null
   distance_km: number | null
   notes?: string | null
   created_at: string
@@ -28,16 +28,15 @@ export type TOrder = {
   pick_up_code: string
   cancel_reason?: string | null
   ready_countdown: number | null
+  public_token: string | null
+  customer_name: string | null
+  customer_phone: string | null
 }
 
 export type TOrderForm = {
   items_attributes: TOrderItemForm[]
   delivery_fee: number
   discount: number
-  latitude: number | null
-  longitude: number | null
-  distance_km: number | null
-  coordinates: string
   notes?: string
   total_amount?: number
 }
