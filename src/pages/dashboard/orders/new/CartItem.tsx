@@ -13,8 +13,8 @@ type Props = {
 
 export const CartItem: React.FC<Props> = ({ line, updateQuantity, removeFromCart }) => {
   return (
-    <div className="flex items-center justify-between gap-3 py-2">
-      <div className="min-w-0">
+    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b border-gray-100 py-2.5 last:border-b-0">
+      <div className="min-w-0 flex-1 basis-32">
         <p className="truncate text-sm font-medium text-gray-900">{line.name}</p>
         {line.order_item_options.map((option) => (
           <p key={`${option.option_group_name}-${option.option_name}`} className="truncate text-xs text-gray-500">

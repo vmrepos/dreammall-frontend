@@ -18,6 +18,11 @@ export type TRestaurant = {
   credits: number;
   delivery_radius: number;
   prep_time: number;
+  demand?: {
+    online: number;
+    available: number;
+    percentile: number;
+  };
 };
 
 

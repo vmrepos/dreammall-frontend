@@ -105,8 +105,13 @@ export const OrderCard = ({ order }: Props) => {
           className="flex min-h-0 flex-1 cursor-pointer flex-col p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           <div className="flex shrink-0 items-start justify-between gap-2">
-            <div>
+            <div className="min-w-0">
               <p className="text-lg font-bold tabular-nums text-ink">#{order.id}</p>
+              {order.customer_name?.trim() ? (
+                <p className="mt-0.5 truncate text-sm font-medium text-ink">
+                  {order.customer_name}
+                </p>
+              ) : null}
               <p className="mt-0.5 text-xs text-ink-muted">
                 {formatDateTime(order.created_at)}
                 {order.ready_countdown != null && (

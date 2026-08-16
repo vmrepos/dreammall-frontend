@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faClipboardList } from "@fortawesome/free-solid-svg-icons"
 import { toast } from "sonner"
+import { Button } from "../../../../components/atoms/Button"
 import { useMenuContext } from "../../../../context/MenuContext"
 import { useOrders } from "../../../../context/OrdersContext"
 import { useCart } from "../../../../hooks/useCart"
@@ -10,6 +11,7 @@ import { useForm } from "../../../../hooks/useForm"
 import type { TOrderForm } from "../../../../types/Order"
 import type { TOrderItemOption } from "../../../../types/OrderItem"
 import type { TProduct } from "../../../../types/Product"
+import { cn, formatCurrency } from "../../../../utils/format"
 import { AvailableProducts } from "./AvailableProducts"
 import { OrderCartPanel } from "./OrderCartPanel"
 import { OrderSummary } from "./OrderSummary"
@@ -43,6 +45,7 @@ export const Page = () => {
   const { products, menus } = useMenuContext()
   const { createOrder } = useOrders()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [step, setStep] = useState<1 | 2>(1)
   const [customizing, setCustomizing] = useState<TProduct | null>(null)
   const [customizeKey, setCustomizeKey] = useState(0)
 
@@ -128,48 +131,114 @@ export const Page = () => {
         Volver a pedidos
       </Link>
 
-      <div className="mb-4">
-        <div className="mb-1 flex items-center gap-2 text-brand">
-          <FontAwesomeIcon icon={faClipboardList} className="size-5" aria-hidden />
-          <span className="text-sm font-semibold uppercase tracking-wide">Punto de venta</span>
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="mb-1 flex items-center gap-2 text-brand">
+            <FontAwesomeIcon icon={faClipboardList} className="size-5" aria-hidden />
+            <span className="text-sm font-semibold uppercase tracking-wide">Punto de venta</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Nuevo pedido</h1>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Nuevo pedido</h1>
+        <ol className="flex items-center gap-2 text-sm font-semibold">
+          <li>
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className={cn(
+                "rounded-full px-3 py-1.5 transition",
+                step === 1 ? "bg-brand text-white" : "bg-gray-100 text-ink hover:bg-gray-200",
+              )}
+            >
+              1. Pedido
+            </button>
+          </li>
+          <li className="text-gray-300" aria-hidden>
+            →
+          </li>
+          <li>
+            <button
+              type="button"
+              disabled={cart.items.length === 0}
+              onClick={() => setStep(2)}
+              className={cn(
+                "rounded-full px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-50",
+                step === 2 ? "bg-brand text-white" : "bg-gray-100 text-ink hover:bg-gray-200",
+              )}
+            >
+              2. Resumen
+            </button>
+          </li>
+        </ol>
       </div>
 
       <form
-        className="grid grid-cols-1 items-stretch gap-4 lg:h-[min(44rem,calc(100svh-12rem))] lg:grid-cols-[minmax(0,1.75fr)_minmax(15rem,0.7fr)_minmax(13rem,0.45fr)]"
-        onSubmit={handleSubmit}
-      >
-        <AvailableProducts
-          products={products}
-          menus={menus}
-          addedCounts={addedCounts}
-          onAdd={handleAddProduct}
-        />
-        <OrderCartPanel
-          items={cart.items}
-          updateQuantity={cart.updateQuantity}
-          removeFromCart={cart.remove}
-        />
-        <OrderSummary
-          values={values}
-          subtotal={cart.subtotal}
-          total={total}
-          isSubmitting={isSubmitting}
-          maxDiscount={maxDiscount}
-          discountError={
-            discountTooHigh ? "El descuento no puede ser mayor al total" : ""
+        onSubmit={(event) => {
+          if (step !== 2) {
+            event.preventDefault()
+            if (cart.items.length > 0) setStep(2)
+            return
           }
-          canSubmit={cart.items.length > 0 && !isSubmitting && !discountTooHigh}
-          onChange={(e) => {
-            if (e.target.name === "discount") {
-              handleDiscountChange(e)
-              return
-            }
-            handleChange(e)
-          }}
-          onCancel={() => navigate("/orders")}
-        />
+          handleSubmit(event)
+        }}
+      >
+        {step === 1 ? (
+          <div className="grid grid-cols-1 items-stretch gap-4 md:h-[min(48rem,calc(100svh-13rem))] md:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]">
+            <AvailableProducts
+              className="min-h-[16rem] min-w-0 md:min-h-0"
+              products={products}
+              menus={menus}
+              addedCounts={addedCounts}
+              onAdd={handleAddProduct}
+            />
+            <OrderCartPanel
+              className="min-h-[14rem] min-w-0 md:min-h-0"
+              items={cart.items}
+              updateQuantity={cart.updateQuantity}
+              removeFromCart={cart.remove}
+              footer={
+                <div className="flex items-center justify-between gap-3">
+                  <p className="min-w-0 text-sm text-ink-muted">
+                    <span className="font-semibold tabular-nums text-ink">
+                      {formatCurrency(cart.subtotal)}
+                    </span>
+                    <span className="mt-0.5 block text-xs">sin envío</span>
+                  </p>
+                  <Button
+                    type="button"
+                    className="shrink-0 rounded-lg px-4 py-2.5"
+                    disabled={cart.items.length === 0}
+                    onClick={() => setStep(2)}
+                  >
+                    Continuar
+                  </Button>
+                </div>
+              }
+            />
+          </div>
+        ) : (
+          <div className="mx-auto max-w-xl">
+            <OrderSummary
+              values={values}
+              items={cart.items}
+              subtotal={cart.subtotal}
+              total={total}
+              isSubmitting={isSubmitting}
+              maxDiscount={maxDiscount}
+              discountError={
+                discountTooHigh ? "El descuento no puede ser mayor al total" : ""
+              }
+              canSubmit={cart.items.length > 0 && !isSubmitting && !discountTooHigh}
+              onChange={(e) => {
+                if (e.target.name === "discount") {
+                  handleDiscountChange(e)
+                  return
+                }
+                handleChange(e)
+              }}
+              onBack={() => setStep(1)}
+            />
+          </div>
+        )}
       </form>
 
       {customizing && (
