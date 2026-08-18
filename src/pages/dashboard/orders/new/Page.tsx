@@ -8,6 +8,7 @@ import { useMenuContext } from "../../../../context/MenuContext"
 import { useOrders } from "../../../../context/OrdersContext"
 import { useCart } from "../../../../hooks/useCart"
 import { useForm } from "../../../../hooks/useForm"
+import { useShortPos } from "../../../../hooks/useShortPos"
 import type { TOrderForm } from "../../../../types/Order"
 import type { TOrderItemOption } from "../../../../types/OrderItem"
 import type { TProduct } from "../../../../types/Product"
@@ -44,6 +45,7 @@ export const Page = () => {
   const navigate = useNavigate()
   const { products, menus } = useMenuContext()
   const { createOrder } = useOrders()
+  const compact = useShortPos()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [step, setStep] = useState<1 | 2>(1)
   const [customizing, setCustomizing] = useState<TProduct | null>(null)
@@ -122,30 +124,42 @@ export const Page = () => {
   }, {})
 
   return (
-    <div className="mx-auto max-w-[110rem]">
-      <Link
-        to="/orders"
-        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
-      >
-        <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />
-        Volver a pedidos
-      </Link>
+    <div className={cn("mx-auto max-w-[110rem]", compact && "-mx-4 -mt-4 px-2 pt-2")}>
+      {compact ? null : (
+        <Link
+          to="/orders"
+          className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />
+          Volver a pedidos
+        </Link>
+      )}
 
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div className="mb-1 flex items-center gap-2 text-brand">
-            <FontAwesomeIcon icon={faClipboardList} className="size-5" aria-hidden />
-            <span className="text-sm font-semibold uppercase tracking-wide">Punto de venta</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">Nuevo pedido</h1>
+      <div
+        className={cn(
+          "mb-4 flex flex-wrap items-end justify-between gap-3",
+          compact && "mb-2 flex-nowrap items-center gap-2",
+        )}
+      >
+        <div className={cn(compact && "min-w-0")}>
+          {compact ? null : (
+            <div className="mb-1 flex items-center gap-2 text-brand">
+              <FontAwesomeIcon icon={faClipboardList} className="size-5" aria-hidden />
+              <span className="text-sm font-semibold uppercase tracking-wide">Punto de venta</span>
+            </div>
+          )}
+          <h1 className={cn("font-bold text-gray-900", compact ? "truncate text-base" : "text-2xl")}>
+            Nuevo pedido
+          </h1>
         </div>
-        <ol className="flex items-center gap-2 text-sm font-semibold">
+        <ol className={cn("flex items-center gap-2 text-sm font-semibold", compact && "shrink-0")}>
           <li>
             <button
               type="button"
               onClick={() => setStep(1)}
               className={cn(
-                "rounded-full px-3 py-1.5 transition",
+                "rounded-full transition",
+                compact ? "px-2.5 py-1 text-xs" : "px-3 py-1.5",
                 step === 1 ? "bg-brand text-white" : "bg-gray-100 text-ink hover:bg-gray-200",
               )}
             >
@@ -161,7 +175,8 @@ export const Page = () => {
               disabled={cart.items.length === 0}
               onClick={() => setStep(2)}
               className={cn(
-                "rounded-full px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-50",
+                "rounded-full transition disabled:cursor-not-allowed disabled:opacity-50",
+                compact ? "px-2.5 py-1 text-xs" : "px-3 py-1.5",
                 step === 2 ? "bg-brand text-white" : "bg-gray-100 text-ink hover:bg-gray-200",
               )}
             >
@@ -182,16 +197,25 @@ export const Page = () => {
         }}
       >
         {step === 1 ? (
-          <div className="grid grid-cols-1 items-stretch gap-4 md:h-[min(48rem,calc(100svh-13rem-var(--orders-rail-h,0px)))] md:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]">
+          <div
+            className={cn(
+              "grid grid-cols-1 items-stretch gap-4",
+              compact
+                ? "h-[calc(100svh-6.25rem-var(--orders-rail-h,0px))] grid-cols-[minmax(0,1fr)_minmax(15.5rem,0.62fr)] gap-2"
+                : "md:h-[min(48rem,calc(100svh-13rem-var(--orders-rail-h,0px)))] md:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]",
+            )}
+          >
             <AvailableProducts
-              className="min-h-[16rem] min-w-0 md:min-h-0"
+              className={cn("min-w-0", compact ? "min-h-0" : "min-h-[16rem] md:min-h-0")}
+              compact={compact}
               products={products}
               menus={menus}
               addedCounts={addedCounts}
               onAdd={handleAddProduct}
             />
             <OrderCartPanel
-              className="min-h-[14rem] min-w-0 md:min-h-0"
+              className={cn("min-w-0", compact ? "min-h-0" : "min-h-[14rem] md:min-h-0")}
+              compact={compact}
               items={cart.items}
               updateQuantity={cart.updateQuantity}
               removeFromCart={cart.remove}
@@ -201,11 +225,13 @@ export const Page = () => {
                     <span className="font-semibold tabular-nums text-ink">
                       {formatCurrency(cart.subtotal)}
                     </span>
-                    <span className="mt-0.5 block text-xs">sin envío</span>
+                    <span className={cn("text-xs", compact ? "ml-1 inline" : "mt-0.5 block")}>
+                      sin envío
+                    </span>
                   </p>
                   <Button
                     type="button"
-                    className="shrink-0 rounded-lg px-4 py-2.5"
+                    className={cn("shrink-0 rounded-lg", compact ? "px-3 py-2 text-sm" : "px-4 py-2.5")}
                     disabled={cart.items.length === 0}
                     onClick={() => setStep(2)}
                   >
