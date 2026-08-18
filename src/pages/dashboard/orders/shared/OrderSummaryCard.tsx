@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { Card } from "../../../../components/atoms/Card"
 import { DetailRow } from "../../../../components/molecules/DetailRow"
 import type { TOrder } from "../../../../types/Order"
@@ -7,18 +8,24 @@ import { cancelReasonLabel } from "../../../../utils/status"
 type Props = {
   order: TOrder
   className?: string
+  headerAction?: ReactNode
 }
 
 export const orderItemsSubtotal = (order: TOrder) =>
   order.items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0)
 
-export const OrderSummaryCard = ({ order, className }: Props) => {
+export const OrderSummaryCard = ({ order, className, headerAction }: Props) => {
   const subtotal = orderItemsSubtotal(order)
 
   return (
     <Card padding="md" className={cn("flex flex-col border-2 !border-accent-clay/50", className)}>
-      <h2 className="text-lg font-semibold text-gray-900">Resumen</h2>
-      <p className="mb-4 text-sm text-gray-500">Pedido #{order.id}</p>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold text-gray-900">Resumen</h2>
+          <p className="text-sm text-gray-500">Pedido #{order.id}</p>
+        </div>
+        {headerAction}
+      </div>
       <DetailRow label="Subtotal" value={formatCurrency(subtotal)} />
       <DetailRow label="Envío" value={formatCurrency(order.delivery_fee)} />
       <DetailRow label="Descuento" value={`-${formatCurrency(order.discount)}`} />

@@ -18,6 +18,7 @@ import { formatCurrency, formatDate } from "../../../../utils/format"
 import { DeliveryCard } from "../shared/DeliveryCard"
 import { ReadyCountdown } from "../shared/ReadyCountdown"
 import { CopyOrderLinkButton } from "./CopyOrderLinkButton"
+import { CopySummaryImageButton } from "./CopySummaryImageButton"
 
 const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
   pending: "Preparando",
@@ -204,7 +205,11 @@ export const Page = () => {
           </div>
         </Card>
 
-        <OrderSummaryCard order={order} className="h-full" />
+        <OrderSummaryCard
+          order={order}
+          className="h-full"
+          headerAction={<CopySummaryImageButton order={order} />}
+        />
 
         <Card padding="md" className="h-full border-2 !border-accent-sun/55">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Entrega</h2>

@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheck, faImage, faLink, faLocationDot, faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faCheck, faLink, faLocationDot, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { toast } from "sonner"
 import type { TOrder } from "../../../../types/Order"
 import { cn } from "../../../../utils/format"
 import { copyPublicOrderUrl } from "../../../../utils/orderShare"
 import { orderStatusConfig } from "../../../../utils/status"
-import { copyOrderSummaryImage } from "./copyOrderSummaryImage"
 import { orderHasLocation, orderWaitingForCustomer } from "./orderQueue"
 
 type Props = {
@@ -82,9 +81,7 @@ type ChipProps = {
 
 const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }: ChipProps) => {
   const ref = useRef<HTMLDivElement>(null)
-  const [copiedLink, setCopiedLink] = useState(false)
-  const [copiedImage, setCopiedImage] = useState(false)
-  const [sharing, setSharing] = useState(false)
+  const [copied, setCopied] = useState(false)
   const publicToken = order.public_token
 
   useEffect(() => {
@@ -94,34 +91,15 @@ const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }:
   const name = order.customer_name?.trim()
   const statusLabel = orderStatusConfig[order.status].label
 
-  const handleCopyLink = async () => {
+  const handleCopy = async () => {
     if (!publicToken) return
     try {
       await copyPublicOrderUrl(publicToken)
-      setCopiedLink(true)
+      setCopied(true)
       toast.success(`Pedido #${order.id}: enlace copiado`)
-      window.setTimeout(() => setCopiedLink(false), 2000)
+      window.setTimeout(() => setCopied(false), 2000)
     } catch {
       toast.error("No se pudo copiar el enlace.")
-    }
-  }
-
-  const handleCopyImage = async () => {
-    setSharing(true)
-    try {
-      const result = await copyOrderSummaryImage(order)
-      setCopiedImage(true)
-      toast.success(
-        result === "shared"
-          ? `Pedido #${order.id}: resumen listo para WhatsApp`
-          : `Pedido #${order.id}: imagen copiada. Pégala en WhatsApp.`,
-      )
-      window.setTimeout(() => setCopiedImage(false), 2000)
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return
-      toast.error("No se pudo copiar el resumen.")
-    } finally {
-      setSharing(false)
     }
   }
 
@@ -129,7 +107,7 @@ const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }:
     <div
       ref={ref}
       className={cn(
-        "flex w-[13.5rem] shrink-0 overflow-hidden rounded-xl border transition",
+        "flex w-[12rem] shrink-0 overflow-hidden rounded-xl border transition",
         active
           ? "border-brand bg-brand-light"
           : "border-gray-200 bg-surface hover:border-brand/40",
@@ -167,25 +145,15 @@ const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }:
           />
         </span>
       </button>
-      <button
-        type="button"
-        onClick={() => void handleCopyImage()}
-        disabled={sharing}
-        className="flex w-8 shrink-0 items-center justify-center border-l border-gray-200/80 text-ink-muted transition hover:bg-brand-light hover:text-brand disabled:opacity-50"
-        aria-label={copiedImage ? "Resumen copiado" : `Copiar resumen del pedido #${order.id}`}
-        title={copiedImage ? "Resumen copiado" : "Copiar resumen (imagen)"}
-      >
-        <FontAwesomeIcon icon={copiedImage ? faCheck : faImage} className="size-3" aria-hidden />
-      </button>
       {publicToken ? (
         <button
           type="button"
-          onClick={() => void handleCopyLink()}
+          onClick={() => void handleCopy()}
           className="flex w-8 shrink-0 items-center justify-center border-l border-gray-200/80 text-ink-muted transition hover:bg-brand-light hover:text-brand"
-          aria-label={copiedLink ? "Enlace copiado" : `Copiar enlace del pedido #${order.id}`}
-          title={copiedLink ? "Enlace copiado" : "Copiar enlace"}
+          aria-label={copied ? "Enlace copiado" : `Copiar enlace del pedido #${order.id}`}
+          title={copied ? "Enlace copiado" : "Copiar enlace"}
         >
-          <FontAwesomeIcon icon={copiedLink ? faCheck : faLink} className="size-3" aria-hidden />
+          <FontAwesomeIcon icon={copied ? faCheck : faLink} className="size-3" aria-hidden />
         </button>
       ) : null}
     </div>
