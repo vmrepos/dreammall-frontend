@@ -8,8 +8,17 @@ import { toast } from "sonner"
 
 export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<TOrder[]>([])
+  const [attentionOrderIds, setAttentionOrderIds] = useState<number[]>([])
   const { subscribe } = useCable()
-  // This syncs the order list
+
+  const markAttention = useCallback((id: number) => {
+    setAttentionOrderIds((current) => (current.includes(id) ? current : [...current, id]))
+  }, [])
+
+  const acknowledgeOrder = useCallback((id: number) => {
+    setAttentionOrderIds((current) => current.filter((item) => item !== id))
+  }, [])
+
   const upsertOrder = useCallback((order: TOrder) => {
     setOrders((current) => {
       const index = current.findIndex((item) => item.id === order.id)
@@ -46,6 +55,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
           break;
         case "order_location_updated":
           toast.success(`Pedido #${o.id}: el cliente confirmó la ubicación`)
+          markAttention(o.id)
           break;
       }
       upsertOrder(o)
@@ -53,7 +63,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         console.log("unsubscribed")
       }
     })
-  }, [subscribe, upsertOrder])
+  }, [subscribe, upsertOrder, markAttention])
 
 
 
@@ -111,7 +121,16 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <OrdersContext.Provider
-      value={{ orders, createOrder, getOrder, fetchOrder, markPreparing, updateOrder }}
+      value={{
+        orders,
+        attentionOrderIds,
+        acknowledgeOrder,
+        createOrder,
+        getOrder,
+        fetchOrder,
+        markPreparing,
+        updateOrder,
+      }}
     >
       {children}
     </OrdersContext.Provider>

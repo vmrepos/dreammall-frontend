@@ -38,9 +38,11 @@ export const AppRoutes = () => {
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Dashboard />}>
                 <Route index element={<Navigate to="/orders" replace />} />
-                <Route path="orders" element={<Orders.Index />} />
-                <Route path="orders/new" element={<Orders.Create />} />
-                <Route path="orders/:id" element={<Orders.Show />} />
+                <Route path="orders" element={<Orders.Layout />}>
+                  <Route index element={<Orders.Index />} />
+                  <Route path="new" element={<Orders.Create />} />
+                  <Route path=":id" element={<Orders.Show />} />
+                </Route>
                 <Route path="deliveries" element={<Deliveries.Index />} />
                 <Route path="deliveries/new" element={<Deliveries.Create />} />
                 <Route path="deliveries/:id" element={<Deliveries.Show />} />

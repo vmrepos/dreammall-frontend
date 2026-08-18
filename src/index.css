@@ -92,4 +92,45 @@
   .text-ink-muted {
     color: var(--color-ink-muted);
   }
+
+  .rail-wait-glow {
+    animation: rail-wait-glow 2.4s ease-in-out infinite;
+  }
+
+  .rail-attention-glow {
+    animation: rail-attention-glow 1.2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rail-wait-glow,
+    .rail-attention-glow {
+      animation: none;
+    }
+  }
+}
+
+@keyframes rail-wait-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent-sun) 55%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--color-accent-sun) 35%, transparent),
+      0 0 14px 2px color-mix(in srgb, var(--color-accent-sun) 40%, transparent);
+  }
+}
+
+@keyframes rail-attention-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--color-brand) 80%, transparent),
+      0 0 10px 1px color-mix(in srgb, var(--color-brand) 45%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--color-brand) 40%, transparent),
+      0 0 18px 4px color-mix(in srgb, var(--color-brand) 55%, transparent);
+  }
 }
