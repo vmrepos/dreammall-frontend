@@ -13,6 +13,7 @@ const DEFAULT_CENTER = { latitude: -17.7833, longitude: -63.1821 }
 const MIN_ZOOM = 12
 const MAX_ZOOM = 18
 const TILE_SIZE = 256
+const MAP_HEIGHT_CLASS = "h-[min(28rem,50svh)] w-full sm:h-[min(32rem,55svh)]"
 
 type Coords = { latitude: number; longitude: number }
 
@@ -259,13 +260,13 @@ const GoogleMapPin = ({
     markerRef.current?.setPosition(center)
   }, [lat, lng])
 
-  return <div ref={mapEl} className="h-64 w-full sm:h-80" />
+  return <div ref={mapEl} className={MAP_HEIGHT_CLASS} />
 }
 
 const OsmMapPin = ({ latitude, longitude, onChange }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [zoom, setZoom] = useState(16)
-  const [size, setSize] = useState({ width: 320, height: 256 })
+  const [size, setSize] = useState({ width: 320, height: 448 })
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef<{ x: number; y: number; origin: Coords } | null>(null)
 
@@ -320,7 +321,8 @@ const OsmMapPin = ({ latitude, longitude, onChange }: Props) => {
       <div
         ref={containerRef}
         className={cn(
-          "relative h-64 w-full touch-none overflow-hidden bg-gray-100 sm:h-80",
+          "relative touch-none overflow-hidden bg-gray-100",
+          MAP_HEIGHT_CLASS,
           dragging ? "cursor-grabbing" : "cursor-grab",
         )}
         onPointerDown={(event) => {
