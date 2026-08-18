@@ -7,13 +7,13 @@ import { Card, CardHeader } from "../../../../components/atoms/Card"
 import { ConfirmDialog } from "../../../../components/molecules/ConfirmDialog"
 import { CancelOrderDialog } from "../shared/CancelOrderDialog"
 import { OrderStatusBadge } from "../../../../components/molecules/StatusBadge"
-import { DetailRow } from "../../../../components/molecules/DetailRow"
 import { OrderItemsTable } from "../shared/OrderItemsTable"
+import { OrderSummaryCard, orderItemsSubtotal } from "../shared/OrderSummaryCard"
 import { toast } from "sonner"
 import { useOrders } from "../../../../context/OrdersContext"
 import { apiClient } from "../../../../services/apiClient"
 import type { TOrderStatus } from "../../../../types/Order"
-import { canCancelOrder, canConfirmReturn, cancelReasonLabel, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../../utils/status"
+import { canCancelOrder, canConfirmReturn, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../../utils/status"
 import { formatCurrency, formatDate } from "../../../../utils/format"
 import { DeliveryCard } from "../shared/DeliveryCard"
 import { ReadyCountdown } from "../shared/ReadyCountdown"
@@ -78,10 +78,7 @@ export const Page = () => {
 
   const nextStatus = getNextOrderStatus(order.status)
   const nextLabel = nextActionLabel[order.status]
-  const subtotal = order.items.reduce(
-    (sum, item) => sum + Number(item.unit_price) * item.quantity,
-    0,
-  )
+  const subtotal = orderItemsSubtotal(order)
 
   const handleConfirm = async () => {
     if (!confirmAction) return
@@ -130,7 +127,7 @@ export const Page = () => {
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-screen-2xl">
       <Link
         to="/orders"
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
@@ -195,75 +192,28 @@ export const Page = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
-          <Card>
-            <CardHeader title="Detalle del pedido" description="Productos incluidos en este pedido" />
+      <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,1fr)_minmax(16rem,1fr)]">
+        <Card className="flex h-full flex-col border-2 !border-brand/50">
+          <CardHeader title="Detalle del pedido" description="Productos incluidos en este pedido" />
+          <div className="min-h-0 flex-1 overflow-auto">
             <OrderItemsTable items={order.items} />
-          </Card>
-        </div>
+          </div>
+          <div className="mt-auto flex shrink-0 items-center justify-between border-t border-gray-100 bg-gray-50/50 px-6 py-3">
+            <span className="text-sm font-semibold text-gray-700">Subtotal ítems</span>
+            <span className="font-semibold tabular-nums text-gray-900">{formatCurrency(subtotal)}</span>
+          </div>
+        </Card>
 
-        <div className="space-y-6">
-          <Card padding="md">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Resumen</h2>
-            <DetailRow label="Subtotal" value={formatCurrency(subtotal)} />
-            <DetailRow label="Envío" value={formatCurrency(order.delivery_fee)} />
-            <DetailRow label="Descuento" value={`-${formatCurrency(order.discount)}`} />
-            {(order.customer_name || order.customer_phone) && (
-              <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2.5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Cliente</p>
-                {order.customer_name ? (
-                  <p className="mt-1 text-sm text-gray-900">{order.customer_name}</p>
-                ) : null}
-                {order.customer_phone ? (
-                  <p className="text-sm text-gray-700">{order.customer_phone}</p>
-                ) : null}
-              </div>
-            )}
-            {order.distance_km != null && (
-              <DetailRow label="Distancia" value={`${Number(order.distance_km).toFixed(2)} km`} />
-            )}
-            {order.notes?.trim() && (
-              <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2.5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Notas</p>
-                <p className="mt-1 text-sm leading-relaxed text-gray-700">{order.notes}</p>
-              </div>
-            )}
-            {order.status === "cancelled" && cancelReasonLabel(order.cancel_reason) && (
-              <div className="mt-3 rounded-lg bg-red-50 px-3 py-2.5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-red-700">Motivo de cancelación</p>
-                <p className="mt-1 text-sm leading-relaxed text-red-900">
-                  {cancelReasonLabel(order.cancel_reason)}
-                </p>
-              </div>
-            )}
-            <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-2">
-              <span className="flex flex-col gap-1">
-                <span className="font-semibold text-gray-900">Código de entrega</span>
-                <small className="text-gray-500">Entregar este codigo al cliente</small>
-              </span>
-              <span className="text-lg font-bold text-blue-500">
-                {order.delivery_code}
-              </span>
-            </div>
+        <OrderSummaryCard order={order} className="h-full" />
 
-            <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
-              <span className="font-semibold text-gray-900">Total</span>
-              <span className="text-lg font-bold text-brand">
-                {formatCurrency(order.total_amount)}
-              </span>
-            </div>
-          </Card>
-
-          <Card padding="md">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Entrega</h2>
-            {order.delivery ? (
-              <DeliveryCard delivery={order.delivery} />
-            ) : (
-              <p className="text-sm text-gray-500">Sin entrega asociada todavía.</p>
-            )}
-          </Card>
-        </div>
+        <Card padding="md" className="h-full border-2 !border-accent-sun/55">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Entrega</h2>
+          {order.delivery ? (
+            <DeliveryCard delivery={order.delivery} />
+          ) : (
+            <p className="text-sm text-gray-500">Sin entrega asociada todavía.</p>
+          )}
+        </Card>
       </div>
 
       <ConfirmDialog

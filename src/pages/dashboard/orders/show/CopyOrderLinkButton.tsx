@@ -3,27 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck, faCopy } from "@fortawesome/free-solid-svg-icons"
 import { toast } from "sonner"
 import { Button } from "../../../../components/atoms/Button"
-import { publicOrderUrl } from "../../../../utils/orderShare"
+import { copyPublicOrderUrl } from "../../../../utils/orderShare"
 
 type Props = {
   publicToken: string
-}
-
-const copyToClipboard = async (value: string) => {
-  try {
-    await navigator.clipboard.writeText(value)
-  } catch {
-    const input = document.createElement("textarea")
-    input.value = value
-    input.setAttribute("readonly", "")
-    input.style.position = "fixed"
-    input.style.left = "-9999px"
-    document.body.appendChild(input)
-    input.select()
-    const copied = document.execCommand("copy")
-    document.body.removeChild(input)
-    if (!copied) throw new Error("copy failed")
-  }
 }
 
 export const CopyOrderLinkButton = ({ publicToken }: Props) => {
@@ -31,7 +14,7 @@ export const CopyOrderLinkButton = ({ publicToken }: Props) => {
 
   const handleCopy = async () => {
     try {
-      await copyToClipboard(publicOrderUrl(publicToken))
+      await copyPublicOrderUrl(publicToken)
       setCopied(true)
       toast.success("Enlace copiado. Envíalo al cliente.")
       window.setTimeout(() => setCopied(false), 2000)

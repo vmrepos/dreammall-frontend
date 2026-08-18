@@ -4,6 +4,8 @@ import type { TOrder, TOrderForm, TOrderStatus } from "../types/Order"
 
 type OrdersContextType = {
   orders: TOrder[]
+  attentionOrderIds: number[]
+  acknowledgeOrder: (id: number) => void
   createOrder: (input: TOrderForm) => Promise<TOrder>
   getOrder: (id: number) => TOrder | undefined
   fetchOrder: (id: number) => Promise<TOrder>

@@ -3,16 +3,23 @@ import { faArrowUpFromBracket, faDownload, faXmark } from "@fortawesome/free-sol
 import { useLocation } from "react-router-dom"
 import { Button } from "../atoms/Button"
 import { usePwaInstall } from "../../hooks/usePwaInstall"
+import { cn } from "../../utils/format"
 
 export const PwaInstallBanner = () => {
   const { pathname } = useLocation()
   const enabled = !pathname.startsWith("/pedido")
   const { mode, install, dismiss } = usePwaInstall(enabled)
+  const aboveOrdersRail = pathname.startsWith("/orders")
 
   if (!enabled || !mode) return null
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <div
+      className={cn(
+        "pointer-events-none fixed inset-x-0 z-50 flex justify-center p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+        aboveOrdersRail ? "bottom-[5.75rem]" : "bottom-0",
+      )}
+    >
       <div
         className="pointer-events-auto flex w-full max-w-lg items-start gap-3 rounded-[20px] border border-gray-200/80 bg-surface-elevated px-4 py-3 shadow-[0_8px_24px_rgba(12,107,61,0.12)]"
         role="dialog"

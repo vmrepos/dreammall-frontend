@@ -182,7 +182,7 @@ export const Page = () => {
         }}
       >
         {step === 1 ? (
-          <div className="grid grid-cols-1 items-stretch gap-4 md:h-[min(48rem,calc(100svh-13rem))] md:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]">
+          <div className="grid grid-cols-1 items-stretch gap-4 md:h-[min(48rem,calc(100svh-13rem-var(--orders-rail-h,0px)))] md:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]">
             <AvailableProducts
               className="min-h-[16rem] min-w-0 md:min-h-0"
               products={products}
