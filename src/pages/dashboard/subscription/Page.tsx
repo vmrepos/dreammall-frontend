@@ -1,31 +1,38 @@
 import { useState } from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheck, faCreditCard } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "../../../components/atoms/Button"
+import axios from "axios"
+import { toast } from "sonner"
+import { faCreditCard } from "@fortawesome/free-solid-svg-icons"
 import { Card } from "../../../components/atoms/Card"
-import { ConfirmDialog } from "../../../components/molecules/ConfirmDialog"
 import { PageHeader } from "../../../components/molecules/PageHeader"
 import { useSubscription } from "../../../context/SubscriptionContext"
 import type { TSubscriptionPlan } from "../../../types/Subscription"
-import { formatCurrency } from "../../../utils/format"
+import { PlanCard } from "./PlanCard"
+import { PurchaseDialog } from "./PurchaseDialog"
+import { PurchasesList } from "./PurchasesList"
 
 export const Page = () => {
-  const { credits, plans, loading, purchasingId, purchasePlan } = useSubscription()
+  const { credits, plans, purchases, loading, purchasingId, purchasePlan } = useSubscription()
   const [planToPurchase, setPlanToPurchase] = useState<TSubscriptionPlan | null>(null)
 
-  const handleConfirmPurchase = async () => {
+  const handleSubmitProof = async (proof: File) => {
     if (!planToPurchase) return
 
     try {
-      await purchasePlan(planToPurchase.id)
+      await purchasePlan(planToPurchase.id, proof)
+      toast.success("Comprobante enviado. Validaremos el pago y acreditaremos tus entregas.")
       setPlanToPurchase(null)
-    } catch {
-      // Keep dialog open so the user can retry or cancel.
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? Array.isArray(error.response?.data?.error)
+          ? error.response.data.error.join(". ")
+          : error.response?.data?.error
+        : null
+      toast.error(message || "No se pudo enviar el comprobante. Inténtalo de nuevo.")
     }
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-screen-2xl">
       <PageHeader
         icon={faCreditCard}
         section="Cuenta"
@@ -39,64 +46,39 @@ export const Page = () => {
         <p className="mt-1 text-sm text-gray-600">entregas disponibles</p>
       </Card>
 
-      {loading ? (
-        <p className="text-sm text-gray-500">Cargando paquetes...</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-6">
-          {plans.map((plan) => (
-            <Card key={plan.id} padding="lg">
-              <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
-
-              <p className="mt-4 text-3xl font-bold text-gray-900">
-                {plan.credits}
-                <span className="ml-2 text-base font-medium text-gray-500">entregas</span>
-              </p>
-
-              <p className="mt-4 text-sm text-gray-500">
-                Pago único de{" "}
-                <span className="font-semibold text-gray-900">{formatCurrency(plan.price)}</span>
-              </p>
-
-              <ul className="mt-6 space-y-2 text-sm text-gray-600">
-                <li className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faCheck} className="size-3.5 text-brand" aria-hidden />
-                  {plan.credits} créditos de entrega
-                </li>
-                <li className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faCheck} className="size-3.5 text-brand" aria-hidden />
-                  Válido hasta agotar créditos
-                </li>
-                <li className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faCheck} className="size-3.5 text-brand" aria-hidden />
-                  Recarga cuando lo necesites
-                </li>
-              </ul>
-
-              <Button
-                className="mt-8 w-full"
-                disabled={purchasingId === plan.id}
-                onClick={() => setPlanToPurchase(plan)}
-              >
-                Comprar paquete
-              </Button>
-            </Card>
-          ))}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:items-start">
+        <div className="xl:col-span-2">
+          {loading ? (
+            <p className="text-sm text-gray-500">Cargando paquetes...</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {plans.map((plan) => (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  purchasing={purchasingId === plan.id}
+                  onSelect={() => setPlanToPurchase(plan)}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      )}
 
-      <ConfirmDialog
-        open={planToPurchase !== null}
-        title="Confirmar compra"
-        message={
-          planToPurchase
-            ? `¿Deseas comprar el paquete "${planToPurchase.name}" por ${formatCurrency(planToPurchase.price)}? Se agregarán ${planToPurchase.credits} entregas a tu cuenta.`
-            : ""
-        }
-        confirmLabel={purchasingId !== null ? "Comprando..." : "Sí, comprar"}
-        confirmVariant="primary"
-        confirming={purchasingId !== null}
-        onConfirm={handleConfirmPurchase}
-        onCancel={() => setPlanToPurchase(null)}
+        <section className="xl:sticky xl:top-6">
+          <h2 className="mb-4 text-lg font-bold text-gray-900">Comprobantes enviados</h2>
+          {loading ? (
+            <p className="text-sm text-gray-500">Cargando comprobantes...</p>
+          ) : (
+            <PurchasesList purchases={purchases} />
+          )}
+        </section>
+      </div>
+
+      <PurchaseDialog
+        plan={planToPurchase}
+        submitting={purchasingId !== null}
+        onClose={() => setPlanToPurchase(null)}
+        onSubmit={handleSubmitProof}
       />
     </div>
   )

@@ -1,39 +1,51 @@
-import { type ReactNode, useState, useEffect } from "react"
+import { type ReactNode, useState, useEffect, useCallback } from "react"
 import { apiClient } from "../../services/apiClient"
+import type { TCreditPurchase } from "../../types/CreditPurchase"
 import type { TSubscriptionPlan } from "../../types/Subscription"
 import { useAuth } from "../AuthContext"
 import { SubscriptionContext } from "../SubscriptionContext"
 
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
-  const { restaurant, refreshRestaurant } = useAuth()
+  const { restaurant } = useAuth()
   const [plans, setPlans] = useState<TSubscriptionPlan[]>([])
+  const [purchases, setPurchases] = useState<TCreditPurchase[]>([])
   const [loading, setLoading] = useState(true)
   const [purchasingId, setPurchasingId] = useState<number | null>(null)
+
+  const loadPurchases = useCallback(async () => {
+    const data = await apiClient.subscriptions.listPurchases()
+    setPurchases(data)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
 
-    const loadPlans = async () => {
+    const load = async () => {
       setLoading(true)
       try {
-        const data = await apiClient.subscriptions.list()
-        if (!cancelled) setPlans(data)
+        const [planData, purchaseData] = await Promise.all([
+          apiClient.subscriptions.list(),
+          apiClient.subscriptions.listPurchases(),
+        ])
+        if (cancelled) return
+        setPlans(planData)
+        setPurchases(purchaseData)
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
 
-    void loadPlans()
+    void load()
     return () => {
       cancelled = true
     }
   }, [])
 
-  const purchasePlan = async (subscriptionId: number) => {
+  const purchasePlan = async (subscriptionId: number, proof: File) => {
     setPurchasingId(subscriptionId)
     try {
-      await apiClient.subscriptions.purchase(subscriptionId)
-      await refreshRestaurant()
+      await apiClient.subscriptions.purchase(subscriptionId, proof)
+      await loadPurchases()
     } finally {
       setPurchasingId(null)
     }
@@ -44,6 +56,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       value={{
         credits: restaurant?.credits ?? 0,
         plans,
+        purchases,
         loading,
         purchasingId,
         purchasePlan,
