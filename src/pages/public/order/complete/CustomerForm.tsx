@@ -1,5 +1,5 @@
 import type { ChangeEvent, FormEvent } from "react"
-import { faUser } from "@fortawesome/free-solid-svg-icons"
+import { faLocationDot, faUser } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../../components/atoms/Button"
 import { Card } from "../../../../components/atoms/Card"
 import { FormField } from "../../../../components/molecules/FormField"
@@ -45,6 +45,26 @@ export const CustomerForm = ({
   return (
     <Card padding="lg">
       <form className="flex flex-col gap-5" onSubmit={onSubmit}>
+        <div className="flex flex-col gap-2 text-left">
+          <Label>Ubicación de entrega</Label>
+          <LocationPicker
+            latitude={values.latitude}
+            longitude={values.longitude}
+            onChange={onLocationChange}
+          />
+        </div>
+
+        <FormField
+          id="notes"
+          name="notes"
+          label="Punto de referencia"
+          icon={faLocationDot}
+          autoComplete="street-address"
+          placeholder="Casa azul, portón negro, frente al kiosco..."
+          value={values.notes}
+          onChange={onChange}
+        />
+
         <FormField
           id="name"
           name="name"
@@ -84,15 +104,6 @@ export const CustomerForm = ({
           <p className="text-xs text-ink-muted">8 dígitos, sin el código de país.</p>
         </div>
 
-        <div className="flex flex-col gap-2 text-left">
-          <Label>Ubicación de entrega</Label>
-          <LocationPicker
-            latitude={values.latitude}
-            longitude={values.longitude}
-            onChange={onLocationChange}
-          />
-        </div>
-
         {error ? (
           <div
             className="rounded-xl bg-red-50 px-4 py-3.5 text-left text-sm leading-snug text-red-600"
@@ -107,7 +118,7 @@ export const CustomerForm = ({
           className="w-full"
           disabled={isSubmitting || !phoneReady || values.latitude == null || values.longitude == null}
         >
-          {isSubmitting ? "Enviando..." : "Confirmar datos"}
+          {isSubmitting ? "Calculando envío..." : "Ver resumen"}
         </Button>
       </form>
     </Card>

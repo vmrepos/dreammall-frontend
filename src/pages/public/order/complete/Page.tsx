@@ -1,18 +1,19 @@
 import { useEffect, useState, type ReactNode } from "react"
 import { useParams } from "react-router-dom"
 import axios from "axios"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCircleCheck } from "@fortawesome/free-solid-svg-icons"
+import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons"
 import { BrandLogo } from "../../../../components/atoms/BrandLogo"
 import { useForm } from "../../../../hooks/useForm"
 import { apiClient } from "../../../../services/apiClient"
 import type { TPublicOrder, TPublicOrderCompleteForm } from "../../../../types/PublicOrder"
 import { CustomerForm } from "./CustomerForm"
-import { OrderPreview } from "./OrderPreview"
+import { StatusCard } from "./StatusCard"
+import { SummaryStep } from "./SummaryStep"
 
 const initialValues: TPublicOrderCompleteForm = {
   name: "",
   phone: "",
+  notes: "",
   latitude: null,
   longitude: null,
 }
@@ -31,12 +32,17 @@ const errorMessage = (error: unknown) => {
   return "No se pudieron enviar tus datos. Intenta de nuevo."
 }
 
+const orderHasCustomerData = (order: TPublicOrder) => Boolean(order.customer_name?.trim())
+
 export const Page = () => {
   const { token } = useParams()
   const publicToken = token?.trim() ?? ""
   const [preview, setPreview] = useState<TPublicOrder | null>(null)
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "unavailable">(
+    publicToken ? "loading" : "unavailable",
+  )
+  const [step, setStep] = useState<"details" | "summary">("details")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState("")
 
   const { values, handleChange, handleSubmit, mutate } = useForm<TPublicOrderCompleteForm>({
@@ -58,14 +64,20 @@ export const Page = () => {
       setError("")
       setIsSubmitting(true)
       try {
-        await apiClient.publicOrders.complete(publicToken, {
+        const quoted = await apiClient.publicOrders.complete(publicToken, {
           customer_name: formValues.name.trim(),
           customer_phone: toBoliviaPhone(formValues.phone),
+          notes: formValues.notes.trim(),
           latitude: formValues.latitude,
           longitude: formValues.longitude,
         })
-        setSubmitted(true)
+        setPreview(quoted)
+        setStep("summary")
       } catch (e) {
+        if (axios.isAxiosError(e) && e.response?.status === 404) {
+          setLoadState("unavailable")
+          return
+        }
         setError(errorMessage(e))
       } finally {
         setIsSubmitting(false)
@@ -80,9 +92,12 @@ export const Page = () => {
     const load = async () => {
       try {
         const order = await apiClient.publicOrders.show(publicToken)
-        if (!cancelled) setPreview(order)
+        if (cancelled) return
+        setPreview(order)
+        if (orderHasCustomerData(order)) setStep("summary")
+        setLoadState("ready")
       } catch {
-        if (!cancelled) setPreview(null)
+        if (!cancelled) setLoadState("unavailable")
       }
     }
 
@@ -92,47 +107,45 @@ export const Page = () => {
     }
   }, [publicToken])
 
-  if (!publicToken) {
+  if (!publicToken || loadState === "unavailable") {
     return (
       <Shell>
-        <h1 className="text-[1.75rem] font-bold leading-tight text-brand">Pedido no válido</h1>
-        <p className="mt-2 text-[15px] text-ink-muted">Revisa el enlace e intenta de nuevo.</p>
+        <StatusCard
+          icon={faCircleExclamation}
+          title="Pedido no válido"
+          description="Revisa el enlace e intenta de nuevo."
+        />
+      </Shell>
+    )
+  }
+
+  if (loadState === "loading") {
+    return (
+      <Shell>
+        <p className="text-center text-[15px] text-ink-muted">Cargando pedido...</p>
       </Shell>
     )
   }
 
   const orderLabel = preview ? `Pedido #${preview.id}` : "tu pedido"
 
-  if (submitted) {
-    return (
-      <Shell>
-        <div className="rounded-[20px] border border-gray-200/80 bg-surface-elevated p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(12,107,61,0.06)]">
-          <FontAwesomeIcon icon={faCircleCheck} className="size-12 text-brand" aria-hidden />
-          <h1 className="mt-4 text-[1.75rem] font-bold leading-tight text-brand">
-            Datos enviados
-          </h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
-            El comercio ya tiene tu nombre, teléfono y ubicación para {orderLabel}.
-          </p>
-        </div>
-      </Shell>
-    )
-  }
-
   return (
     <Shell>
       <header className="mb-6">
         <h1 className="text-[1.75rem] font-bold leading-tight text-brand">
-          Completa tu pedido
+          {step === "details" ? "Completa tu pedido" : "Tu pedido"}
         </h1>
         <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
           {preview ? `${orderLabel}. ` : null}
-          Confirma tus datos para la entrega.
+          {step === "details"
+            ? "Indica tu ubicación para calcular el envío."
+            : "Entrega este código al repartidor cuando llegue."}
         </p>
       </header>
 
-      <div className="flex flex-col gap-5">
-        {preview && preview.items.length > 0 ? <OrderPreview order={preview} /> : null}
+      {step === "summary" && preview ? (
+        <SummaryStep order={preview} />
+      ) : (
         <CustomerForm
           values={values}
           isSubmitting={isSubmitting}
@@ -142,7 +155,7 @@ export const Page = () => {
           onLocationChange={(latitude, longitude) => mutate({ latitude, longitude })}
           onSubmit={handleSubmit}
         />
-      </div>
+      )}
     </Shell>
   )
 }

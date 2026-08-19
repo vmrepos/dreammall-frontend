@@ -66,6 +66,19 @@ export const OrderPreview = ({ order }: Props) => {
             {formatCurrency(order.total_amount)}
           </dd>
         </div>
+        {order.delivery_code ? (
+          <div className="rounded-xl bg-brand-light px-4 py-4 text-center">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+              Código de entrega
+            </dt>
+            <dd className="mt-1 text-3xl font-bold tracking-[0.25em] text-brand">
+              {order.delivery_code}
+            </dd>
+            <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+              Muéstralo al repartidor al recibir tu pedido.
+            </p>
+          </div>
+        ) : null}
       </dl>
     </Card>
   )

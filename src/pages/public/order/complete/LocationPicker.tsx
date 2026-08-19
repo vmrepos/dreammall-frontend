@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+  faArrowLeft,
+  faExpand,
   faLocationCrosshairs,
   faLocationDot,
   faMinus,
@@ -13,7 +16,6 @@ const DEFAULT_CENTER = { latitude: -17.7833, longitude: -63.1821 }
 const MIN_ZOOM = 12
 const MAX_ZOOM = 18
 const TILE_SIZE = 256
-const MAP_HEIGHT_CLASS = "h-[min(28rem,50svh)] w-full sm:h-[min(32rem,55svh)]"
 
 type Coords = { latitude: number; longitude: number }
 
@@ -21,6 +23,12 @@ type Props = {
   latitude: number | null
   longitude: number | null
   onChange: (latitude: number, longitude: number) => void
+}
+
+type MapSurfaceProps = Props & {
+  className?: string
+  showControls?: boolean
+  interactive?: boolean
 }
 
 type GoogleMapsApi = {
@@ -38,6 +46,7 @@ type GoogleMapsApi = {
     getPosition: () => LatLng | null
     addListener: (event: string, handler: () => void) => void
   }
+  event: { trigger: (instance: unknown, eventName: string) => void }
 }
 
 type LatLng = { lat: () => number; lng: () => number }
@@ -101,6 +110,7 @@ export const LocationPicker = ({ latitude, longitude, onChange }: Props) => {
   const [geoError, setGeoError] = useState("")
   const [locating, setLocating] = useState(true)
   const [useGoogle, setUseGoogle] = useState(Boolean(googleMapsKey))
+  const [fullScreen, setFullScreen] = useState(false)
 
   const coordsRef = useRef({ latitude, longitude })
   coordsRef.current = { latitude, longitude }
@@ -139,26 +149,49 @@ export const LocationPicker = ({ latitude, longitude, onChange }: Props) => {
     requestLocation()
   }, [requestLocation])
 
+  useEffect(() => {
+    if (!fullScreen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFullScreen(false)
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener("keydown", onKeyDown)
+    }
+  }, [fullScreen])
+
+  const map = (
+    <MapSurface
+      latitude={latitude}
+      longitude={longitude}
+      onChange={onChange}
+      useGoogle={useGoogle && Boolean(googleMapsKey)}
+      apiKey={googleMapsKey}
+      onUnavailable={() => setUseGoogle(false)}
+      locating={locating}
+      showControls={fullScreen}
+      interactive={fullScreen}
+    />
+  )
+
   return (
     <div className="flex flex-col gap-2">
-      <div className="relative overflow-hidden rounded-xl border border-gray-200">
-        {useGoogle && googleMapsKey ? (
-          <GoogleMapPin
-            apiKey={googleMapsKey}
-            latitude={latitude}
-            longitude={longitude}
-            onChange={onChange}
-            onUnavailable={() => setUseGoogle(false)}
-          />
-        ) : (
-          <OsmMapPin latitude={latitude} longitude={longitude} onChange={onChange} />
-        )}
-        {locating && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-elevated/80 text-sm font-medium text-ink">
-            Obteniendo tu ubicación...
-          </div>
-        )}
-      </div>
+      <button
+        type="button"
+        className="relative aspect-square w-full overflow-hidden rounded-xl border border-gray-200 text-left"
+        onClick={() => setFullScreen(true)}
+        aria-label="Abrir mapa a pantalla completa"
+      >
+        {fullScreen ? null : map}
+        <span className="absolute inset-0 z-20" aria-hidden />
+        <span className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex items-center justify-center gap-2 bg-gradient-to-t from-black/55 to-transparent px-3 pb-3 pt-10 text-xs font-semibold text-white">
+          <FontAwesomeIcon icon={faExpand} className="size-3.5" aria-hidden />
+          Toca para ajustar en el mapa
+        </span>
+      </button>
 
       <Button
         type="button"
@@ -177,13 +210,102 @@ export const LocationPicker = ({ latitude, longitude, onChange }: Props) => {
         </p>
       ) : (
         <p className="text-xs text-ink-muted">
-          Usamos el pin de tu dispositivo. Arrastra el mapa o el marcador si necesitas
-          corregirlo.
+          Toca el mapa para ampliarlo y arrastra el pin si necesitas corregirlo.
         </p>
       )}
+
+      {fullScreen
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-50 flex flex-col bg-surface"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="location-picker-title"
+            >
+              <header className="flex shrink-0 items-center gap-3 border-b border-gray-200 px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+                <button
+                  type="button"
+                  className="inline-flex size-10 items-center justify-center rounded-xl text-ink hover:bg-gray-100"
+                  onClick={() => setFullScreen(false)}
+                  aria-label="Cerrar mapa"
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} className="size-5" aria-hidden />
+                </button>
+                <h2 id="location-picker-title" className="text-base font-semibold text-ink">
+                  Ubicación de entrega
+                </h2>
+              </header>
+
+              <div className="relative min-h-0 flex-1">{map}</div>
+
+              <div className="flex shrink-0 flex-col gap-2 border-t border-gray-200 bg-surface-elevated px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full rounded-lg py-2.5 text-xs"
+                  onClick={requestLocation}
+                  disabled={locating}
+                >
+                  <FontAwesomeIcon icon={faLocationCrosshairs} className="size-4" aria-hidden />
+                  {locating ? "Obteniendo ubicación..." : "Usar ubicación de mi dispositivo"}
+                </Button>
+                <Button type="button" className="w-full" onClick={() => setFullScreen(false)}>
+                  Usar esta ubicación
+                </Button>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   )
 }
+
+const MapSurface = ({
+  latitude,
+  longitude,
+  onChange,
+  useGoogle,
+  apiKey,
+  onUnavailable,
+  locating,
+  showControls,
+  interactive,
+}: Props & {
+  useGoogle: boolean
+  apiKey?: string
+  onUnavailable: () => void
+  locating: boolean
+  showControls: boolean
+  interactive: boolean
+}) => (
+  <div className="absolute inset-0">
+    {useGoogle && apiKey ? (
+      <GoogleMapPin
+        apiKey={apiKey}
+        latitude={latitude}
+        longitude={longitude}
+        onChange={onChange}
+        onUnavailable={onUnavailable}
+        showControls={showControls}
+        interactive={interactive}
+      />
+    ) : (
+      <OsmMapPin
+        latitude={latitude}
+        longitude={longitude}
+        onChange={onChange}
+        showControls={showControls}
+        interactive={interactive}
+      />
+    )}
+    {locating && (
+      <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-elevated/80 text-sm font-medium text-ink">
+        Obteniendo tu ubicación...
+      </div>
+    )}
+  </div>
+)
 
 const GoogleMapPin = ({
   apiKey,
@@ -191,7 +313,12 @@ const GoogleMapPin = ({
   longitude,
   onChange,
   onUnavailable,
-}: Props & { apiKey: string; onUnavailable: () => void }) => {
+  showControls,
+  interactive,
+}: Props & { apiKey: string; onUnavailable: () => void } & Pick<
+  MapSurfaceProps,
+  "showControls" | "interactive"
+>) => {
   const mapEl = useRef<HTMLDivElement>(null)
   const mapRef = useRef<InstanceType<GoogleMapsApi["Map"]> | null>(null)
   const markerRef = useRef<InstanceType<GoogleMapsApi["Marker"]> | null>(null)
@@ -220,13 +347,14 @@ const GoogleMapPin = ({
           center,
           zoom: 16,
           disableDefaultUI: true,
-          zoomControl: true,
-          gestureHandling: "greedy",
+          zoomControl: showControls,
+          gestureHandling: interactive ? "greedy" : "none",
+          draggable: interactive,
         })
         const marker = new maps.Marker({
           position: center,
           map,
-          draggable: true,
+          draggable: Boolean(interactive),
         })
 
         marker.addListener("dragend", () => {
@@ -235,6 +363,7 @@ const GoogleMapPin = ({
           onChangeRef.current(position.lat(), position.lng())
         })
         map.addListener("click", (event) => {
+          if (!interactive) return
           const position = event?.latLng
           if (!position) return
           marker.setPosition(position)
@@ -243,6 +372,8 @@ const GoogleMapPin = ({
 
         mapRef.current = map
         markerRef.current = marker
+        maps.event.trigger(map, "resize")
+        map.panTo(center)
       } catch {
         onUnavailableRef.current()
       }
@@ -252,7 +383,7 @@ const GoogleMapPin = ({
     return () => {
       cancelled = true
     }
-  }, [apiKey])
+  }, [apiKey, interactive, showControls])
 
   useEffect(() => {
     const center = { lat, lng }
@@ -260,13 +391,33 @@ const GoogleMapPin = ({
     markerRef.current?.setPosition(center)
   }, [lat, lng])
 
-  return <div ref={mapEl} className={MAP_HEIGHT_CLASS} />
+  useEffect(() => {
+    const node = mapEl.current
+    if (!node) return
+    const observer = new ResizeObserver(() => {
+      const maps = getGoogleMaps()
+      const map = mapRef.current
+      if (!maps || !map) return
+      maps.event.trigger(map, "resize")
+      map.panTo({ lat: latRef.current, lng: lngRef.current })
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  return <div ref={mapEl} className="h-full w-full" />
 }
 
-const OsmMapPin = ({ latitude, longitude, onChange }: Props) => {
+const OsmMapPin = ({
+  latitude,
+  longitude,
+  onChange,
+  showControls = true,
+  interactive = true,
+}: MapSurfaceProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [zoom, setZoom] = useState(16)
-  const [size, setSize] = useState({ width: 320, height: 448 })
+  const [size, setSize] = useState({ width: 320, height: 320 })
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef<{ x: number; y: number; origin: Coords } | null>(null)
 
@@ -317,34 +468,50 @@ const OsmMapPin = ({ latitude, longitude, onChange }: Props) => {
   const commit = (next: Coords) => onChange(next.latitude, next.longitude)
 
   return (
-    <div className="relative">
+    <div className="relative h-full w-full">
       <div
         ref={containerRef}
         className={cn(
-          "relative touch-none overflow-hidden bg-gray-100",
-          MAP_HEIGHT_CLASS,
-          dragging ? "cursor-grabbing" : "cursor-grab",
+          "relative h-full w-full overflow-hidden bg-gray-100",
+          interactive ? "touch-none" : "pointer-events-none",
+          interactive && dragging ? "cursor-grabbing" : interactive ? "cursor-grab" : "",
         )}
-        onPointerDown={(event) => {
-          event.currentTarget.setPointerCapture(event.pointerId)
-          dragRef.current = { x: event.clientX, y: event.clientY, origin: center }
-          setDragging(true)
-        }}
-        onPointerMove={(event) => {
-          const drag = dragRef.current
-          if (!drag) return
-          commit(
-            shiftCenter(drag.origin, event.clientX - drag.x, event.clientY - drag.y, zoom),
-          )
-        }}
-        onPointerUp={() => {
-          dragRef.current = null
-          setDragging(false)
-        }}
-        onPointerCancel={() => {
-          dragRef.current = null
-          setDragging(false)
-        }}
+        onPointerDown={
+          interactive
+            ? (event) => {
+                event.currentTarget.setPointerCapture(event.pointerId)
+                dragRef.current = { x: event.clientX, y: event.clientY, origin: center }
+                setDragging(true)
+              }
+            : undefined
+        }
+        onPointerMove={
+          interactive
+            ? (event) => {
+                const drag = dragRef.current
+                if (!drag) return
+                commit(
+                  shiftCenter(drag.origin, event.clientX - drag.x, event.clientY - drag.y, zoom),
+                )
+              }
+            : undefined
+        }
+        onPointerUp={
+          interactive
+            ? () => {
+                dragRef.current = null
+                setDragging(false)
+              }
+            : undefined
+        }
+        onPointerCancel={
+          interactive
+            ? () => {
+                dragRef.current = null
+                setDragging(false)
+              }
+            : undefined
+        }
         role="application"
         aria-label="Mapa para ajustar la ubicación de entrega"
       >
@@ -363,30 +530,34 @@ const OsmMapPin = ({ latitude, longitude, onChange }: Props) => {
         </div>
       </div>
 
-      <div className="absolute right-3 top-3 z-10 flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-surface-elevated shadow-sm">
-        <button
-          type="button"
-          className="px-2.5 py-1.5 text-ink hover:bg-gray-50 disabled:opacity-40"
-          onClick={() => setZoom((current) => Math.min(MAX_ZOOM, current + 1))}
-          disabled={zoom >= MAX_ZOOM}
-          aria-label="Acercar"
-        >
-          <FontAwesomeIcon icon={faPlus} className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          className="border-t border-gray-200 px-2.5 py-1.5 text-ink hover:bg-gray-50 disabled:opacity-40"
-          onClick={() => setZoom((current) => Math.max(MIN_ZOOM, current - 1))}
-          disabled={zoom <= MIN_ZOOM}
-          aria-label="Alejar"
-        >
-          <FontAwesomeIcon icon={faMinus} className="size-3.5" />
-        </button>
-      </div>
+      {showControls ? (
+        <div className="absolute right-3 top-3 z-10 flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-surface-elevated shadow-sm">
+          <button
+            type="button"
+            className="px-2.5 py-1.5 text-ink hover:bg-gray-50 disabled:opacity-40"
+            onClick={() => setZoom((current) => Math.min(MAX_ZOOM, current + 1))}
+            disabled={zoom >= MAX_ZOOM}
+            aria-label="Acercar"
+          >
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" />
+          </button>
+          <button
+            type="button"
+            className="border-t border-gray-200 px-2.5 py-1.5 text-ink hover:bg-gray-50 disabled:opacity-40"
+            onClick={() => setZoom((current) => Math.max(MIN_ZOOM, current - 1))}
+            disabled={zoom <= MIN_ZOOM}
+            aria-label="Alejar"
+          >
+            <FontAwesomeIcon icon={faMinus} className="size-3.5" />
+          </button>
+        </div>
+      ) : null}
 
-      <p className="absolute bottom-2 left-2 z-10 rounded bg-white/80 px-1.5 py-0.5 text-[10px] text-ink-muted">
-        © OpenStreetMap © CARTO
-      </p>
+      {showControls ? (
+        <p className="absolute bottom-2 left-2 z-10 rounded bg-white/80 px-1.5 py-0.5 text-[10px] text-ink-muted">
+          © OpenStreetMap © CARTO
+        </p>
+      ) : null}
     </div>
   )
 }

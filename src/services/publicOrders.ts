@@ -18,7 +18,10 @@ export const PublicOrdersAPI = {
     const response = await publicClient.get(`/public/orders/${publicToken}`)
     return toPublicOrder(response.data.data as TPublicOrderWire)
   },
-  complete: async (publicToken: string, input: TPublicOrderCompletePayload): Promise<void> => {
-    await publicClient.patch(`/public/orders/${publicToken}`, input)
+  complete: async (publicToken: string, input: TPublicOrderCompletePayload): Promise<TPublicOrder> => {
+    const response = await publicClient.patch(`/public/orders/${publicToken}`, input)
+    const quoted = response.data?.data as TPublicOrderWire | undefined
+    if (quoted) return toPublicOrder(quoted)
+    return PublicOrdersAPI.show(publicToken)
   },
 }
