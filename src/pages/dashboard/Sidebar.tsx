@@ -56,7 +56,7 @@ export const Sidebar = ({ open, onClose }: Props) => {
 
       <aside
         className={cn(
-          "relative z-50 flex min-h-svh w-64 shrink-0 flex-col bg-sidebar p-4 text-white",
+          "relative z-50 flex min-h-svh w-64 shrink-0 flex-col overflow-y-auto bg-sidebar p-4 text-white",
           "max-[1399px]:fixed max-[1399px]:inset-y-0 max-[1399px]:left-0 max-[1399px]:transition-transform max-[1399px]:duration-200",
           open ? "max-[1399px]:translate-x-0" : "max-[1399px]:-translate-x-full",
         )}
