@@ -1,7 +1,13 @@
 export const publicOrderPath = (publicToken: string) => `/pedido/${publicToken}`
 
-export const publicOrderUrl = (publicToken: string) =>
-  `${window.location.origin}${publicOrderPath(publicToken)}`
+export const publicOrderUrl = (
+  publicToken: string,
+  options?: { fromRestaurant?: boolean },
+) => {
+  const url = `${window.location.origin}${publicOrderPath(publicToken)}`
+  if (!options?.fromRestaurant) return url
+  return `${url}?from_restaurant=true`
+}
 
 export const copyToClipboard = async (value: string) => {
   try {

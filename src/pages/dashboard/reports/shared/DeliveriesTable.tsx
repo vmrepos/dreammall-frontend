@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { DeliveryStatusBadge } from "../../../../components/molecules/StatusBadge"
 import type { TReportDeliveryRow } from "../../../../types/Report"
 import { formatDate, tableRowLinkClass } from "../../../../utils/format"
+import { DELIVERIES_SECTION_ENABLED } from "../../deliveries/Deliveries"
 
 type Props = {
   deliveries: TReportDeliveryRow[]
@@ -26,7 +27,13 @@ export const DeliveriesTable = ({ deliveries }: Props) => {
             <tr
               key={delivery.id}
               className={tableRowLinkClass}
-              onClick={() => navigate(`/deliveries/${delivery.id}`)}
+              onClick={() =>
+                navigate(
+                  DELIVERIES_SECTION_ENABLED
+                    ? `/deliveries/${delivery.id}`
+                    : `/orders/${delivery.order_id}`,
+                )
+              }
             >
               <td className="px-6 py-4 text-gray-500">{formatDate(delivery.created_at)}</td>
               <td className="px-6 py-4">

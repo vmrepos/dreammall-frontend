@@ -15,17 +15,17 @@ import { useRestaurant } from "../../../../context/RestaurantContext"
 import { usePrepProgress } from "../../../../hooks/usePrepProgress"
 import { apiClient } from "../../../../services/apiClient"
 import type { TOrderStatus } from "../../../../types/Order"
-import { canCancelOrder, canConfirmReturn, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../../utils/status"
+import { canCancelDelivery, canCancelOrder, canConfirmReturn, canMarkPreparing, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../../utils/status"
 import { formatCurrency, formatDate } from "../../../../utils/format"
 import { DeliveryCard } from "../shared/DeliveryCard"
 import { ReadyCountdown } from "../shared/ReadyCountdown"
+import { DELIVERIES_SECTION_ENABLED } from "../../deliveries/Deliveries"
 import { CopyOrderLinkButton } from "./CopyOrderLinkButton"
 import { CopySummaryImageButton } from "./CopySummaryImageButton"
 
 const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
   pending: "Preparando",
   preparing: "Marcar listo",
-  returned: "Marcar listo",
 }
 
 export const Page = () => {
@@ -42,7 +42,7 @@ export const Page = () => {
   )
   const [loading, setLoading] = useState(!order)
   const [notFound, setNotFound] = useState(false)
-  const [confirmAction, setConfirmAction] = useState<"preparing" | "ready" | "cancel" | "return" | "retry" | null>(null)
+  const [confirmAction, setConfirmAction] = useState<"preparing" | "ready" | "cancel" | "cancelTrip" | "return" | "retry" | null>(null)
   const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
@@ -87,6 +87,7 @@ export const Page = () => {
 
   const nextStatus = getNextOrderStatus(order.status)
   const nextLabel = nextActionLabel[order.status]
+  const canPrepare = canMarkPreparing(order)
   const subtotal = orderItemsSubtotal(order)
 
   const handleConfirm = async () => {
@@ -106,7 +107,11 @@ export const Page = () => {
         const delivery = await apiClient.deliveries.create(order.id)
         await fetchOrder(order.id)
         toast.success("Buscando un nuevo repartidor")
-        navigate(`/deliveries/${delivery.id}`)
+        if (DELIVERIES_SECTION_ENABLED) navigate(`/deliveries/${delivery.id}`)
+      } else if (confirmAction === "cancelTrip" && order.delivery) {
+        await apiClient.deliveries.cancel(order.delivery.id)
+        await fetchOrder(order.id)
+        toast.success("Buscando otro repartidor")
       }
       setConfirmAction(null)
     } catch {
@@ -115,7 +120,9 @@ export const Page = () => {
           ? "No se pudo preparar el pedido. Revisa tus créditos."
           : confirmAction === "retry"
             ? "No se pudo reenviar la entrega. Revisa tus créditos."
-            : "No se pudo actualizar el pedido.",
+            : confirmAction === "cancelTrip"
+              ? "No se pudo cancelar la entrega."
+              : "No se pudo actualizar el pedido.",
       )
     } finally {
       setConfirming(false)
@@ -173,6 +180,9 @@ export const Page = () => {
             <>
               <p className="mt-3 text-sm text-gray-500">
                 El cliente completa nombre, teléfono y ubicación con este enlace.
+                {!canPrepare && order.status === "pending"
+                  ? " También puedes completar el destino aquí, sin usar el GPS de este dispositivo."
+                  : ""}
               </p>
               <div className="mt-3">
                 <CopyOrderLinkButton publicToken={order.public_token} />
@@ -181,11 +191,18 @@ export const Page = () => {
           ) : null}
         </div>
 
-        <div className="flex gap-3">
-          {nextLabel && (
-            <Button onClick={() => setConfirmAction(nextStatus === "preparing" ? "preparing" : "ready")}>
-              {nextLabel}
+        <div className="flex flex-wrap justify-end gap-3">
+          {nextStatus === "preparing" && (
+            <Button
+              disabled={!canPrepare}
+              title={canPrepare ? undefined : "Falta la ubicación del cliente"}
+              onClick={() => canPrepare && setConfirmAction("preparing")}
+            >
+              Preparando
             </Button>
+          )}
+          {nextStatus === "ready" && (
+            <Button onClick={() => setConfirmAction("ready")}>{nextLabel}</Button>
           )}
           {order.delivery && canConfirmReturn(order.delivery) && (
             <Button onClick={() => setConfirmAction("return")}>Confirmar devolución</Button>
@@ -193,12 +210,19 @@ export const Page = () => {
           {canRetryDelivery(order.status, order.delivery) && (
             <Button onClick={() => setConfirmAction("retry")}>Reenviar entrega</Button>
           )}
+          {order.delivery && canCancelDelivery(order.delivery.status) && (
+            <Button variant="secondary" onClick={() => setConfirmAction("cancelTrip")}>
+              Cancelar entrega
+            </Button>
+          )}
           {canCancelOrder(order.status, order.delivery) && (
             <Button variant="danger" onClick={() => setConfirmAction("cancel")}>
               Cancelar pedido
             </Button>
           )}
-          {(order.status === "ready" || order.status === "dispatched") && order.delivery && (
+          {DELIVERIES_SECTION_ENABLED &&
+            (order.status === "ready" || order.status === "dispatched") &&
+            order.delivery && (
             <Button variant="secondary" onClick={() => navigate(`/deliveries/${order.delivery?.id}`)}>
               Ver entrega
             </Button>
@@ -277,9 +301,20 @@ export const Page = () => {
       <ConfirmDialog
         open={confirmAction === "retry"}
         title="Reenviar entrega"
-        message="Se buscará un nuevo repartidor y se usará 1 crédito. ¿Deseas continuar?"
+        message="El pedido quedará listo, se buscará un nuevo repartidor y se usará 1 crédito. ¿Deseas continuar?"
         confirmLabel="Sí, reenviar"
         confirmVariant="primary"
+        confirming={confirming}
+        onConfirm={handleConfirm}
+        onCancel={() => !confirming && setConfirmAction(null)}
+      />
+
+      <ConfirmDialog
+        open={confirmAction === "cancelTrip"}
+        title="Cancelar entrega"
+        message="Se liberará el repartidor y se buscará otro. No se devuelve el crédito."
+        confirmLabel="Sí, buscar otro"
+        confirmVariant="danger"
         confirming={confirming}
         onConfirm={handleConfirm}
         onCancel={() => !confirming && setConfirmAction(null)}

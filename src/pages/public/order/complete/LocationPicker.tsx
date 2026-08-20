@@ -23,6 +23,8 @@ type Props = {
   latitude: number | null
   longitude: number | null
   onChange: (latitude: number, longitude: number) => void
+  /** Customer page: GPS. Restaurant staff: hide it so the pin is not the kitchen. */
+  allowDeviceLocation?: boolean
 }
 
 type MapSurfaceProps = Props & {
@@ -103,12 +105,17 @@ const shiftCenter = (center: Coords, dx: number, dy: number, zoom: number): Coor
   return { latitude: tileYToLat(y, zoom), longitude: tileXToLng(x, zoom) }
 }
 
-export const LocationPicker = ({ latitude, longitude, onChange }: Props) => {
+export const LocationPicker = ({
+  latitude,
+  longitude,
+  onChange,
+  allowDeviceLocation = true,
+}: Props) => {
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
 
   const [geoError, setGeoError] = useState("")
-  const [locating, setLocating] = useState(true)
+  const [locating, setLocating] = useState(allowDeviceLocation)
   const [useGoogle, setUseGoogle] = useState(Boolean(googleMapsKey))
   const [fullScreen, setFullScreen] = useState(false)
 
@@ -146,8 +153,9 @@ export const LocationPicker = ({ latitude, longitude, onChange }: Props) => {
   }, [])
 
   useEffect(() => {
+    if (!allowDeviceLocation) return
     requestLocation()
-  }, [requestLocation])
+  }, [allowDeviceLocation, requestLocation])
 
   useEffect(() => {
     if (!fullScreen) return
@@ -193,16 +201,18 @@ export const LocationPicker = ({ latitude, longitude, onChange }: Props) => {
         </span>
       </button>
 
-      <Button
-        type="button"
-        variant="secondary"
-        className="w-full rounded-lg py-2.5 text-xs"
-        onClick={requestLocation}
-        disabled={locating}
-      >
-        <FontAwesomeIcon icon={faLocationCrosshairs} className="size-4" aria-hidden />
-        {locating ? "Obteniendo ubicación..." : "Usar ubicación de mi dispositivo"}
-      </Button>
+      {allowDeviceLocation ? (
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full rounded-lg py-2.5 text-xs"
+          onClick={requestLocation}
+          disabled={locating}
+        >
+          <FontAwesomeIcon icon={faLocationCrosshairs} className="size-4" aria-hidden />
+          {locating ? "Obteniendo ubicación..." : "Usar ubicación de mi dispositivo"}
+        </Button>
+      ) : null}
 
       {geoError ? (
         <p className="text-xs text-ink-muted" role="status">
@@ -210,7 +220,9 @@ export const LocationPicker = ({ latitude, longitude, onChange }: Props) => {
         </p>
       ) : (
         <p className="text-xs text-ink-muted">
-          Toca el mapa para ampliarlo y arrastra el pin si necesitas corregirlo.
+          {allowDeviceLocation
+            ? "Toca el mapa para ampliarlo y arrastra el pin si necesitas corregirlo."
+            : "Toca el mapa, mueve el pin hasta el destino y confirma. No uses la ubicación de este dispositivo."}
         </p>
       )}
 
@@ -239,17 +251,24 @@ export const LocationPicker = ({ latitude, longitude, onChange }: Props) => {
               <div className="relative min-h-0 flex-1">{map}</div>
 
               <div className="flex shrink-0 flex-col gap-2 border-t border-gray-200 bg-surface-elevated px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                {allowDeviceLocation ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full rounded-lg py-2.5 text-xs"
+                    onClick={requestLocation}
+                    disabled={locating}
+                  >
+                    <FontAwesomeIcon icon={faLocationCrosshairs} className="size-4" aria-hidden />
+                    {locating ? "Obteniendo ubicación..." : "Usar ubicación de mi dispositivo"}
+                  </Button>
+                ) : null}
                 <Button
                   type="button"
-                  variant="secondary"
-                  className="w-full rounded-lg py-2.5 text-xs"
-                  onClick={requestLocation}
-                  disabled={locating}
+                  className="w-full"
+                  disabled={latitude == null || longitude == null}
+                  onClick={() => setFullScreen(false)}
                 >
-                  <FontAwesomeIcon icon={faLocationCrosshairs} className="size-4" aria-hidden />
-                  {locating ? "Obteniendo ubicación..." : "Usar ubicación de mi dispositivo"}
-                </Button>
-                <Button type="button" className="w-full" onClick={() => setFullScreen(false)}>
                   Usar esta ubicación
                 </Button>
               </div>

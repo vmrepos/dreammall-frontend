@@ -2,6 +2,7 @@ import { DeliveryStatusBadge } from "../../../../components/molecules/StatusBadg
 import { DetailRow } from "../../../../components/molecules/DetailRow"
 import type { TDelivery } from "../../../../types/Delivery"
 import { formatDate } from "../../../../utils/format"
+import { DELIVERIES_SECTION_ENABLED } from "../../deliveries/Deliveries"
 
 export const DeliveryCard = ({ delivery }: { delivery: TDelivery }) => (
   <div>
@@ -17,10 +18,12 @@ export const DeliveryCard = ({ delivery }: { delivery: TDelivery }) => (
     <DetailRow label="Creada" value={formatDate(delivery.created_at)} />
     <DetailRow label="Actualizada" value={formatDate(delivery.updated_at)} />
 
-    <DetailRow
-      label="Detalle"
-      value={`Ver entrega`}
-      href={`/deliveries/${delivery.id}`}
-    />
+    {DELIVERIES_SECTION_ENABLED ? (
+      <DetailRow
+        label="Detalle"
+        value="Ver entrega"
+        href={`/deliveries/${delivery.id}`}
+      />
+    ) : null}
   </div>
 )

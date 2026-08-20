@@ -29,6 +29,7 @@ type Props = {
   onPhoneChange: (phone: string) => void
   onLocationChange: (latitude: number, longitude: number) => void
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
+  fromRestaurant?: boolean
 }
 
 export const CustomerForm = ({
@@ -39,6 +40,7 @@ export const CustomerForm = ({
   onPhoneChange,
   onLocationChange,
   onSubmit,
+  fromRestaurant = false,
 }: Props) => {
   const phoneReady = values.phone.length === PHONE_DIGITS
 
@@ -51,6 +53,7 @@ export const CustomerForm = ({
             latitude={values.latitude}
             longitude={values.longitude}
             onChange={onLocationChange}
+            allowDeviceLocation={!fromRestaurant}
           />
         </div>
 

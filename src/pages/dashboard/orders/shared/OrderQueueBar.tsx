@@ -1,15 +1,14 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheck, faLink, faLocationDot, faPlus } from "@fortawesome/free-solid-svg-icons"
-import { toast } from "sonner"
+import { faLocationDot, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { useRestaurant } from "../../../../context/RestaurantContext"
 import { usePrepProgress } from "../../../../hooks/usePrepProgress"
 import type { TOrder } from "../../../../types/Order"
 import { cn, formatPrepClock } from "../../../../utils/format"
 import { prepStoplightText } from "../../../../utils/prepStoplight"
-import { copyPublicOrderUrl } from "../../../../utils/orderShare"
 import { orderStatusConfig } from "../../../../utils/status"
 import { orderHasLocation, orderWaitingForCustomer } from "./orderQueue"
+import { OrderQueueLinkMenu } from "./OrderQueueLinkMenu"
 import { PrepTimeFill } from "./PrepTimeFill"
 
 type Props = {
@@ -85,7 +84,6 @@ type ChipProps = {
 
 const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }: ChipProps) => {
   const ref = useRef<HTMLDivElement>(null)
-  const [copied, setCopied] = useState(false)
   const publicToken = order.public_token
   const { restaurant } = useRestaurant()
   const prep = usePrepProgress(
@@ -103,18 +101,6 @@ const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }:
     prep.remaining != null
       ? `Preparando: ${formatPrepClock(prep.remaining)}`
       : orderStatusConfig[order.status].label
-
-  const handleCopy = async () => {
-    if (!publicToken) return
-    try {
-      await copyPublicOrderUrl(publicToken)
-      setCopied(true)
-      toast.success(`Pedido #${order.id}: enlace copiado`)
-      window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      toast.error("No se pudo copiar el enlace.")
-    }
-  }
 
   return (
     <div
@@ -167,17 +153,7 @@ const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }:
           />
         </span>
       </button>
-      {publicToken ? (
-        <button
-          type="button"
-          onClick={() => void handleCopy()}
-          className="relative z-10 flex w-8 shrink-0 items-center justify-center border-l border-gray-200/80 text-ink-muted transition hover:bg-brand-light hover:text-brand"
-          aria-label={copied ? "Enlace copiado" : `Copiar enlace del pedido #${order.id}`}
-          title={copied ? "Enlace copiado" : "Copiar enlace"}
-        >
-          <FontAwesomeIcon icon={copied ? faCheck : faLink} className="size-3" aria-hidden />
-        </button>
-      ) : null}
+      {publicToken ? <OrderQueueLinkMenu orderId={order.id} publicToken={publicToken} /> : null}
     </div>
   )
 }

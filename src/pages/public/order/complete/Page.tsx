@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useSearchParams } from "react-router-dom"
 import axios from "axios"
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons"
 import { BrandLogo } from "../../../../components/atoms/BrandLogo"
@@ -36,6 +36,9 @@ const orderHasCustomerData = (order: TPublicOrder) => Boolean(order.customer_nam
 
 export const Page = () => {
   const { token } = useParams()
+  const [searchParams] = useSearchParams()
+  const fromRestaurant =
+    searchParams.get("from_restaurant") === "true" || searchParams.get("from_restaurant") === "1"
   const publicToken = token?.trim() ?? ""
   const [preview, setPreview] = useState<TPublicOrder | null>(null)
   const [loadState, setLoadState] = useState<"loading" | "ready" | "unavailable">(
@@ -133,12 +136,18 @@ export const Page = () => {
     <Shell>
       <header className="mb-6">
         <h1 className="text-[1.75rem] font-bold leading-tight text-brand">
-          {step === "details" ? "Completa tu pedido" : "Tu pedido"}
+          {step === "details"
+            ? fromRestaurant
+              ? "Completar ubicación"
+              : "Completa tu pedido"
+            : "Tu pedido"}
         </h1>
         <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
           {preview ? `${orderLabel}. ` : null}
           {step === "details"
-            ? "Indica tu ubicación para calcular el envío."
+            ? fromRestaurant
+              ? "Marca el destino en el mapa. No uses la ubicación de este dispositivo."
+              : "Indica tu ubicación para calcular el envío."
             : "Entrega este código al repartidor cuando llegue."}
         </p>
       </header>
@@ -154,6 +163,7 @@ export const Page = () => {
           onPhoneChange={(phone) => mutate({ phone })}
           onLocationChange={(latitude, longitude) => mutate({ latitude, longitude })}
           onSubmit={handleSubmit}
+          fromRestaurant={fromRestaurant}
         />
       )}
     </Shell>

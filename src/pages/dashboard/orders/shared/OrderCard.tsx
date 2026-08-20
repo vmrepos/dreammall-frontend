@@ -70,6 +70,12 @@ export const OrderCard = ({ order }: Props) => {
       await fetchOrder(order.id)
       toast.success(`Pedido #${order.id}: buscando un nuevo repartidor`)
     },
+    cancelTrip: async () => {
+      if (!order.delivery) return
+      await apiClient.deliveries.cancel(order.delivery.id)
+      await fetchOrder(order.id)
+      toast.success(`Pedido #${order.id}: buscando otro repartidor`)
+    },
   }
 
   const handleConfirm = async () => {
@@ -191,7 +197,12 @@ export const OrderCard = ({ order }: Props) => {
                 key={action.id}
                 variant={action.variant}
                 className="flex-1 rounded-lg px-3 py-2 text-xs"
-                onClick={() => setConfirmAction(action.id)}
+                disabled={action.disabled}
+                title={action.title}
+                onClick={() => {
+                  if (action.disabled) return
+                  setConfirmAction(action.id)
+                }}
               >
                 {action.label}
               </Button>
@@ -214,7 +225,7 @@ export const OrderCard = ({ order }: Props) => {
           title={confirmCopy.title}
           message={confirmCopy.message}
           confirmLabel={confirmCopy.confirmLabel}
-          confirmVariant="primary"
+          confirmVariant={confirmAction === "cancelTrip" ? "danger" : "primary"}
           confirming={confirming}
           onConfirm={handleConfirm}
           onCancel={closeConfirm}

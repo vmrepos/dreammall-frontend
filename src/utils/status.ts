@@ -86,9 +86,15 @@ export const getDeliveryStepTimestamp = (
 
 export const getNextOrderStatus = (status: TOrderStatus): TOrderStatus | null => {
   if (status === "pending") return "preparing"
-  if (status === "preparing" || status === "returned") return "ready"
+  if (status === "preparing") return "ready"
   return null
 }
+
+export const canMarkPreparing = (order: {
+  status: TOrderStatus
+  latitude: number | null
+  longitude: number | null
+}) => order.status === "pending" && order.latitude != null && order.longitude != null
 
 export const canCancelOrder = (status: TOrderStatus, delivery: { status: TDeliveryStatus } | null = null) => {
   if (status === "pending" || status === "preparing" || status === "ready") return true

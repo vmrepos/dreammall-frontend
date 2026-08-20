@@ -7,6 +7,7 @@ import { BrandLogo } from "../../components/atoms/BrandLogo"
 import { Toggle } from "../../components/atoms/Toggle"
 import { SidebarSubscriptionWidget } from "../../components/molecules/SidebarSubscriptionWidget"
 import { cn } from "../../utils/format"
+import { DELIVERIES_SECTION_ENABLED } from "./deliveries/Deliveries"
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -19,11 +20,11 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 const navItems = [
   { to: "/menu", label: "Menú" },
   { to: "/orders", label: "Pedidos" },
-  { to: "/deliveries", label: "Entregas" },
+  ...(DELIVERIES_SECTION_ENABLED ? [{ to: "/deliveries", label: "Entregas" }] : []),
   { to: "/profile", label: "Perfil" },
   { to: "/settings", label: "Configuración" },
   { to: "/reports", label: "Reportes" },
-] as const
+]
 
 type Props = {
   open: boolean

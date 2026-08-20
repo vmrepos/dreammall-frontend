@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck, faCopy } from "@fortawesome/free-solid-svg-icons"
 import { toast } from "sonner"
 import { Button } from "../../../../components/atoms/Button"
-import { copyPublicOrderUrl } from "../../../../utils/orderShare"
+import { copyPublicOrderUrl, publicOrderUrl } from "../../../../utils/orderShare"
 
 type Props = {
   publicToken: string
@@ -24,9 +24,17 @@ export const CopyOrderLinkButton = ({ publicToken }: Props) => {
   }
 
   return (
-    <Button variant="secondary" onClick={() => void handleCopy()}>
-      <FontAwesomeIcon icon={copied ? faCheck : faCopy} className="size-4" aria-hidden />
-      {copied ? "Enlace copiado" : "Copiar enlace de pedido"}
-    </Button>
+    <div className="flex flex-wrap gap-2">
+      <Button variant="secondary" onClick={() => void handleCopy()}>
+        <FontAwesomeIcon icon={copied ? faCheck : faCopy} className="size-4" aria-hidden />
+        {copied ? "Enlace copiado" : "Copiar enlace de pedido"}
+      </Button>
+      <Button
+        variant="secondary"
+        onClick={() => window.open(publicOrderUrl(publicToken, { fromRestaurant: true }), "_blank")}
+      >
+        Completar aquí
+      </Button>
+    </div>
   )
 }

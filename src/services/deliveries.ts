@@ -44,4 +44,8 @@ export const DeliveriesAPI = {
     const response = await axiosInstance.post("/restaurants/deliveries", { order_id: orderId })
     return toDelivery(response.data.data as TDeliveryWire)
   },
+  cancel: async (id: number): Promise<TDelivery> => {
+    const response = await axiosInstance.patch(`/restaurants/deliveries/${id}/cancel`)
+    return toDelivery(response.data.data as TDeliveryWire)
+  },
 }

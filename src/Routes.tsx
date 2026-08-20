@@ -7,7 +7,7 @@ import { PwaInstallBanner } from "./components/molecules/PwaInstallBanner"
 import { CableProvider } from "./context/providers/CableProvider"
 import { Auth } from "./pages/auth/Auth"
 import { Dashboard } from "./pages/dashboard/Dashboard"
-import { Deliveries } from "./pages/dashboard/deliveries/Deliveries"
+import { Deliveries, DELIVERIES_SECTION_ENABLED } from "./pages/dashboard/deliveries/Deliveries"
 import { Menu } from "./pages/dashboard/menu/Menu"
 import { MenuLayout } from "./pages/dashboard/menu/MenuLayout"
 import { Products } from "./pages/dashboard/menu/products/Products"
@@ -50,9 +50,15 @@ const RestaurantApp = () => (
               <Route path="new" element={<Orders.Create />} />
               <Route path=":id" element={<Orders.Show />} />
             </Route>
-            <Route path="deliveries" element={<Deliveries.Index />} />
-            <Route path="deliveries/new" element={<Deliveries.Create />} />
-            <Route path="deliveries/:id" element={<Deliveries.Show />} />
+            {DELIVERIES_SECTION_ENABLED ? (
+              <>
+                <Route path="deliveries" element={<Deliveries.Index />} />
+                <Route path="deliveries/new" element={<Deliveries.Create />} />
+                <Route path="deliveries/:id" element={<Deliveries.Show />} />
+              </>
+            ) : (
+              <Route path="deliveries/*" element={<Navigate to="/orders" replace />} />
+            )}
             <Route path="profile" element={<Profile.Index />} />
             <Route path="settings" element={<Settings.Index />} />
             <Route path="subscription" element={<Subscription.Index />} />
