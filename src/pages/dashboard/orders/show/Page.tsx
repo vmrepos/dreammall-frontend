@@ -11,6 +11,8 @@ import { OrderItemsTable } from "../shared/OrderItemsTable"
 import { OrderSummaryCard, orderItemsSubtotal } from "../shared/OrderSummaryCard"
 import { toast } from "sonner"
 import { useOrders } from "../../../../context/OrdersContext"
+import { useRestaurant } from "../../../../context/RestaurantContext"
+import { usePrepProgress } from "../../../../hooks/usePrepProgress"
 import { apiClient } from "../../../../services/apiClient"
 import type { TOrderStatus } from "../../../../types/Order"
 import { canCancelOrder, canConfirmReturn, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../../utils/status"
@@ -31,7 +33,13 @@ export const Page = () => {
   const navigate = useNavigate()
   const orderId = Number(id)
   const { getOrder, fetchOrder, markPreparing, updateOrder } = useOrders()
+  const { restaurant } = useRestaurant()
   const order = getOrder(orderId)
+  const prep = usePrepProgress(
+    order?.status === "preparing",
+    order?.ready_countdown,
+    restaurant?.prep_time,
+  )
   const [loading, setLoading] = useState(!order)
   const [notFound, setNotFound] = useState(false)
   const [confirmAction, setConfirmAction] = useState<"preparing" | "ready" | "cancel" | "return" | "retry" | null>(null)
@@ -149,10 +157,15 @@ export const Page = () => {
           </div>
           <p className="mt-1 text-[15px] text-gray-500">
             Creado el {formatDate(order.created_at)}
-            {order.ready_countdown != null && (
+            {order.status === "preparing" && (
               <>
                 {" · "}
-                <ReadyCountdown seconds={order.ready_countdown} className="text-[15px]" />
+                <ReadyCountdown
+                  seconds={order.ready_countdown}
+                  percentRemaining={prep.percent}
+                  className="text-[15px]"
+                  expired={order.ready_countdown == null}
+                />
               </>
             )}
           </p>

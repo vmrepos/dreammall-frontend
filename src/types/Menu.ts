@@ -11,6 +11,7 @@ export type TMenu = {
   image_url: string | null
 }
 
+/** @deprecated Prefer TMenuWrite from services/menus — kept for existing form state. */
 export type TMenuForm = Partial<Omit<TMenu, "id" | "products" | "products_count">> & {
   image?: File | null
 }

@@ -24,13 +24,10 @@ export const MenuProvider = ({ children }: { children: React.ReactNode }) => {
     return response
   }
 
-  const updateMenu = async (menu: TMenu) => {
-    try {
-      const response = await apiClient.menus.update(menu.id, menu)
-      setMenus((current) => current.map((m) => (m.id === menu.id ? response : m)))
-    } catch (error) {
-      console.error(error)
-    }
+  const updateMenu = async (id: number, menu: TMenuForm) => {
+    const response = await apiClient.menus.update(id, menu)
+    setMenus((current) => current.map((m) => (m.id === id ? { ...m, ...response } : m)))
+    return response
   }
 
   const deleteMenu = async (menu: TMenu) => {

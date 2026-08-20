@@ -39,3 +39,6 @@ pages/dashboard/orders/
 - Spanish UI copy in existing Spanish flows.
 - Call `services/*` / context from Pages — not Axios from components when a service exists.
 - Prefer `useForm` / `useCart`; no one-off “useThisPage” god hooks.
+
+## Docs
+Whenever asked you to document stuff, save it into the parent folder (Virtualmall)/docs/frontend/[relevant_name.md]

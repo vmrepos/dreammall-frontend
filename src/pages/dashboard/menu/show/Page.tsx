@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBookOpen, faImage, faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faBookOpen, faImage, faPen, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { Badge } from "../../../../components/atoms/Badge"
 import { Button } from "../../../../components/atoms/Button"
 import { Toggle } from "../../../../components/atoms/Toggle"
@@ -85,19 +85,23 @@ export const Page = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <Toggle
             checked={menu.active}
             label={`${menu.active ? "Desactivar" : "Activar"} ${menu.name}`}
-            onChange={(active) => toggleMenu(menu.id, active)}
+            onChange={(active) => void toggleMenu(menu.id, active)}
           />
+          <Button variant="secondary" onClick={() => navigate(`/menu/${menu.id}/edit`)}>
+            <FontAwesomeIcon icon={faPen} className="size-4" aria-hidden />
+            Editar menú
+          </Button>
           <Button
             variant="secondary"
             onClick={() => setShareOpen(true)}
             disabled={(menu.products ?? []).length === 0}
           >
             <FontAwesomeIcon icon={faImage} className="size-4" aria-hidden />
-            Imagen del menú
+            Compartir menú
           </Button>
           <Button onClick={() => navigate(`/menu/${menu.id}/products/new`)}>
             <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />

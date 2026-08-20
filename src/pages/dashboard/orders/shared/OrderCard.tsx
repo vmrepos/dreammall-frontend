@@ -9,10 +9,13 @@ import { ConfirmDialog } from "../../../../components/molecules/ConfirmDialog"
 import { CancelOrderDialog } from "./CancelOrderDialog"
 import { OrderStatusBadge, DeliveryStatusBadge } from "../../../../components/molecules/StatusBadge"
 import { useOrders } from "../../../../context/OrdersContext"
+import { useRestaurant } from "../../../../context/RestaurantContext"
+import { usePrepProgress } from "../../../../hooks/usePrepProgress"
 import { apiClient } from "../../../../services/apiClient"
 import type { TOrder } from "../../../../types/Order"
 import { cn, formatCurrency, formatDateTime } from "../../../../utils/format"
 import { ReadyCountdown } from "./ReadyCountdown"
+import { PrepTimeFill } from "./PrepTimeFill"
 import { OrderCardItems } from "./OrderCardItems"
 import {
   getOrderCardActions,
@@ -28,6 +31,12 @@ type Props = {
 export const OrderCard = ({ order }: Props) => {
   const navigate = useNavigate()
   const { markPreparing, updateOrder, fetchOrder } = useOrders()
+  const { restaurant } = useRestaurant()
+  const prep = usePrepProgress(
+    order.status === "preparing",
+    order.ready_countdown,
+    restaurant?.prep_time,
+  )
   const [confirmAction, setConfirmAction] = useState<TOrderCardAction | null>(null)
   const [confirming, setConfirming] = useState(false)
 
@@ -95,14 +104,17 @@ export const OrderCard = ({ order }: Props) => {
     <div className="h-full">
       <Card
         className={cn(
-          "flex h-full flex-col border-2 border-gray-300/90 transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08),0_12px_28px_rgba(12,107,61,0.12)]",
+          "relative flex h-full flex-col overflow-hidden border-2 border-gray-300/90 transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08),0_12px_28px_rgba(12,107,61,0.12)]",
           order.status === "cancelled" && "opacity-80",
         )}
       >
+        {prep.remaining != null ? (
+          <PrepTimeFill percent={prep.percent} />
+        ) : null}
         <button
           type="button"
           onClick={openOrder}
-          className="flex min-h-0 flex-1 cursor-pointer flex-col p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          className="relative z-10 flex min-h-0 flex-1 cursor-pointer flex-col p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           <div className="flex shrink-0 items-start justify-between gap-2">
             <div className="min-w-0">
@@ -114,10 +126,14 @@ export const OrderCard = ({ order }: Props) => {
               ) : null}
               <p className="mt-0.5 text-xs text-ink-muted">
                 {formatDateTime(order.created_at)}
-                {order.ready_countdown != null && (
+                {order.status === "preparing" && (
                   <>
                     {" · "}
-                    <ReadyCountdown seconds={order.ready_countdown} />
+                    <ReadyCountdown
+                      seconds={order.ready_countdown}
+                      percentRemaining={prep.percent}
+                      expired={order.ready_countdown == null}
+                    />
                   </>
                 )}
               </p>
@@ -168,7 +184,7 @@ export const OrderCard = ({ order }: Props) => {
           </div>
         </button>
 
-        <div className="flex min-h-[3.25rem] shrink-0 gap-2 border-t border-gray-100 px-4 py-3">
+        <div className="relative z-10 flex min-h-[3.25rem] shrink-0 gap-2 border-t border-gray-100 px-4 py-3">
           {actions.length > 0 ? (
             actions.map((action) => (
               <Button

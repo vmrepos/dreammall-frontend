@@ -29,6 +29,12 @@ export const formatCountdown = (seconds: number) => {
   return `${secs} s`
 }
 
+export const formatPrepClock = (seconds: number) => {
+  const minutes = Math.floor(Math.max(0, seconds) / 60)
+  const secs = Math.max(0, seconds) % 60
+  return `${minutes}:${String(secs).padStart(2, "0")}`
+}
+
 export const cn = (...classes: (string | false | null | undefined)[]) =>
   classes.filter(Boolean).join(" ")
 

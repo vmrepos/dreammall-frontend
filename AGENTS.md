@@ -1,3 +1,5 @@
+
+
 # Restaurant frontend (SPA)
 
 React + Vite + TypeScript dashboard for **restaurant owners** (Pedi2). Talks to the Rails API under `/api/v1` with cookie-based OAuth (Doorkeeper). This is **not** the driver or customer app.
@@ -145,3 +147,8 @@ yarn lint
 ```
 
 Env (Vite): `VITE_API_URL`, `VITE_OAUTH_CLIENT_ID` (must match the Rails “Restaurant App” OAuth client). Cookies need API CORS + `CROSS_ORIGIN_COOKIES` aligned with the SPA origin.
+
+## Documentation
+ parent folder (virtualmall)/
+frontend/docs for related docs on the frontend
+backend/docs for backend features

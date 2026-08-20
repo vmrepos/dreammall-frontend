@@ -6,7 +6,7 @@ type MenuContextType = {
   menus: TMenu[]
   products: TProduct[]
   createMenu: (menu: TMenuForm) => Promise<TMenu>
-  updateMenu: (menu: TMenu) => Promise<void>
+  updateMenu: (id: number, menu: TMenuForm) => Promise<TMenu>
   deleteMenu: (menu: TMenu) => Promise<void>
   toggleMenu: (menuId: number, active: boolean) => Promise<void>
 }

@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck, faLink, faLocationDot, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { toast } from "sonner"
+import { useRestaurant } from "../../../../context/RestaurantContext"
+import { usePrepProgress } from "../../../../hooks/usePrepProgress"
 import type { TOrder } from "../../../../types/Order"
-import { cn } from "../../../../utils/format"
+import { cn, formatPrepClock } from "../../../../utils/format"
+import { prepStoplightText } from "../../../../utils/prepStoplight"
 import { copyPublicOrderUrl } from "../../../../utils/orderShare"
 import { orderStatusConfig } from "../../../../utils/status"
 import { orderHasLocation, orderWaitingForCustomer } from "./orderQueue"
+import { PrepTimeFill } from "./PrepTimeFill"
 
 type Props = {
   orders: TOrder[]
@@ -83,13 +87,22 @@ const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }:
   const ref = useRef<HTMLDivElement>(null)
   const [copied, setCopied] = useState(false)
   const publicToken = order.public_token
+  const { restaurant } = useRestaurant()
+  const prep = usePrepProgress(
+    order.status === "preparing",
+    order.ready_countdown,
+    restaurant?.prep_time,
+  )
 
   useEffect(() => {
     if (active) ref.current?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" })
   }, [active])
 
   const name = order.customer_name?.trim()
-  const statusLabel = orderStatusConfig[order.status].label
+  const statusLabel =
+    prep.remaining != null
+      ? `Preparando: ${formatPrepClock(prep.remaining)}`
+      : orderStatusConfig[order.status].label
 
   const handleCopy = async () => {
     if (!publicToken) return
@@ -107,7 +120,7 @@ const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }:
     <div
       ref={ref}
       className={cn(
-        "flex w-[12rem] shrink-0 overflow-hidden rounded-xl border transition",
+        "relative flex w-[13.5rem] shrink-0 overflow-hidden rounded-xl border transition",
         active
           ? "border-brand bg-brand-light"
           : "border-gray-200 bg-surface hover:border-brand/40",
@@ -115,20 +128,29 @@ const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }:
         waiting && !attention && !active && "rail-wait-glow",
       )}
     >
+      {prep.remaining != null ? (
+        <PrepTimeFill percent={prep.percent} />
+      ) : null}
       <button
         type="button"
         onClick={onSelect}
         aria-current={active ? "page" : undefined}
-        className="flex min-w-0 flex-1 flex-col justify-between px-2.5 py-1.5 text-left"
+        className="relative z-10 flex min-w-0 flex-1 flex-col justify-between px-2.5 py-1.5 text-left"
       >
         <span className="flex items-start justify-between gap-1">
           <span className="text-sm font-bold tabular-nums text-ink">#{order.id}</span>
           <span
             className={cn(
-              "mt-0.5 max-w-[5.5rem] truncate text-[10px] font-semibold uppercase tracking-wide text-ink-muted",
+              "mt-0.5 max-w-[8rem] truncate text-[10px] font-semibold text-ink-muted",
+              order.status !== "preparing" && "uppercase tracking-wide",
               order.status === "ready" && "text-brand",
               order.status === "returned" && "text-sky-800",
             )}
+            style={
+              order.status === "preparing"
+                ? { color: prepStoplightText(prep.percent) }
+                : undefined
+            }
           >
             {statusLabel}
           </span>
@@ -149,7 +171,7 @@ const QueueChip = ({ order, active, attention, waiting, hasLocation, onSelect }:
         <button
           type="button"
           onClick={() => void handleCopy()}
-          className="flex w-8 shrink-0 items-center justify-center border-l border-gray-200/80 text-ink-muted transition hover:bg-brand-light hover:text-brand"
+          className="relative z-10 flex w-8 shrink-0 items-center justify-center border-l border-gray-200/80 text-ink-muted transition hover:bg-brand-light hover:text-brand"
           aria-label={copied ? "Enlace copiado" : `Copiar enlace del pedido #${order.id}`}
           title={copied ? "Enlace copiado" : "Copiar enlace"}
         >

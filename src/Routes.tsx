@@ -60,6 +60,7 @@ const RestaurantApp = () => (
             <Route path="menu" element={<MenuLayout />}>
               <Route index element={<Menu.Index />} />
               <Route path="new" element={<Menu.New />} />
+              <Route path=":menuId/edit" element={<Menu.Edit />} />
               <Route path=":menuId/products/new" element={<Products.Form />} />
               <Route path=":menuId/products/:productId/edit" element={<Products.Form />} />
               <Route path=":menuId" element={<Menu.Show />} />

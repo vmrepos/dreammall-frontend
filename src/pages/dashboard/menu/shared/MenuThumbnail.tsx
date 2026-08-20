@@ -6,16 +6,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Badge } from "../../../../components/atoms/Badge"
 import { Toggle } from "../../../../components/atoms/Toggle"
 import { useMenuContext } from "../../../../context/MenuContext"
+import { resolveMediaUrl } from "../../../../utils/mediaUrl"
+
 type Props = {
   menu: TMenu
-
-
 }
+
 export const MenuThumbnail: React.FC<Props> = ({ menu }) => {
   const navigate = useNavigate()
   const { toggleMenu } = useMenuContext()
-  return (
+  const imageSrc = resolveMediaUrl(menu.image_url)
 
+  return (
     <Card
       key={menu.id}
       className={[
@@ -23,7 +25,11 @@ export const MenuThumbnail: React.FC<Props> = ({ menu }) => {
         menu.active ? "" : "border-red-200/80 bg-red-50/40",
       ].join(" ")}
     >
-      <button type="button" onClick={() => navigate(`/menu/${menu.id}`)} className="group block w-full cursor-pointer text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+      <button
+        type="button"
+        onClick={() => navigate(`/menu/${menu.id}`)}
+        className="group block w-full cursor-pointer text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
         <div
           className={[
             "relative aspect-square overflow-hidden",
@@ -32,9 +38,9 @@ export const MenuThumbnail: React.FC<Props> = ({ menu }) => {
               : "bg-gradient-to-br from-red-100 via-red-50 to-gray-100",
           ].join(" ")}
         >
-          {menu.image_url ? (
+          {imageSrc ? (
             <img
-              src={`${import.meta.env.VITE_API_URL ?? ""}${menu.image_url}`}
+              src={imageSrc}
               alt={menu.name}
               className={[
                 "absolute inset-0 size-full object-cover",
