@@ -148,7 +148,7 @@ export const Page = () => {
             ? fromRestaurant
               ? "Marca el destino en el mapa. No uses la ubicación de este dispositivo."
               : "Indica tu ubicación para calcular el envío."
-            : "Entrega este código al repartidor cuando llegue."}
+            : "Paga con el QR y entrega el código al repartidor cuando llegue."}
         </p>
       </header>
 

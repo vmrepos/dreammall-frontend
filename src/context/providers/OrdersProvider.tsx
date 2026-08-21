@@ -35,6 +35,10 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
       const type = data.type === "order_absent_customer" ? "order_driving_back" : data.type
       const o = toOrder(data.message as Parameters<typeof toOrder>[0])
       switch (type) {
+        case "order_created":
+          toast.success(`Pedido #${o.id}: nuevo pedido del menú`)
+          markAttention(o.id)
+          break
         case "order_picked_up":
           toast.warning(`La orden numero ${o.id} ha sido tomada por el repartidor`)
           break;

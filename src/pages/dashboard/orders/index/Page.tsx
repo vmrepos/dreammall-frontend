@@ -9,6 +9,7 @@ import { PageHeader } from "../../../../components/molecules/PageHeader"
 import { useOrders } from "../../../../context/OrdersContext"
 import { orderStatusConfig } from "../../../../utils/status"
 import { OrderCard } from "../shared/OrderCard"
+import { CopyCatalogLinkButton } from "./CopyCatalogLinkButton"
 import { StatusFilters } from "./StatusFilters"
 import type { StatusFilter } from "./statusFilters"
 
@@ -41,10 +42,13 @@ export const Page = () => {
         title="Pedidos"
         description="Gestiona pedidos entrantes, prepáralos y márcalos listos para entrega."
         action={
-          <Button onClick={() => navigate("/orders/new")}>
-            <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
-            Nuevo pedido
-          </Button>
+          <div className="flex flex-wrap justify-end gap-2">
+            <CopyCatalogLinkButton />
+            <Button onClick={() => navigate("/orders/new")}>
+              <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
+              Nuevo pedido
+            </Button>
+          </div>
         }
       />
 

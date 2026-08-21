@@ -1,9 +1,11 @@
+import type { TMenu } from "./Menu"
 import type { TOrderItem } from "./OrderItem"
 
 export type TPublicOrder = {
   id: number
   public_token: string
   restaurant_name?: string
+  payment_qr_url?: string | null
   total_amount: number
   delivery_fee: number
   delivery_code?: string | null
@@ -28,4 +30,24 @@ export type TPublicOrderCompletePayload = {
   notes: string
   latitude: number
   longitude: number
+}
+
+export type TPublicCatalog = {
+  name: string
+  ordering_token: string
+  whatsapp?: string | null
+  menus: TMenu[]
+}
+
+export type TPublicOrderCreateItem = {
+  product_id: number
+  quantity: number
+  order_item_options: Array<{
+    option_group_name: string
+    option_name: string
+  }>
+}
+
+export type TPublicOrderCreatePayload = TPublicOrderCompletePayload & {
+  items: TPublicOrderCreateItem[]
 }

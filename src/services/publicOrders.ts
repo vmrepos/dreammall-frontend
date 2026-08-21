@@ -1,14 +1,14 @@
 import axios from "axios"
 import type { TPublicOrder, TPublicOrderCompletePayload } from "../types/PublicOrder"
 
-const publicClient = axios.create({
+export const publicClient = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL ?? ""}/api/v1`,
   withCredentials: false,
 })
 
 type TPublicOrderWire = TPublicOrder
 
-const toPublicOrder = (raw: TPublicOrderWire): TPublicOrder => ({
+export const toPublicOrder = (raw: TPublicOrderWire): TPublicOrder => ({
   ...raw,
   items: raw.items ?? [],
 })

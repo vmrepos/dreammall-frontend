@@ -8,6 +8,7 @@ import { SubscriptionsAPI } from "./subscriptions";
 import { RestaurantsAPI } from "./restaurants";
 import { ReportsAPI } from "./reports";
 import { PublicOrdersAPI } from "./publicOrders";
+import { PublicCatalogAPI } from "./publicCatalog";
 
 export { axiosInstance } from "./axiosInstance";
 
@@ -22,4 +23,5 @@ export const apiClient = {
   directUploads: DirectUploadsAPI,
   reports: ReportsAPI,
   publicOrders: PublicOrdersAPI,
+  publicCatalog: PublicCatalogAPI,
 }

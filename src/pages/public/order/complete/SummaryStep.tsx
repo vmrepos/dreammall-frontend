@@ -1,6 +1,7 @@
 import { Card } from "../../../../components/atoms/Card"
 import type { TPublicOrder } from "../../../../types/PublicOrder"
 import { OrderPreview } from "./OrderPreview"
+import { PaymentQr } from "./PaymentQr"
 
 type Props = {
   order: TPublicOrder
@@ -53,6 +54,8 @@ export const SummaryStep = ({ order }: Props) => {
           </dl>
         </Card>
       ) : null}
+
+      <PaymentQr restaurantName={order.restaurant_name} qrUrl={order.payment_qr_url} />
     </div>
   )
 }
