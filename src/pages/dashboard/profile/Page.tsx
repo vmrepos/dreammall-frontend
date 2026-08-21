@@ -14,13 +14,17 @@ import { useRestaurant } from "../../../context/RestaurantContext"
 import type { TRestaurantForm } from "../../../types/Restaurant"
 import { Notification } from "../../../components/atoms/Notification"
 import { formatCoords, parseCoords } from "../../../utils/format"
-
-
+import { revokePreviewIfBlob } from "../../../utils/utils"
+import { PaymentQrField } from "./PaymentQrField"
 
 export const Page = () => {
   const { restaurant, loading, updateRestaurant } = useRestaurant()
   const [profile, setProfile] = useState<TRestaurantForm | null>(null)
   const [coordsInput, setCoordsInput] = useState("")
+  const [qrFile, setQrFile] = useState<File | null>(null)
+  const [qrPreview, setQrPreview] = useState<string | null>(null)
+  const [removeQr, setRemoveQr] = useState(false)
+  const [qrError, setQrError] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -37,6 +41,13 @@ export const Page = () => {
       close_time: restaurant.close_time,
     })
     setCoordsInput(formatCoords(restaurant.latitude, restaurant.longitude))
+    setQrFile(null)
+    setQrPreview((current) => {
+      revokePreviewIfBlob(current)
+      return null
+    })
+    setRemoveQr(false)
+    setQrError("")
   }, [restaurant])
 
   const handleSave = async (ev: React.FormEvent) => {
@@ -46,7 +57,11 @@ export const Page = () => {
     setIsSaving(true)
     setSaved(false)
     try {
-      await updateRestaurant(profile)
+      await updateRestaurant({
+        ...profile,
+        ...(qrFile ? { payment_qr: qrFile } : {}),
+        ...(removeQr && !qrFile ? { payment_qr: null } : {}),
+      })
       setSaved(true)
     } catch (error) {
       console.error(error)
@@ -131,6 +146,30 @@ export const Page = () => {
               type="time"
               value={profile.close_time ?? ""}
               onChange={(ev) => setProfile({ ...profile, close_time: ev.target.value })}
+            />
+          </div>
+
+          <div className="border-t border-gray-100 pt-5">
+            <PaymentQrField
+              existingUrl={restaurant?.payment_qr_url}
+              file={qrFile}
+              preview={qrPreview}
+              pendingRemoval={removeQr}
+              error={qrError}
+              onFileChange={(file, preview) => {
+                revokePreviewIfBlob(qrPreview)
+                setQrFile(file)
+                setQrPreview(preview)
+                setRemoveQr(false)
+              }}
+              onRemove={() => {
+                revokePreviewIfBlob(qrPreview)
+                setQrFile(null)
+                setQrPreview(null)
+                setRemoveQr(Boolean(restaurant?.payment_qr_url) && !qrFile)
+                setQrError("")
+              }}
+              onError={setQrError}
             />
           </div>
 

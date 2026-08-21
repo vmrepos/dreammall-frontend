@@ -29,3 +29,12 @@ export const copyToClipboard = async (value: string) => {
 export const copyPublicOrderUrl = async (publicToken: string) => {
   await copyToClipboard(publicOrderUrl(publicToken))
 }
+
+export const publicCatalogPath = (orderingToken: string) => `/pedir/${orderingToken}`
+
+export const publicCatalogUrl = (orderingToken: string) =>
+  `${window.location.origin}${publicCatalogPath(orderingToken)}`
+
+export const copyPublicCatalogUrl = async (orderingToken: string) => {
+  await copyToClipboard(publicCatalogUrl(orderingToken))
+}

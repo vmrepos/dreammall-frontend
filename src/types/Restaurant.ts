@@ -18,6 +18,8 @@ export type TRestaurant = {
   credits: number;
   delivery_radius: number;
   prep_time: number;
+  ordering_token?: string | null;
+  payment_qr_url?: string | null;
   demand?: {
     online: number;
     available: number;
@@ -26,4 +28,6 @@ export type TRestaurant = {
 };
 
 
-export type TRestaurantForm = Partial<TRestaurant> 
+export type TRestaurantForm = Partial<TRestaurant> & {
+  payment_qr?: File | string | null
+}

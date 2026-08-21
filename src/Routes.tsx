@@ -23,6 +23,7 @@ export const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/pedido/:token" element={<PublicOrder.Complete />} />
+        <Route path="/pedir/:token" element={<PublicOrder.Shop />} />
         <Route path="*" element={<RestaurantApp />} />
       </Routes>
     </BrowserRouter>
