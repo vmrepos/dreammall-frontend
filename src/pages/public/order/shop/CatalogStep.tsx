@@ -31,11 +31,19 @@ export const CatalogStep = ({
 }: Props) => (
   <div className="flex flex-col gap-4">
     <AvailableProducts
-      className="min-h-[18rem]"
       products={products}
       menus={menus}
       addedCounts={addedCounts}
       onAdd={onAdd}
+      onDecrement={(product) => {
+        const last = [...items].reverse().find((line) => line.product_id === product.id)
+        if (!last) return
+        updateQuantity(last.clientKey, last.quantity - 1)
+      }}
+      compact
+      showDescription
+      scrollContainer="page"
+      emptyMessage="No hay productos disponibles."
     />
 
     <div className="rounded-[20px] border border-gray-200/80 bg-surface-elevated p-4">

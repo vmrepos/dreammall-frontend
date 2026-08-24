@@ -1,5 +1,0 @@
----
-alwaysApply: true
----
-## Docs
-Whenever asked you to document stuff, save it into the parent folder (Virtualmall)/docs/frontend/[relevant_name.md]

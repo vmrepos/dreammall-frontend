@@ -1,7 +1,6 @@
 import { Card } from "../../../../components/atoms/Card"
 import type { TPublicOrder } from "../../../../types/PublicOrder"
 import { OrderPreview } from "./OrderPreview"
-import { PaymentQr } from "./PaymentQr"
 
 type Props = {
   order: TPublicOrder
@@ -14,6 +13,7 @@ const phoneDisplay = (phone: string) => {
   return `+591 ${trimmed}`
 }
 
+/** Shown after kitchen marks preparing — summary + delivery code (no payment QR). */
 export const SummaryStep = ({ order }: Props) => {
   const name = order.customer_name?.trim() ?? ""
   const phone = phoneDisplay(order.customer_phone ?? "")
@@ -54,8 +54,6 @@ export const SummaryStep = ({ order }: Props) => {
           </dl>
         </Card>
       ) : null}
-
-      <PaymentQr restaurantName={order.restaurant_name} qrUrl={order.payment_qr_url} />
     </div>
   )
 }

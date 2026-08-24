@@ -17,6 +17,7 @@ import { Card } from "../../../components/atoms/Card"
 import { FormField, PasswordField } from "../../../components/molecules/FormField"
 import type { TUserCreateForm, TUserForm } from "../../../types/User"
 import type { TRestaurantForm } from "../../../types/Restaurant"
+import axios from "axios"
 import { apiClient } from "../../../services/apiClient"
 import { toast } from "sonner"
 
@@ -109,10 +110,41 @@ export const Page = () => {
     setIsSubmitting(true)
     apiClient.users.createAccount(data)
       .then(() => {
-        navigate("/login", { replace: true })
+        navigate("/register/thanks", {
+          replace: true,
+          state: {
+            email: user.email,
+            restaurantName: restaurant.name,
+          },
+        })
       })
       .catch((error) => {
         console.error(error)
+        if (axios.isAxiosError(error)) {
+          const apiError = error.response?.data?.error
+          const message = Array.isArray(apiError)
+            ? apiError.join(". ")
+            : typeof apiError === "string"
+              ? apiError
+              : null
+          const lower = message?.toLowerCase() ?? ""
+          if (
+            lower.includes("email") ||
+            lower.includes("correo") ||
+            lower.includes("taken") ||
+            lower.includes("ya está") ||
+            lower.includes("ya esta")
+          ) {
+            toast.error(
+              "Ese correo ya está registrado. Si ya te inscribiste, espera la activación de Pedi2.",
+            )
+            return
+          }
+          if (message) {
+            toast.error(message)
+            return
+          }
+        }
         toast.error("No se pudo completar el registro. Intenta de nuevo.")
       })
       .finally(() => {
