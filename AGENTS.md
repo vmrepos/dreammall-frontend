@@ -136,6 +136,8 @@ export const Orders = { Index, Create, Show }
 4. Put new UI in page-local → promote to `shared/` → promote to `components/` only as reuse appears.
 5. Run `yarn typecheck` / `yarn lint` when touching types or shared hooks.
 
+## After implementing
+Keep track (document in dev folder) of the features you build or what you have seen (progressively) to reduce your amount of file explored on each iteration, do this when needed
 ## Local ops (short)
 
 ```bash
@@ -149,6 +151,6 @@ yarn lint
 Env (Vite): `VITE_API_URL`, `VITE_OAUTH_CLIENT_ID` (must match the Rails “Restaurant App” OAuth client). Cookies need API CORS + `CROSS_ORIGIN_COOKIES` aligned with the SPA origin.
 
 ## Documentation
- parent folder (virtualmall)/
+parent folder (virtualmall)/
 frontend/docs for related docs on the frontend
 backend/docs for backend features

@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { Card } from "../../../../components/atoms/Card"
 import { useTheme } from "../../../../context/ThemeContext"
 import type { TMenu } from "../../../../types/Menu"
@@ -13,8 +15,16 @@ type Props = {
   menus: TMenu[]
   addedCounts: Record<number, number>
   onAdd: (product: TProduct) => void
+  onDecrement?: (product: TProduct) => void
   compact?: boolean
+  showDescription?: boolean
+  emptyMessage?: string
   className?: string
+  /**
+   * `panel` — nested product list scroll (POS / tablet split panes).
+   * `page` — document scrolls; menu chips stay sticky and only pan horizontally (mobile /pedir).
+   */
+  scrollContainer?: "panel" | "page"
 }
 
 export const AvailableProducts = ({
@@ -22,8 +32,12 @@ export const AvailableProducts = ({
   menus,
   addedCounts,
   onAdd,
+  onDecrement,
   compact = false,
+  showDescription = false,
+  emptyMessage = "No hay productos activos. Activa un menú y sus productos primero.",
   className,
+  scrollContainer = "panel",
 }: Props) => {
   const { isDark } = useTheme()
   const [categoryId, setCategoryId] = useState<typeof ALL_CATEGORY | number>(ALL_CATEGORY)
@@ -54,10 +68,31 @@ export const AvailableProducts = ({
     )
   }, [categoryId, products])
 
+  const pageScroll = scrollContainer === "page"
+
   return (
-    <Card className={cn("flex h-full min-h-0 flex-col border-2 !border-brand/50", className)}>
-      <div className={cn("shrink-0 border-b border-gray-100", compact ? "px-2 py-1.5" : "px-4 py-3")}>
-        <div className="flex gap-2 overflow-x-auto pb-0.5">
+    <Card
+      className={cn(
+        "border-2 !border-brand/50",
+        pageScroll ? "!overflow-visible" : "flex h-full min-h-0 flex-col",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "shrink-0 border-b border-gray-100",
+          pageScroll && "sticky top-0 z-20 bg-surface-elevated",
+          compact ? "px-2 py-1.5" : "px-4 py-3",
+        )}
+      >
+        <div
+          role="tablist"
+          aria-label="Menús"
+          className={cn(
+            "flex flex-nowrap gap-2 overflow-x-auto overscroll-x-contain pb-0.5",
+            "touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          )}
+        >
           <CategoryChip
             label="Todos"
             selected={categoryId === ALL_CATEGORY}
@@ -78,14 +113,25 @@ export const AvailableProducts = ({
       </div>
 
       {products.length === 0 ? (
-        <p className="px-4 py-8 text-sm text-gray-500">
-          No hay productos activos. Activa un menú y sus productos primero.
-        </p>
+        <p className="px-4 py-8 text-sm text-gray-500">{emptyMessage}</p>
       ) : visibleProducts.length === 0 ? (
         <p className="px-4 py-8 text-sm text-gray-500">No hay productos en esta categoría.</p>
       ) : (
-        <div className={cn("min-h-0 flex-1 overflow-y-auto", compact ? "p-2" : "p-3")}>
-          <div className={cn("grid gap-3", compact ? "grid-cols-1 gap-1.5" : "grid-cols-2")}>
+        <div
+          className={cn(
+            pageScroll ? "p-2" : cn("min-h-0 flex-1 overflow-y-auto", compact ? "p-2" : "p-3"),
+          )}
+        >
+          <div
+            className={cn(
+              "grid",
+              compact
+                ? showDescription
+                  ? "grid-cols-1 gap-2"
+                  : "grid-cols-1 gap-1.5"
+                : "grid-cols-2 gap-3",
+            )}
+          >
             {visibleProducts.map((product) => {
               const index = colorIndexByMenuId.get(product.menu_id)
               return (
@@ -94,8 +140,10 @@ export const AvailableProducts = ({
                   product={product}
                   addedCount={addedCounts[product.id] ?? 0}
                   compact={compact}
+                  showDescription={showDescription}
                   colorVars={index == null ? undefined : categoryColorVars(index, isDark)}
                   onAdd={() => onAdd(product)}
+                  onDecrement={onDecrement ? () => onDecrement(product) : undefined}
                 />
               )
             })}
@@ -146,13 +194,75 @@ type ProductTileProps = {
   product: TProduct
   addedCount: number
   onAdd: () => void
+  onDecrement?: () => void
   compact?: boolean
+  showDescription?: boolean
   colorVars?: ReturnType<typeof categoryColorVars>
 }
 
-const ProductTile = ({ product, addedCount, onAdd, compact = false, colorVars }: ProductTileProps) => {
+const ProductTile = ({
+  product,
+  addedCount,
+  onAdd,
+  onDecrement,
+  compact = false,
+  showDescription = false,
+  colorVars,
+}: ProductTileProps) => {
   const customizable = (product.product_option_groups?.length ?? 0) > 0
   const badge = product.combo ? "Combo" : customizable ? "Opciones" : null
+  const description = showDescription ? product.description?.trim() : ""
+  const listWithCopy = compact && showDescription
+
+  if (listWithCopy) {
+    return (
+      <div
+        style={colorVars}
+        className={cn(
+          "relative flex items-center gap-3 rounded-xl border bg-surface-elevated px-3 py-3 text-left shadow-[0_1px_3px_rgba(0,0,0,0.04)]",
+          colorVars ? "border-[var(--cat-border)]" : "border-gray-200/80",
+          addedCount > 0 && "border-[var(--cat-solid)]",
+        )}
+      >
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-2 text-sm font-semibold leading-snug text-ink">{product.name}</p>
+          {description ? (
+            <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-ink-muted">{description}</p>
+          ) : null}
+          {badge ? (
+            <span className="mt-1 inline-block text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
+              {badge}
+            </span>
+          ) : null}
+          <p className="mt-1.5 text-sm font-bold tabular-nums text-brand">
+            {formatCurrency(product.price)}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            className="inline-flex size-8 items-center justify-center rounded-lg border border-gray-200 bg-surface-elevated text-ink transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={addedCount < 1 || !onDecrement}
+            onClick={onDecrement}
+            aria-label={`Quitar ${product.name}`}
+          >
+            <FontAwesomeIcon icon={faMinus} className="size-2.5" aria-hidden />
+          </button>
+          <span className="min-w-6 text-center text-sm font-semibold tabular-nums text-ink">
+            {addedCount}
+          </span>
+          <button
+            type="button"
+            className="inline-flex size-8 items-center justify-center rounded-lg border border-gray-200 bg-surface-elevated text-ink transition hover:bg-gray-50"
+            onClick={onAdd}
+            aria-label={`Agregar ${product.name}`}
+          >
+            <FontAwesomeIcon icon={faPlus} className="size-2.5" aria-hidden />
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <button

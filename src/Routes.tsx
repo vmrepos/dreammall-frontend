@@ -39,6 +39,7 @@ const RestaurantApp = () => (
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Auth.Login />} />
           <Route path="/register" element={<Auth.Register />} />
+          <Route path="/register/thanks" element={<Auth.RegisterThanks />} />
           <Route path="/forgot-password" element={<Auth.ForgotPassword />} />
           <Route path="/reset-password" element={<Auth.ResetPassword />} />
         </Route>

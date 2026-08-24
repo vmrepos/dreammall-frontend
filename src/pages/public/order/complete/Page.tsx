@@ -7,6 +7,7 @@ import { useForm } from "../../../../hooks/useForm"
 import { apiClient } from "../../../../services/apiClient"
 import type { TPublicOrder, TPublicOrderCompleteForm } from "../../../../types/PublicOrder"
 import { CustomerForm } from "./CustomerForm"
+import { PayStep } from "./PayStep"
 import { StatusCard } from "./StatusCard"
 import { SummaryStep } from "./SummaryStep"
 
@@ -19,6 +20,7 @@ const initialValues: TPublicOrderCompleteForm = {
 }
 
 const PHONE_DIGITS = 8
+const PAY_POLL_MS = 4000
 
 const isBoliviaPhone = (value: string) => value.length === PHONE_DIGITS && /^\d+$/.test(value)
 
@@ -34,6 +36,19 @@ const errorMessage = (error: unknown) => {
 
 const orderHasCustomerData = (order: TPublicOrder) => Boolean(order.customer_name?.trim())
 
+/** Kitchen confirmed payment / started cooking — reveal summary + delivery code. */
+const kitchenStarted = (order: TPublicOrder) =>
+  Boolean(order.status) && order.status !== "pending"
+
+
+type Step = "details" | "pay" | "confirmed"
+
+const stepForOrder = (order: TPublicOrder | null): Step => {
+  if (!order || !orderHasCustomerData(order)) return "details"
+  if (kitchenStarted(order)) return "confirmed"
+  return "pay"
+}
+
 export const Page = () => {
   const { token } = useParams()
   const [searchParams] = useSearchParams()
@@ -44,7 +59,7 @@ export const Page = () => {
   const [loadState, setLoadState] = useState<"loading" | "ready" | "unavailable">(
     publicToken ? "loading" : "unavailable",
   )
-  const [step, setStep] = useState<"details" | "summary">("details")
+  const [step, setStep] = useState<Step>("details")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
@@ -75,7 +90,7 @@ export const Page = () => {
           longitude: formValues.longitude,
         })
         setPreview(quoted)
-        setStep("summary")
+        setStep(stepForOrder(quoted))
       } catch (e) {
         if (axios.isAxiosError(e) && e.response?.status === 404) {
           setLoadState("unavailable")
@@ -97,7 +112,7 @@ export const Page = () => {
         const order = await apiClient.publicOrders.show(publicToken)
         if (cancelled) return
         setPreview(order)
-        if (orderHasCustomerData(order)) setStep("summary")
+        setStep(stepForOrder(order))
         setLoadState("ready")
       } catch {
         if (!cancelled) setLoadState("unavailable")
@@ -109,6 +124,32 @@ export const Page = () => {
       cancelled = true
     }
   }, [publicToken])
+
+  // Poll while waiting for kitchen to mark preparing — no public Action Cable.
+  useEffect(() => {
+    if (!publicToken || step !== "pay") return
+    let cancelled = false
+
+    const poll = async () => {
+      try {
+        const order = await apiClient.publicOrders.show(publicToken)
+        if (cancelled) return
+        setPreview(order)
+        if (kitchenStarted(order)) setStep("confirmed")
+      } catch {
+        // Keep waiting; transient errors should not kick the customer off pay.
+      }
+    }
+
+    const id = window.setInterval(() => {
+      void poll()
+    }, PAY_POLL_MS)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(id)
+    }
+  }, [publicToken, step])
 
   if (!publicToken || loadState === "unavailable") {
     return (
@@ -131,29 +172,37 @@ export const Page = () => {
   }
 
   const orderLabel = preview ? `Pedido #${preview.id}` : "tu pedido"
+  const title =
+    step === "details"
+      ? fromRestaurant
+        ? "Completar ubicación"
+        : "Completa tu pedido"
+      : step === "pay"
+        ? "Paga tu pedido"
+        : "Tu pedido"
+  const subtitle =
+    step === "details"
+      ? fromRestaurant
+        ? "Marca el destino en el mapa. No uses la ubicación de este dispositivo."
+        : "Indica tu ubicación para calcular el envío."
+      : step === "pay"
+        ? "Transfiere con el QR. El resumen y el código aparecen cuando el comercio confirme el pago."
+        : "Guarda el código de entrega para dárselo al repartidor."
 
   return (
     <Shell>
       <header className="mb-6">
-        <h1 className="text-[1.75rem] font-bold leading-tight text-brand">
-          {step === "details"
-            ? fromRestaurant
-              ? "Completar ubicación"
-              : "Completa tu pedido"
-            : "Tu pedido"}
-        </h1>
+        <h1 className="text-[1.75rem] font-bold leading-tight text-brand">{title}</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
           {preview ? `${orderLabel}. ` : null}
-          {step === "details"
-            ? fromRestaurant
-              ? "Marca el destino en el mapa. No uses la ubicación de este dispositivo."
-              : "Indica tu ubicación para calcular el envío."
-            : "Paga con el QR y entrega el código al repartidor cuando llegue."}
+          {subtitle}
         </p>
       </header>
 
-      {step === "summary" && preview ? (
+      {step === "confirmed" && preview ? (
         <SummaryStep order={preview} />
+      ) : step === "pay" && preview ? (
+        <PayStep order={preview} />
       ) : (
         <CustomerForm
           values={values}

@@ -4,6 +4,7 @@ import type { TOrderItem } from "./OrderItem"
 export type TPublicOrder = {
   id: number
   public_token: string
+  status: string
   restaurant_name?: string
   payment_qr_url?: string | null
   total_amount: number
