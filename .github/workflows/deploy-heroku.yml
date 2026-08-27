@@ -32,6 +32,7 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_OAUTH_CLIENT_ID: ${{ secrets.VITE_OAUTH_CLIENT_ID }}
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_CARTO_API_KEY: ${{ secrets.VITE_CARTO_API_KEY }}
         run: |
           if [ -z "$VITE_API_URL" ]; then
             echo "VITE_API_URL secret is empty."
@@ -48,6 +49,7 @@ jobs:
             --build-arg VITE_API_URL="${VITE_API_URL}" \
             --build-arg VITE_OAUTH_CLIENT_ID="${VITE_OAUTH_CLIENT_ID}" \
             --build-arg VITE_GOOGLE_MAPS_API_KEY="${VITE_GOOGLE_MAPS_API_KEY}" \
+            --build-arg VITE_CARTO_API_KEY="${VITE_CARTO_API_KEY}" \
             .
 
       - name: Push web image

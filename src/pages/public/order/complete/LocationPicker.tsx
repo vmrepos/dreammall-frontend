@@ -54,6 +54,13 @@ type GoogleMapsApi = {
 type LatLng = { lat: () => number; lng: () => number }
 
 const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined
+const cartoKey = String(import.meta.env.VITE_CARTO_API_KEY ?? "").trim()
+
+const cartoTileUrl = (zoom: number, x: number, y: number) => {
+  const host = ["a", "b", "c", "d"][Math.abs(x) % 4]
+  const url = `https://${host}.basemaps.cartocdn.com/rastertiles/voyager/${zoom}/${x}/${y}.png`
+  return cartoKey ? `${url}?key=${encodeURIComponent(cartoKey)}` : url
+}
 
 const getGoogleMaps = () =>
   (window as unknown as { google?: { maps: GoogleMapsApi } }).google?.maps
@@ -228,53 +235,53 @@ export const LocationPicker = ({
 
       {fullScreen
         ? createPortal(
-            <div
-              className="fixed inset-0 z-50 flex flex-col bg-surface"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="location-picker-title"
-            >
-              <header className="flex shrink-0 items-center gap-3 border-b border-gray-200 px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-                <button
-                  type="button"
-                  className="inline-flex size-10 items-center justify-center rounded-xl text-ink hover:bg-gray-100"
-                  onClick={() => setFullScreen(false)}
-                  aria-label="Cerrar mapa"
-                >
-                  <FontAwesomeIcon icon={faArrowLeft} className="size-5" aria-hidden />
-                </button>
-                <h2 id="location-picker-title" className="text-base font-semibold text-ink">
-                  Ubicación de entrega
-                </h2>
-              </header>
+          <div
+            className="fixed inset-0 z-50 flex flex-col bg-surface"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="location-picker-title"
+          >
+            <header className="flex shrink-0 items-center gap-3 border-b border-gray-200 px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+              <button
+                type="button"
+                className="inline-flex size-10 items-center justify-center rounded-xl text-ink hover:bg-gray-100"
+                onClick={() => setFullScreen(false)}
+                aria-label="Cerrar mapa"
+              >
+                <FontAwesomeIcon icon={faArrowLeft} className="size-5" aria-hidden />
+              </button>
+              <h2 id="location-picker-title" className="text-base font-semibold text-ink">
+                Ubicación de entrega
+              </h2>
+            </header>
 
-              <div className="relative min-h-0 flex-1">{map}</div>
+            <div className="relative min-h-0 flex-1">{map}</div>
 
-              <div className="flex shrink-0 flex-col gap-2 border-t border-gray-200 bg-surface-elevated px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-                {allowDeviceLocation ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="w-full rounded-lg py-2.5 text-xs"
-                    onClick={requestLocation}
-                    disabled={locating}
-                  >
-                    <FontAwesomeIcon icon={faLocationCrosshairs} className="size-4" aria-hidden />
-                    {locating ? "Obteniendo ubicación..." : "Usar ubicación de mi dispositivo"}
-                  </Button>
-                ) : null}
+            <div className="flex shrink-0 flex-col gap-2 border-t border-gray-200 bg-surface-elevated px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              {allowDeviceLocation ? (
                 <Button
                   type="button"
-                  className="w-full"
-                  disabled={latitude == null || longitude == null}
-                  onClick={() => setFullScreen(false)}
+                  variant="secondary"
+                  className="w-full rounded-lg py-2.5 text-xs"
+                  onClick={requestLocation}
+                  disabled={locating}
                 >
-                  Usar esta ubicación
+                  <FontAwesomeIcon icon={faLocationCrosshairs} className="size-4" aria-hidden />
+                  {locating ? "Obteniendo ubicación..." : "Usar ubicación de mi dispositivo"}
                 </Button>
-              </div>
-            </div>,
-            document.body,
-          )
+              ) : null}
+              <Button
+                type="button"
+                className="w-full"
+                disabled={latitude == null || longitude == null}
+                onClick={() => setFullScreen(false)}
+              >
+                Usar esta ubicación
+              </Button>
+            </div>
+          </div>,
+          document.body,
+        )
         : null}
     </div>
   )
@@ -477,7 +484,7 @@ const OsmMapPin = ({
           key: `${zoom}-${wrappedX}-${y}`,
           left: (x - centerX) * TILE_SIZE + size.width / 2,
           top: (y - centerY) * TILE_SIZE + size.height / 2,
-          url: `https://${["a", "b", "c", "d"][Math.abs(wrappedX) % 4]}.basemaps.cartocdn.com/rastertiles/voyager/${zoom}/${wrappedX}/${y}.png`,
+          url: cartoTileUrl(zoom, wrappedX, y),
         })
       }
     }
@@ -498,37 +505,37 @@ const OsmMapPin = ({
         onPointerDown={
           interactive
             ? (event) => {
-                event.currentTarget.setPointerCapture(event.pointerId)
-                dragRef.current = { x: event.clientX, y: event.clientY, origin: center }
-                setDragging(true)
-              }
+              event.currentTarget.setPointerCapture(event.pointerId)
+              dragRef.current = { x: event.clientX, y: event.clientY, origin: center }
+              setDragging(true)
+            }
             : undefined
         }
         onPointerMove={
           interactive
             ? (event) => {
-                const drag = dragRef.current
-                if (!drag) return
-                commit(
-                  shiftCenter(drag.origin, event.clientX - drag.x, event.clientY - drag.y, zoom),
-                )
-              }
+              const drag = dragRef.current
+              if (!drag) return
+              commit(
+                shiftCenter(drag.origin, event.clientX - drag.x, event.clientY - drag.y, zoom),
+              )
+            }
             : undefined
         }
         onPointerUp={
           interactive
             ? () => {
-                dragRef.current = null
-                setDragging(false)
-              }
+              dragRef.current = null
+              setDragging(false)
+            }
             : undefined
         }
         onPointerCancel={
           interactive
             ? () => {
-                dragRef.current = null
-                setDragging(false)
-              }
+              dragRef.current = null
+              setDragging(false)
+            }
             : undefined
         }
         role="application"
