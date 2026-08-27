@@ -8,7 +8,9 @@ type SubscriptionContextType = {
   purchases: TCreditPurchase[]
   loading: boolean
   purchasingId: number | null
-  purchasePlan: (subscriptionId: number, proof: File) => Promise<void>
+  purchasePlan: (subscriptionId: number) => Promise<TCreditPurchase>
+  refreshPurchase: (purchaseId: number) => Promise<TCreditPurchase>
+  reloadPurchases: () => Promise<void>
 }
 
 export const SubscriptionContext = createContext<SubscriptionContextType | null>(null)

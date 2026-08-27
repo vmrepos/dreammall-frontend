@@ -4,10 +4,11 @@ import { useLocation } from "react-router-dom"
 import { Button } from "../atoms/Button"
 import { usePwaInstall } from "../../hooks/usePwaInstall"
 import { cn } from "../../utils/format"
+import { isCustomerHost } from "../../utils/host"
 
 export const PwaInstallBanner = () => {
   const { pathname } = useLocation()
-  const enabled = !pathname.startsWith("/pedido")
+  const enabled = !isCustomerHost() && !pathname.startsWith("/pedido")
   const { mode, install, dismiss } = usePwaInstall(enabled)
   const aboveOrdersRail = pathname.startsWith("/orders")
 

@@ -3,9 +3,9 @@ import type { TCreditPurchase, TCreditPurchaseStatus } from "../../../types/Cred
 import { formatCurrency, formatDateTime } from "../../../utils/format"
 
 const statusCopy: Record<TCreditPurchaseStatus, { label: string; className: string }> = {
-  pending: { label: "En revisión", className: "bg-amber-50 text-amber-800" },
+  pending: { label: "Esperando pago", className: "bg-amber-50 text-amber-800" },
   paid: { label: "Acreditado", className: "bg-brand-light text-brand" },
-  failed: { label: "Rechazado", className: "bg-red-50 text-red-700" },
+  failed: { label: "Cancelado", className: "bg-red-50 text-red-700" },
 }
 
 type PurchasesListProps = {
@@ -16,7 +16,7 @@ export const PurchasesList = ({ purchases }: PurchasesListProps) => {
   if (purchases.length === 0) {
     return (
       <p className="text-sm text-gray-500">
-        Todavía no has enviado comprobantes. Elige un paquete, paga el QR y súbelo aquí.
+        Todavía no hay compras. Elige un paquete y paga el QR del banco.
       </p>
     )
   }

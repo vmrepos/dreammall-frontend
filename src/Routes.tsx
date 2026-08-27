@@ -17,14 +17,17 @@ import { Reports } from "./pages/dashboard/reports/Reports"
 import { Settings } from "./pages/dashboard/settings/Settings"
 import { Subscription } from "./pages/dashboard/subscription/Subscription"
 import { PublicOrder } from "./pages/public/order/Order"
+import { isCustomerHost } from "./utils/host"
 
 export const AppRoutes = () => {
+  const customerHost = isCustomerHost()
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/pedido/:token" element={<PublicOrder.Complete />} />
         <Route path="/pedir/:token" element={<PublicOrder.Shop />} />
-        <Route path="*" element={<RestaurantApp />} />
+        <Route path="*" element={customerHost ? <PublicOrder.NeedLink /> : <RestaurantApp />} />
       </Routes>
     </BrowserRouter>
   )

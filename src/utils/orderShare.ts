@@ -1,10 +1,13 @@
+import { customerOrigin } from "./host"
+
 export const publicOrderPath = (publicToken: string) => `/pedido/${publicToken}`
 
 export const publicOrderUrl = (
   publicToken: string,
   options?: { fromRestaurant?: boolean },
 ) => {
-  const url = `${window.location.origin}${publicOrderPath(publicToken)}`
+  const origin = options?.fromRestaurant ? window.location.origin : customerOrigin()
+  const url = `${origin}${publicOrderPath(publicToken)}`
   if (!options?.fromRestaurant) return url
   return `${url}?from_restaurant=true`
 }
@@ -33,7 +36,7 @@ export const copyPublicOrderUrl = async (publicToken: string) => {
 export const publicCatalogPath = (orderingToken: string) => `/pedir/${orderingToken}`
 
 export const publicCatalogUrl = (orderingToken: string) =>
-  `${window.location.origin}${publicCatalogPath(orderingToken)}`
+  `${customerOrigin()}${publicCatalogPath(orderingToken)}`
 
 export const copyPublicCatalogUrl = async (orderingToken: string) => {
   await copyToClipboard(publicCatalogUrl(orderingToken))

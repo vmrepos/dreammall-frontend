@@ -1,35 +1,73 @@
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import axios from "axios"
 import { toast } from "sonner"
 import { faCreditCard } from "@fortawesome/free-solid-svg-icons"
 import { Card } from "../../../components/atoms/Card"
 import { PageHeader } from "../../../components/molecules/PageHeader"
+import { useAuth } from "../../../context/AuthContext"
 import { useSubscription } from "../../../context/SubscriptionContext"
+import type { TCreditPurchase } from "../../../types/CreditPurchase"
 import type { TSubscriptionPlan } from "../../../types/Subscription"
 import { PlanCard } from "./PlanCard"
 import { PurchaseDialog } from "./PurchaseDialog"
 import { PurchasesList } from "./PurchasesList"
 
-export const Page = () => {
-  const { credits, plans, purchases, loading, purchasingId, purchasePlan } = useSubscription()
-  const [planToPurchase, setPlanToPurchase] = useState<TSubscriptionPlan | null>(null)
+const apiErrorMessage = (error: unknown, fallback: string) => {
+  if (!axios.isAxiosError(error)) return fallback
+  const body = error.response?.data?.error
+  if (Array.isArray(body)) return body.join(". ")
+  if (typeof body === "string" && body.trim()) return body
+  return fallback
+}
 
-  const handleSubmitProof = async (proof: File) => {
-    if (!planToPurchase) return
+export const Page = () => {
+  const { refreshRestaurant } = useAuth()
+  const {
+    credits,
+    plans,
+    purchases,
+    loading,
+    purchasingId,
+    purchasePlan,
+    refreshPurchase,
+    reloadPurchases,
+  } = useSubscription()
+  const [planToPurchase, setPlanToPurchase] = useState<TSubscriptionPlan | null>(null)
+  const [activePurchase, setActivePurchase] = useState<TCreditPurchase | null>(null)
+  const [startError, setStartError] = useState("")
+
+  const handleSelectPlan = async (plan: TSubscriptionPlan) => {
+    setPlanToPurchase(plan)
+    setActivePurchase(null)
+    setStartError("")
 
     try {
-      await purchasePlan(planToPurchase.id, proof)
-      toast.success("Comprobante enviado. Validaremos el pago y acreditaremos tus entregas.")
-      setPlanToPurchase(null)
+      const purchase = await purchasePlan(plan.id)
+      setActivePurchase(purchase)
     } catch (error) {
-      const message = axios.isAxiosError(error)
-        ? Array.isArray(error.response?.data?.error)
-          ? error.response.data.error.join(". ")
-          : error.response?.data?.error
-        : null
-      toast.error(message || "No se pudo enviar el comprobante. Inténtalo de nuevo.")
+      setStartError(apiErrorMessage(error, "No se pudo generar el QR. Inténtalo de nuevo."))
     }
   }
+
+  const handleClose = () => {
+    setPlanToPurchase(null)
+    setActivePurchase(null)
+    setStartError("")
+  }
+
+  const handlePaid = useCallback(async (_purchase: TCreditPurchase) => {
+    toast.success("Pago confirmado. Tus entregas ya fueron acreditadas.")
+    await Promise.all([refreshRestaurant(), reloadPurchases()])
+    setPlanToPurchase(null)
+    setActivePurchase(null)
+  }, [refreshRestaurant, reloadPurchases])
+
+  const handleFailed = useCallback(async (_purchase: TCreditPurchase) => {
+    toast.error("El pago fue cancelado o expiró. Intenta con otro QR.")
+    await reloadPurchases()
+    setPlanToPurchase(null)
+    setActivePurchase(null)
+  }, [reloadPurchases])
 
   return (
     <div className="mx-auto max-w-screen-2xl">
@@ -57,7 +95,7 @@ export const Page = () => {
                   key={plan.id}
                   plan={plan}
                   purchasing={purchasingId === plan.id}
-                  onSelect={() => setPlanToPurchase(plan)}
+                  onSelect={() => { void handleSelectPlan(plan) }}
                 />
               ))}
             </div>
@@ -65,9 +103,9 @@ export const Page = () => {
         </div>
 
         <section className="xl:sticky xl:top-6">
-          <h2 className="mb-4 text-lg font-bold text-gray-900">Comprobantes enviados</h2>
+          <h2 className="mb-4 text-lg font-bold text-gray-900">Historial de compras</h2>
           {loading ? (
-            <p className="text-sm text-gray-500">Cargando comprobantes...</p>
+            <p className="text-sm text-gray-500">Cargando historial...</p>
           ) : (
             <PurchasesList purchases={purchases} />
           )}
@@ -76,9 +114,13 @@ export const Page = () => {
 
       <PurchaseDialog
         plan={planToPurchase}
-        submitting={purchasingId !== null}
-        onClose={() => setPlanToPurchase(null)}
-        onSubmit={handleSubmitProof}
+        purchase={activePurchase}
+        starting={purchasingId !== null}
+        startError={startError}
+        onClose={handleClose}
+        onPoll={refreshPurchase}
+        onPaid={handlePaid}
+        onFailed={handleFailed}
       />
     </div>
   )

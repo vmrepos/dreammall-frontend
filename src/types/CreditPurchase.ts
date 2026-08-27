@@ -6,5 +6,7 @@ export type TCreditPurchase = {
   price: number
   status: TCreditPurchaseStatus
   created_at: string
+  qr_id: string | null
+  qr_image: string | null
   proof_url: string | null
 }

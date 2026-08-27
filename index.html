@@ -33,6 +33,33 @@
       } catch (e) { }
     })();
   </script>
+  <script>
+    (function () {
+      var host = location.hostname.toLowerCase();
+      if (host !== "customer.pedi2.com.bo" && host.indexOf("customer.") !== 0) return;
+      document.title = "Pedi2";
+      var desc = document.querySelector('meta[name="description"]');
+      if (desc) desc.setAttribute("content", "Haz tu pedido Pedi2 con el enlace del comercio.");
+      var strip = function () {
+        document.querySelectorAll('link[rel="manifest"]').forEach(function (el) { el.remove(); });
+        document.querySelectorAll('meta[name="mobile-web-app-capable"], meta[name="apple-mobile-web-app-capable"], meta[name="apple-mobile-web-app-title"]').forEach(function (el) { el.remove(); });
+      };
+      strip();
+      if (window.MutationObserver) {
+        var obs = new MutationObserver(strip);
+        obs.observe(document.head, { childList: true, subtree: true });
+        document.addEventListener("DOMContentLoaded", function () {
+          strip();
+          obs.disconnect();
+        });
+      }
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          regs.forEach(function (r) { r.unregister(); });
+        });
+      }
+    })();
+  </script>
 </head>
 
 <body>

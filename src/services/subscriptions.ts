@@ -1,7 +1,6 @@
 import type { TSubscriptionPlan } from "../types/Subscription"
 import type { TCreditPurchase } from "../types/CreditPurchase"
 import { axiosInstance } from "./axiosInstance"
-import { DirectUploadsAPI } from "./directUploads"
 
 export const SubscriptionsAPI = {
   list: async (): Promise<TSubscriptionPlan[]> => {
@@ -14,12 +13,15 @@ export const SubscriptionsAPI = {
     return response.data.data
   },
 
-  purchase: async (subscriptionId: number, proof: File): Promise<TCreditPurchase> => {
-    const blob = await DirectUploadsAPI.upload(proof, "payments")
+  purchase: async (subscriptionId: number): Promise<TCreditPurchase> => {
     const response = await axiosInstance.post("/restaurants/purchases", {
       subscription_id: subscriptionId,
-      proof: blob.signed_id,
     })
+    return response.data.data
+  },
+
+  showPurchase: async (purchaseId: number): Promise<TCreditPurchase> => {
+    const response = await axiosInstance.get(`/restaurants/purchases/${purchaseId}`)
     return response.data.data
   },
 }

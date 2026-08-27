@@ -41,15 +41,28 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
-  const purchasePlan = async (subscriptionId: number, proof: File) => {
+  const purchasePlan = useCallback(async (subscriptionId: number) => {
     setPurchasingId(subscriptionId)
     try {
-      await apiClient.subscriptions.purchase(subscriptionId, proof)
+      const purchase = await apiClient.subscriptions.purchase(subscriptionId)
       await loadPurchases()
+      return purchase
     } finally {
       setPurchasingId(null)
     }
-  }
+  }, [loadPurchases])
+
+  const refreshPurchase = useCallback(async (purchaseId: number) => {
+    const purchase = await apiClient.subscriptions.showPurchase(purchaseId)
+    setPurchases((current) => {
+      const index = current.findIndex((row) => row.id === purchase.id)
+      if (index === -1) return [purchase, ...current]
+      const next = [...current]
+      next[index] = purchase
+      return next
+    })
+    return purchase
+  }, [])
 
   return (
     <SubscriptionContext.Provider
@@ -60,6 +73,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         loading,
         purchasingId,
         purchasePlan,
+        refreshPurchase,
+        reloadPurchases: loadPurchases,
       }}
     >
       {children}
