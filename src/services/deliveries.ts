@@ -23,7 +23,9 @@ export type DeliveryPreview = {
 
 export const DeliveriesAPI = {
   list: async () => {
-    const response = await axiosInstance.get("/restaurants/deliveries")
+    const response = await axiosInstance.get("/restaurants/deliveries", {
+      params: { per_page: 50 },
+    })
     return (response.data.data as TDeliveryWire[]).map(toDelivery)
   },
   show: async (id: number) => {

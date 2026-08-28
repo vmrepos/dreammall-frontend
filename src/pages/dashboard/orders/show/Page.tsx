@@ -220,9 +220,7 @@ export const Page = () => {
               Cancelar pedido
             </Button>
           )}
-          {DELIVERIES_SECTION_ENABLED &&
-            (order.status === "ready" || order.status === "dispatched") &&
-            order.delivery && (
+          {DELIVERIES_SECTION_ENABLED && order.delivery && (
             <Button variant="secondary" onClick={() => navigate(`/deliveries/${order.delivery?.id}`)}>
               Ver entrega
             </Button>

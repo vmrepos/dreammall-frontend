@@ -13,28 +13,72 @@ import { ConfirmDialog } from "../../../../components/molecules/ConfirmDialog"
 import { DeliveryStatusProgress } from "../../../../components/molecules/DeliveryStatusProgress"
 import { DeliveryStatusBadge } from "../../../../components/molecules/StatusBadge"
 import { DetailRow } from "../../../../components/molecules/DetailRow"
-import type { TDelivery, TDeliveryStatus } from "../../../../types/Delivery"
+import type { TDelivery } from "../../../../types/Delivery"
+import type { TOrder } from "../../../../types/Order"
 import { canCancelDelivery, canConfirmReturn, deliveryStatusConfig } from "../../../../utils/status"
 import { formatCurrency, formatDate } from "../../../../utils/format"
 import { apiClient } from "../../../../services/apiClient"
+import { useOrders } from "../../../../context/OrdersContext"
 import { DeliveryStatusBanners } from "./DeliveryStatusBanners"
 
 export const Page = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  useEffect(() => {
-    apiClient.deliveries.show(Number(id)).then((delivery) => {
-      setDelivery(delivery)
-    })
-  }, [id])
+  const { updateOrder } = useOrders()
   const [delivery, setDelivery] = useState<TDelivery | undefined>(undefined)
+  const [order, setOrder] = useState<TOrder | undefined>(undefined)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [showReturnDialog, setShowReturnDialog] = useState(false)
   const [showRetryDialog, setShowRetryDialog] = useState(false)
+  const [showReadyDialog, setShowReadyDialog] = useState(false)
   const [confirmingReturn, setConfirmingReturn] = useState(false)
   const [retrying, setRetrying] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [markingReady, setMarkingReady] = useState(false)
 
-  if (!delivery) {
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      setLoading(true)
+      setNotFound(false)
+      try {
+        const nextDelivery = await apiClient.deliveries.show(Number(id))
+        if (cancelled) return
+        setDelivery(nextDelivery)
+        try {
+          const nextOrder = await apiClient.orders.show(nextDelivery.order_id)
+          if (!cancelled) setOrder(nextOrder)
+        } catch {
+          if (!cancelled) setOrder(undefined)
+        }
+      } catch {
+        if (!cancelled) {
+          setDelivery(undefined)
+          setOrder(undefined)
+          setNotFound(true)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
+  if (loading && !delivery) {
+    return (
+      <div className="mx-auto max-w-3xl text-center">
+        <p className="text-sm text-gray-500">Cargando entrega...</p>
+      </div>
+    )
+  }
+
+  if (notFound || !delivery) {
     return (
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="text-2xl font-bold text-gray-900">Entrega no encontrada</h1>
@@ -45,13 +89,18 @@ export const Page = () => {
     )
   }
 
-  const cancelDelivery = () => {
-    setDelivery((current) =>
-      current
-        ? { ...current, status: "cancelled" as TDeliveryStatus, updated_at: new Date().toISOString() }
-        : current,
-    )
-    setShowCancelDialog(false)
+  const cancelDelivery = async () => {
+    setCancelling(true)
+    try {
+      const replacement = await apiClient.deliveries.cancel(delivery.id)
+      setShowCancelDialog(false)
+      toast.success("Buscando otro repartidor")
+      navigate(`/deliveries/${replacement.id}`)
+    } catch {
+      toast.error("No se pudo cancelar la entrega")
+    } finally {
+      setCancelling(false)
+    }
   }
 
   const confirmReturn = async () => {
@@ -79,6 +128,20 @@ export const Page = () => {
       toast.error("No se pudo reenviar la entrega. Revisa tus créditos.")
     } finally {
       setRetrying(false)
+    }
+  }
+
+  const markReady = async () => {
+    setMarkingReady(true)
+    try {
+      const updated = await updateOrder(delivery.order_id, "ready")
+      setOrder(updated)
+      setShowReadyDialog(false)
+      toast.success("Paquete listo para recoger")
+    } catch {
+      toast.error("No se pudo marcar listo")
+    } finally {
+      setMarkingReady(false)
     }
   }
 
@@ -112,6 +175,9 @@ export const Page = () => {
         </div>
 
         <div className="flex gap-3">
+          {order?.status === "preparing" && (
+            <Button onClick={() => setShowReadyDialog(true)}>Marcar listo</Button>
+          )}
           {canConfirmReturn(delivery) && (
             <Button onClick={() => setShowReturnDialog(true)}>Confirmar devolución</Button>
           )}
@@ -140,6 +206,22 @@ export const Page = () => {
             <p className="mt-2 text-sm text-gray-500">
               Coordenadas: {delivery.latitude}, {delivery.longitude}
             </p>
+            {(order?.customer_name || order?.customer_phone) && (
+              <div className="mt-4 rounded-lg bg-gray-50 px-3 py-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Destinatario
+                </p>
+                {order.customer_name ? (
+                  <p className="mt-1 text-sm text-gray-900">{order.customer_name}</p>
+                ) : null}
+                {order.customer_phone ? (
+                  <p className="text-sm text-gray-700">{order.customer_phone}</p>
+                ) : null}
+              </div>
+            )}
+            {order?.notes?.trim() ? (
+              <p className="mt-3 text-sm text-gray-700">{order.notes}</p>
+            ) : null}
           </Card>
 
           <Card>
@@ -167,6 +249,9 @@ export const Page = () => {
         <Card padding="md">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Detalles</h2>
           <DetailRow label="Pedido" value={`#${delivery.order_id}`} href={`/orders/${delivery.order_id}`} />
+          {order?.delivery_code ? (
+            <DetailRow label="Código de entrega" value={order.delivery_code} />
+          ) : null}
           <DetailRow label="Distancia" value={`${delivery.distance_km} km`} />
           <DetailRow label="Costo de envío" value={formatCurrency(delivery.fee)} />
           <DetailRow label="Última actualización" value={formatDate(delivery.updated_at)} />
@@ -174,12 +259,24 @@ export const Page = () => {
       </div>
 
       <ConfirmDialog
+        open={showReadyDialog}
+        title="Marcar listo"
+        message="¿Confirmas que el paquete está listo para que el repartidor lo recoja?"
+        confirmLabel="Sí, marcar listo"
+        confirmVariant="primary"
+        confirming={markingReady}
+        onConfirm={() => void markReady()}
+        onCancel={() => !markingReady && setShowReadyDialog(false)}
+      />
+
+      <ConfirmDialog
         open={showCancelDialog}
         title="Cancelar entrega"
-        message="¿Estás seguro de que deseas cancelar esta entrega?"
-        confirmLabel="Sí, cancelar"
-        onConfirm={cancelDelivery}
-        onCancel={() => setShowCancelDialog(false)}
+        message="Se liberará el repartidor y se buscará otro. No se devuelve el crédito."
+        confirmLabel="Sí, buscar otro"
+        confirming={cancelling}
+        onConfirm={() => void cancelDelivery()}
+        onCancel={() => !cancelling && setShowCancelDialog(false)}
       />
 
       <ConfirmDialog
@@ -189,7 +286,7 @@ export const Page = () => {
         confirmLabel="Sí, recibí el pedido"
         confirmVariant="primary"
         confirming={confirmingReturn}
-        onConfirm={confirmReturn}
+        onConfirm={() => void confirmReturn()}
         onCancel={() => !confirmingReturn && setShowReturnDialog(false)}
       />
 
@@ -200,7 +297,7 @@ export const Page = () => {
         confirmLabel="Sí, reenviar"
         confirmVariant="primary"
         confirming={retrying}
-        onConfirm={retryDelivery}
+        onConfirm={() => void retryDelivery()}
         onCancel={() => !retrying && setShowRetryDialog(false)}
       />
     </div>

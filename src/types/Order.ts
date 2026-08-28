@@ -39,6 +39,11 @@ export type TOrderForm = {
   discount: number
   notes?: string
   total_amount?: number
+  latitude?: number
+  longitude?: number
+  distance_km?: number
+  customer_name?: string
+  customer_phone?: string
 }
 
 export type TOrderCancelReason = "customer_cancelled" | "restaurant_cancelled" | "other"

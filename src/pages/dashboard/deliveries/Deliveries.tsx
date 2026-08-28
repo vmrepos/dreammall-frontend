@@ -3,6 +3,6 @@ import { Page as Create } from "./new/Page"
 import { Page as Show } from "./show/Page"
 
 /** Dashboard Entregas section. Pages stay; set true to mount routes and nav again. */
-export const DELIVERIES_SECTION_ENABLED = false
+export const DELIVERIES_SECTION_ENABLED = true
 
 export const Deliveries = { Index, Create, Show }

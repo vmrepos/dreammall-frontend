@@ -1,34 +1,79 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowLeft, faLocationDot, faTruck } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "../../../../components/atoms/Button"
-import { Card } from "../../../../components/atoms/Card"
-import { FormField } from "../../../../components/molecules/FormField"
+import { faArrowLeft, faTruck } from "@fortawesome/free-solid-svg-icons"
+import { toast } from "sonner"
+import { ConfirmDialog } from "../../../../components/molecules/ConfirmDialog"
+import { useForm } from "../../../../hooks/useForm"
+import { useOrders } from "../../../../context/OrdersContext"
+import { useSubscription } from "../../../../context/SubscriptionContext"
+import { apiClient } from "../../../../services/apiClient"
+import type { DeliveryPreview } from "../../../../services/deliveries"
+import { CourierForm, type TCourierFormValues } from "./CourierForm"
 
-import { formatCurrency } from "../../../../utils/format"
+const initialValues: TCourierFormValues = {
+  customer_name: "",
+  customer_phone: "",
+  notes: "",
+  latitude: null,
+  longitude: null,
+}
 
 export const Page = () => {
   const navigate = useNavigate()
-  const [address, setAddress] = useState("")
-  const [preview, setPreview] = useState<{ fee: string; distance_km: string } | null>(null)
+  const { createOrder, markPreparing } = useOrders()
+  const { credits } = useSubscription()
+  const [preview, setPreview] = useState<DeliveryPreview | null>(null)
   const [isCalculating, setIsCalculating] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const { values, handleChange, mutate } = useForm<TCourierFormValues>({
+    initialValues,
+    onSubmit: () => undefined,
+  })
 
   const calculatePreview = async () => {
-    if (!address.trim()) return
+    if (values.latitude == null || values.longitude == null) return
 
     setIsCalculating(true)
-    await new Promise((resolve) => setTimeout(resolve, 600))
-
-    setIsCalculating(false)
+    try {
+      const data = await apiClient.deliveries.preview(values.latitude, values.longitude)
+      setPreview(data)
+    } catch {
+      setPreview(null)
+      toast.error("No se pudo calcular la tarifa")
+    } finally {
+      setIsCalculating(false)
+    }
   }
 
   const createDelivery = async () => {
+    if (preview == null || values.latitude == null || values.longitude == null) return
+
     setIsCreating(true)
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    setIsCreating(false)
-    navigate("/deliveries/301")
+    try {
+      const order = await createOrder({
+        items_attributes: [],
+        delivery_fee: Number(preview.fee),
+        discount: 0,
+        notes: values.notes.trim(),
+        latitude: values.latitude,
+        longitude: values.longitude,
+        distance_km: Number(preview.distance_km),
+        customer_name: values.customer_name.trim(),
+        customer_phone: values.customer_phone.trim(),
+      })
+      const preparing = await markPreparing(order.id)
+      toast.success("Buscando un repartidor")
+      const deliveryId = preparing.delivery?.id
+      navigate(deliveryId ? `/deliveries/${deliveryId}` : `/orders/${order.id}`)
+    } catch {
+      toast.error("No se pudo crear la entrega. Revisa tus créditos.")
+    } finally {
+      setIsCreating(false)
+      setShowConfirm(false)
+    }
   }
 
   return (
@@ -48,63 +93,37 @@ export const Page = () => {
         </div>
         <h1 className="text-2xl font-bold text-gray-900">Solicitar entrega</h1>
         <p className="mt-1 text-[15px] text-gray-500">
-          Ingresa la dirección de destino para calcular el costo antes de confirmar.
+          Envía un paquete sin armar un pedido de comida. Al confirmar se usa 1 crédito y Pedí2 busca
+          un repartidor. Cuando el paquete esté empacado, márcalo listo en la entrega.
         </p>
       </div>
 
-      <Card padding="lg">
-        <FormField
-          id="address"
-          label="Dirección de entrega"
-          icon={faLocationDot}
-          placeholder="Ej. Av. Busch 742, Santa Cruz"
-          value={address}
-          onChange={(ev) => {
-            setAddress(ev.target.value)
-            setPreview(null)
-          }}
-        />
+      <CourierForm
+        values={values}
+        preview={preview}
+        isCalculating={isCalculating}
+        isCreating={isCreating}
+        credits={credits}
+        onChange={handleChange}
+        onPinChange={(latitude, longitude) => {
+          mutate({ latitude, longitude })
+          setPreview(null)
+        }}
+        onCalculate={() => void calculatePreview()}
+        onCancel={() => navigate("/deliveries")}
+        onConfirm={() => setShowConfirm(true)}
+      />
 
-        <div className="mt-6 flex gap-3">
-          <Button
-            variant="secondary"
-            onClick={calculatePreview}
-            disabled={!address.trim() || isCalculating}
-          >
-            {isCalculating ? "Calculando..." : "Calcular tarifa"}
-          </Button>
-        </div>
-
-        {preview && (
-          <div className="mt-8 rounded-xl bg-brand-light p-5">
-            <h2 className="text-sm font-bold text-brand">Vista previa de tarifa</h2>
-            <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <dt className="text-gray-500">Distancia estimada</dt>
-                <dd className="mt-1 text-lg font-semibold text-gray-900">{preview.distance_km} km</dd>
-              </div>
-              <div>
-                <dt className="text-gray-500">Costo de envío</dt>
-                <dd className="mt-1 text-lg font-semibold text-brand">
-                  {formatCurrency(preview.fee)}
-                </dd>
-              </div>
-            </dl>
-            <p className="mt-4 text-xs text-gray-500">
-              Dirección: {address}
-            </p>
-          </div>
-        )}
-
-        <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
-          <Button variant="secondary" onClick={() => navigate("/deliveries")}>
-            Cancelar
-          </Button>
-          <Button onClick={createDelivery} disabled={!preview || isCreating}>
-            {isCreating ? "Creando..." : "Confirmar entrega"}
-          </Button>
-        </div>
-      </Card>
+      <ConfirmDialog
+        open={showConfirm}
+        title="Confirmar entrega"
+        message="Se usará 1 crédito y Pedí2 buscará un repartidor. ¿Deseas continuar?"
+        confirmLabel="Sí, solicitar"
+        confirmVariant="primary"
+        confirming={isCreating}
+        onConfirm={() => void createDelivery()}
+        onCancel={() => !isCreating && setShowConfirm(false)}
+      />
     </div>
   )
 }
