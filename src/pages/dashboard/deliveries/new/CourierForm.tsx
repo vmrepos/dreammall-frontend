@@ -1,5 +1,6 @@
+import { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faNoteSticky, faPhone, faUser } from "@fortawesome/free-solid-svg-icons"
+import { faLocationDot, faNoteSticky, faPhone, faUser } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../../components/atoms/Button"
 import { Card } from "../../../../components/atoms/Card"
 import { Label } from "../../../../components/atoms/Label"
@@ -7,7 +8,8 @@ import { FormField } from "../../../../components/molecules/FormField"
 import { inputClassName } from "../../../../components/atoms/Input"
 import { LocationPicker } from "../../../public/order/complete/LocationPicker"
 import type { DeliveryPreview } from "../../../../services/deliveries"
-import { cn, formatCurrency } from "../../../../utils/format"
+import { parseCoordinates } from "../../../../utils/coordinates"
+import { cn, formatCoords, formatCurrency } from "../../../../utils/format"
 
 export type TCourierFormValues = {
   customer_name: string
@@ -22,9 +24,8 @@ type Props = {
   preview: DeliveryPreview | null
   isCalculating: boolean
   isCreating: boolean
-  credits: number
   onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
-  onPinChange: (latitude: number, longitude: number) => void
+  onPinChange: (latitude: number | null, longitude: number | null) => void
   onCalculate: () => void
   onCancel: () => void
   onConfirm: () => void
@@ -35,16 +36,32 @@ export const CourierForm = ({
   preview,
   isCalculating,
   isCreating,
-  credits,
   onChange,
   onPinChange,
   onCalculate,
   onCancel,
   onConfirm,
 }: Props) => {
+  const [coordsInput, setCoordsInput] = useState(() =>
+    formatCoords(values.latitude, values.longitude),
+  )
   const hasPin = values.latitude != null && values.longitude != null
+
+  const applyPin = (latitude: number, longitude: number) => {
+    setCoordsInput(formatCoords(latitude, longitude))
+    onPinChange(latitude, longitude)
+  }
+
+  const handleCoordsInput = (value: string) => {
+    setCoordsInput(value)
+    const parsed = parseCoordinates(value)
+    if (parsed) {
+      onPinChange(parsed.latitude, parsed.longitude)
+      return
+    }
+    if (value.trim() === "") onPinChange(null, null)
+  }
   const canSubmit =
-    credits > 0 &&
     hasPin &&
     Boolean(preview) &&
     !isCalculating &&
@@ -99,21 +116,27 @@ export const CourierForm = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label>Destino</Label>
+          <FormField
+            id="coordinates"
+            name="coordinates"
+            label="Coordenadas"
+            icon={faLocationDot}
+            placeholder="-17.7833, -63.1821"
+            value={coordsInput}
+            onChange={(event) => handleCoordsInput(event.target.value)}
+            autoComplete="off"
+          />
+          <p className="text-xs text-gray-500">
+            Pega lat, lng o toca el mapa para marcar el destino.
+          </p>
           <LocationPicker
             latitude={values.latitude}
             longitude={values.longitude}
-            onChange={onPinChange}
+            onChange={applyPin}
             allowDeviceLocation={false}
           />
         </div>
       </div>
-
-      {credits === 0 ? (
-        <p className="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
-          No te quedan entregas. Recarga créditos en Mi suscripción antes de solicitar un envío.
-        </p>
-      ) : null}
 
       <div className="mt-6">
         <Button

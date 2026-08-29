@@ -34,7 +34,7 @@ export const OverviewPanel = ({ report, period }: Props) => {
 
       <WidgetCard
         title="Entregas"
-        description="Desempeño y créditos usados."
+        description="Volumen y estados de las entregas."
         className="sm:col-span-2 xl:col-span-3"
       >
         <DeliveriesWidget deliveries={report.deliveries} periodLabel={labels.current} />

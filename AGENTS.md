@@ -8,11 +8,10 @@ React + Vite + TypeScript dashboard for **restaurant owners** (Pedi2). Talks to 
 
 | Area | Purpose |
 |------|---------|
-| **Orders** | Manual / POS order create, list, status (creates delivery + spends credit on the API) |
+| **Orders** | Manual / POS order create, list, status (creates delivery on the API when marking preparing) |
 | **Menus / Products** | Active menus and catalog for ordering |
 | **Deliveries** | Track delivery status for restaurant orders |
 | **Restaurant profile** | Name, address, coords, hours |
-| **Subscription** | Plan / credits context in the sidebar |
 
 UI copy is largely **Spanish**. Prefer matching nearby strings.
 
@@ -87,7 +86,7 @@ export const Orders = { Index, Create, Show }
 ### HTTP / auth
 
 - Base client: `axiosInstance` in `services/apiClient.ts` (`baseURL` = `VITE_API_URL` + `/api/v1`, `withCredentials: true`).
-- Public surface: `apiClient.orders | menus | products | deliveries | restaurants | subscriptions | users`.
+- Public surface: `apiClient.orders | menus | products | deliveries | restaurants | users`.
 - Auth helpers: `services/authService.ts`; session via `AuthProvider`.
 - 401 interceptor refreshes once, then dispatches `auth:unauthorized`.
 - Rails envelopes: success `{ data, meta? }`, errors `{ error }`. Prefer `response.data.data` in services.

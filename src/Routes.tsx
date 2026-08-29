@@ -15,7 +15,6 @@ import { Orders } from "./pages/dashboard/orders/Orders"
 import { Profile } from "./pages/dashboard/profile/Profile"
 import { Reports } from "./pages/dashboard/reports/Reports"
 import { Settings } from "./pages/dashboard/settings/Settings"
-import { Subscription } from "./pages/dashboard/subscription/Subscription"
 import { PublicOrder } from "./pages/public/order/Order"
 import { isCustomerHost } from "./utils/host"
 
@@ -66,7 +65,7 @@ const RestaurantApp = () => (
             )}
             <Route path="profile" element={<Profile.Index />} />
             <Route path="settings" element={<Settings.Index />} />
-            <Route path="subscription" element={<Subscription.Index />} />
+            <Route path="subscription" element={<Navigate to="/orders" replace />} />
             <Route path="reports" element={<Reports.Index />} />
             <Route path="menu" element={<MenuLayout />}>
               <Route index element={<Menu.Index />} />

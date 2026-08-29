@@ -36,7 +36,7 @@
   <script>
     (function () {
       var host = location.hostname.toLowerCase();
-      if (host !== "customer.pedi2.com.bo" && host.indexOf("customer.") !== 0) return;
+      if (host.indexOf("customer.") !== 0) return;
       document.title = "Pedi2";
       var desc = document.querySelector('meta[name="description"]');
       if (desc) desc.setAttribute("content", "Haz tu pedido Pedi2 con el enlace del comercio.");

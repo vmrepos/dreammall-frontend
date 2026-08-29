@@ -125,7 +125,7 @@ export const Page = () => {
       toast.success("Buscando un nuevo repartidor")
       navigate(`/deliveries/${created.id}`)
     } catch {
-      toast.error("No se pudo reenviar la entrega. Revisa tus créditos.")
+      toast.error("No se pudo reenviar la entrega.")
     } finally {
       setRetrying(false)
     }
@@ -272,7 +272,7 @@ export const Page = () => {
       <ConfirmDialog
         open={showCancelDialog}
         title="Cancelar entrega"
-        message="Se liberará el repartidor y se buscará otro. No se devuelve el crédito."
+        message="Se liberará el repartidor y se buscará otro."
         confirmLabel="Sí, buscar otro"
         confirming={cancelling}
         onConfirm={() => void cancelDelivery()}
@@ -293,7 +293,7 @@ export const Page = () => {
       <ConfirmDialog
         open={showRetryDialog}
         title="Reenviar entrega"
-        message="Se buscará un nuevo repartidor y se usará 1 crédito. ¿Deseas continuar?"
+        message="Se buscará un nuevo repartidor. ¿Deseas continuar?"
         confirmLabel="Sí, reenviar"
         confirmVariant="primary"
         confirming={retrying}
