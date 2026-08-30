@@ -37,7 +37,6 @@ export type TReportProduct = {
 export type TReportDeliveries = {
   total: number
   by_status: Partial<Record<TDeliveryStatus | string, number>>
-  credits_spent: number
 }
 
 export type TReport = {

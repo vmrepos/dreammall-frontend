@@ -5,7 +5,6 @@ import { useAuth } from "../../context/AuthContext"
 import { useTheme } from "../../context/ThemeContext"
 import { BrandLogo } from "../../components/atoms/BrandLogo"
 import { Toggle } from "../../components/atoms/Toggle"
-import { SidebarSubscriptionWidget } from "../../components/molecules/SidebarSubscriptionWidget"
 import { cn } from "../../utils/format"
 import { DELIVERIES_SECTION_ENABLED } from "./deliveries/Deliveries"
 
@@ -94,11 +93,7 @@ export const Sidebar = ({ open, onClose }: Props) => {
           ))}
         </nav>
 
-        <div className="mt-auto border-t border-white/10 pt-4">
-          <SidebarSubscriptionWidget />
-        </div>
-
-        <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2.5">
+        <div className="mt-auto flex items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2.5">
           <div className="flex items-center gap-2 text-sm text-white/70">
             <FontAwesomeIcon
               icon={isDark ? faMoon : faSun}

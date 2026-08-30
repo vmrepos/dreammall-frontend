@@ -6,21 +6,17 @@ import { Button } from "../../../../components/atoms/Button"
 import { Card } from "../../../../components/atoms/Card"
 import { EmptyList } from "../../../../components/molecules/EmptyList"
 import { PageHeader } from "../../../../components/molecules/PageHeader"
-import { useSubscription } from "../../../../context/SubscriptionContext"
 import { apiClient } from "../../../../services/apiClient"
 import type { TDelivery } from "../../../../types/Delivery"
 import { DeliveriesTable } from "./DeliveriesTable"
 
 export const Page = () => {
   const navigate = useNavigate()
-  const { credits } = useSubscription()
   const [deliveries, setDeliveries] = useState<TDelivery[]>([])
 
   useEffect(() => {
     void apiClient.deliveries.list().then(setDeliveries)
   }, [])
-
-  const canCreate = credits > 0
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -30,18 +26,12 @@ export const Page = () => {
         title="Entregas"
         description="Sigue los viajes de tus pedidos y solicita un envío sin productos del menú."
         action={
-          <Button onClick={() => navigate("/deliveries/new")} disabled={!canCreate}>
+          <Button onClick={() => navigate("/deliveries/new")}>
             <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
             Nueva entrega
           </Button>
         }
       />
-
-      {!canCreate ? (
-        <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
-          No te quedan entregas. Recarga créditos en Mi suscripción para solicitar un envío.
-        </p>
-      ) : null}
 
       <Card>
         {deliveries.length === 0 ? (

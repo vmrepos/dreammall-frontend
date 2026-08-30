@@ -6,7 +6,6 @@ import { toast } from "sonner"
 import { ConfirmDialog } from "../../../../components/molecules/ConfirmDialog"
 import { useForm } from "../../../../hooks/useForm"
 import { useOrders } from "../../../../context/OrdersContext"
-import { useSubscription } from "../../../../context/SubscriptionContext"
 import { apiClient } from "../../../../services/apiClient"
 import type { DeliveryPreview } from "../../../../services/deliveries"
 import { CourierForm, type TCourierFormValues } from "./CourierForm"
@@ -22,7 +21,6 @@ const initialValues: TCourierFormValues = {
 export const Page = () => {
   const navigate = useNavigate()
   const { createOrder, markPreparing } = useOrders()
-  const { credits } = useSubscription()
   const [preview, setPreview] = useState<DeliveryPreview | null>(null)
   const [isCalculating, setIsCalculating] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
@@ -69,7 +67,7 @@ export const Page = () => {
       const deliveryId = preparing.delivery?.id
       navigate(deliveryId ? `/deliveries/${deliveryId}` : `/orders/${order.id}`)
     } catch {
-      toast.error("No se pudo crear la entrega. Revisa tus créditos.")
+      toast.error("No se pudo crear la entrega.")
     } finally {
       setIsCreating(false)
       setShowConfirm(false)
@@ -93,7 +91,7 @@ export const Page = () => {
         </div>
         <h1 className="text-2xl font-bold text-gray-900">Solicitar entrega</h1>
         <p className="mt-1 text-[15px] text-gray-500">
-          Envía un paquete sin armar un pedido de comida. Al confirmar se usa 1 crédito y Pedí2 busca
+          Envía un paquete sin armar un pedido de comida. Al confirmar, Pedí2 busca
           un repartidor. Cuando el paquete esté empacado, márcalo listo en la entrega.
         </p>
       </div>
@@ -103,7 +101,6 @@ export const Page = () => {
         preview={preview}
         isCalculating={isCalculating}
         isCreating={isCreating}
-        credits={credits}
         onChange={handleChange}
         onPinChange={(latitude, longitude) => {
           mutate({ latitude, longitude })
@@ -117,7 +114,7 @@ export const Page = () => {
       <ConfirmDialog
         open={showConfirm}
         title="Confirmar entrega"
-        message="Se usará 1 crédito y Pedí2 buscará un repartidor. ¿Deseas continuar?"
+        message="Pedí2 buscará un repartidor. ¿Deseas continuar?"
         confirmLabel="Sí, solicitar"
         confirmVariant="primary"
         confirming={isCreating}

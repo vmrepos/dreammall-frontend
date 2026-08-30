@@ -117,9 +117,9 @@ export const Page = () => {
     } catch {
       toast.error(
         confirmAction === "preparing"
-          ? "No se pudo preparar el pedido. Revisa tus créditos."
+          ? "No se pudo preparar el pedido."
           : confirmAction === "retry"
-            ? "No se pudo reenviar la entrega. Revisa tus créditos."
+            ? "No se pudo reenviar la entrega."
             : confirmAction === "cancelTrip"
               ? "No se pudo cancelar la entrega."
               : "No se pudo actualizar el pedido.",
@@ -259,7 +259,7 @@ export const Page = () => {
       <ConfirmDialog
         open={confirmAction === "preparing"}
         title="Preparar pedido"
-        message={`El pedido #${order.id} pasará a preparación, se buscará un repartidor y se usará 1 crédito.`}
+        message={`El pedido #${order.id} pasará a preparación y se buscará un repartidor.`}
         confirmLabel="Sí, preparar"
         confirmVariant="primary"
         confirming={confirming}
@@ -299,7 +299,7 @@ export const Page = () => {
       <ConfirmDialog
         open={confirmAction === "retry"}
         title="Reenviar entrega"
-        message="El pedido quedará listo, se buscará un nuevo repartidor y se usará 1 crédito. ¿Deseas continuar?"
+        message="El pedido quedará listo y se buscará un nuevo repartidor. ¿Deseas continuar?"
         confirmLabel="Sí, reenviar"
         confirmVariant="primary"
         confirming={confirming}
@@ -310,7 +310,7 @@ export const Page = () => {
       <ConfirmDialog
         open={confirmAction === "cancelTrip"}
         title="Cancelar entrega"
-        message="Se liberará el repartidor y se buscará otro. No se devuelve el crédito."
+        message="Se liberará el repartidor y se buscará otro."
         confirmLabel="Sí, buscar otro"
         confirmVariant="danger"
         confirming={confirming}

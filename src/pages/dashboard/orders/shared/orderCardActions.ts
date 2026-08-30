@@ -62,7 +62,7 @@ type ConfirmCopy = {
 export const orderCardConfirmCopy: Record<Exclude<TOrderCardAction, "cancel">, (orderId: number) => ConfirmCopy> = {
   preparing: (id) => ({
     title: "Preparar pedido",
-    message: `El pedido #${id} pasará a preparación, se buscará un repartidor y se usará 1 crédito.`,
+    message: `El pedido #${id} pasará a preparación y se buscará un repartidor.`,
     confirmLabel: "Sí, preparar",
   }),
   ready: (id) => ({
@@ -77,21 +77,21 @@ export const orderCardConfirmCopy: Record<Exclude<TOrderCardAction, "cancel">, (
   }),
   retry: (id) => ({
     title: "Reenviar entrega",
-    message: `El pedido #${id} quedará listo, se buscará un nuevo repartidor y se usará 1 crédito.`,
+    message: `El pedido #${id} quedará listo y se buscará un nuevo repartidor.`,
     confirmLabel: "Sí, reenviar",
   }),
   cancelTrip: (id) => ({
     title: "Cancelar entrega",
-    message: `Se liberará el repartidor del pedido #${id} y se buscará otro. No se devuelve el crédito.`,
+    message: `Se liberará el repartidor del pedido #${id} y se buscará otro.`,
     confirmLabel: "Sí, buscar otro",
   }),
 }
 
 export const orderCardErrorMessage: Record<TOrderCardAction, string> = {
-  preparing: "No se pudo preparar el pedido. Revisa tus créditos.",
+  preparing: "No se pudo preparar el pedido.",
   ready: "No se pudo marcar el pedido como listo",
   return: "No se pudo confirmar la devolución",
-  retry: "No se pudo reenviar la entrega. Revisa tus créditos.",
+  retry: "No se pudo reenviar la entrega.",
   cancel: "No se pudo cancelar el pedido",
   cancelTrip: "No se pudo cancelar la entrega",
 }
