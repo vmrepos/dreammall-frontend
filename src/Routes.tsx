@@ -2,7 +2,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { AuthProvider } from "./context/providers/AuthProvider"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { PublicRoute } from "./components/auth/PublicRoute"
-import { LandscapeGate } from "./components/molecules/LandscapeGate"
 import { PwaInstallBanner } from "./components/molecules/PwaInstallBanner"
 import { CableProvider } from "./context/providers/CableProvider"
 import { Auth } from "./pages/auth/Auth"
@@ -36,7 +35,6 @@ const RestaurantApp = () => (
   <AuthProvider>
     <CableProvider>
       <PwaInstallBanner />
-      <LandscapeGate />
       <Routes>
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Auth.Login />} />

@@ -11,8 +11,8 @@ type PageHeaderProps = {
 }
 
 export const PageHeader = ({ icon, section, title, description, action }: PageHeaderProps) => (
-  <header className="mb-6 flex items-start justify-between gap-4">
-    <div>
+  <header className="mb-6 flex items-start justify-between gap-4 phone-portrait:flex-col">
+    <div className="min-w-0">
       <div className="mb-2 flex items-center gap-2 text-brand">
         <FontAwesomeIcon icon={icon} className="size-5" aria-hidden />
         <span className="text-sm font-semibold uppercase tracking-wide">{section}</span>

@@ -6,11 +6,13 @@ export const inputClassName =
 type InputProps = ComponentPropsWithoutRef<"input"> & {
   hasIcon?: boolean
   hasTrailingIcon?: boolean
+  inputSize?: "sm" | "md"
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { className, hasIcon = false, hasTrailingIcon = false, ...props }, ref,
+  { className, hasIcon = false, hasTrailingIcon = false, inputSize = "md", ...props }, ref,
 ) {
+  const sizeClass = inputSize === "sm" ? "!py-2.5 !text-sm" : ""
   const paddingClass = [
     hasIcon ? "pl-11" : "pl-3.5",
     hasTrailingIcon ? "pr-11" : "pr-3.5",
@@ -19,7 +21,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <input
       ref={ref}
-      className={[inputClassName, paddingClass, className].filter(Boolean).join(" ")}
+      className={[inputClassName, sizeClass, paddingClass, className].filter(Boolean).join(" ")}
       {...props}
     />
   )

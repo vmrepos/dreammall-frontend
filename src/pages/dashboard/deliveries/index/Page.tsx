@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus, faTruck } from "@fortawesome/free-solid-svg-icons"
@@ -6,17 +6,16 @@ import { Button } from "../../../../components/atoms/Button"
 import { Card } from "../../../../components/atoms/Card"
 import { EmptyList } from "../../../../components/molecules/EmptyList"
 import { PageHeader } from "../../../../components/molecules/PageHeader"
-import { apiClient } from "../../../../services/apiClient"
-import type { TDelivery } from "../../../../types/Delivery"
+import { useDeliveries } from "../../../../context/DeliveriesContext"
 import { DeliveriesTable } from "./DeliveriesTable"
 
 export const Page = () => {
   const navigate = useNavigate()
-  const [deliveries, setDeliveries] = useState<TDelivery[]>([])
+  const { deliveries, refreshDeliveries } = useDeliveries()
 
   useEffect(() => {
-    void apiClient.deliveries.list().then(setDeliveries)
-  }, [])
+    void refreshDeliveries()
+  }, [refreshDeliveries])
 
   return (
     <div className="mx-auto max-w-6xl">

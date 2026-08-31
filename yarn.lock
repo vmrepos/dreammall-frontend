@@ -872,6 +872,13 @@
   resolved "https://registry.npmjs.org/@fortawesome/react-fontawesome/-/react-fontawesome-3.4.0.tgz#17b989390349ded9214ffb35ad279da7c9a728ba"
   integrity sha512-EgY5CXzzm6WGnUB40j9qNajYmoJHC8TUV/rvpcmHUoPZmQyRlh8WuRaxaerjMq61NZAz0vS+MOoJaPbZWRDibw==
 
+"@googlemaps/js-api-loader@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.npmjs.org/@googlemaps/js-api-loader/-/js-api-loader-2.1.1.tgz#49c2fa6cc2ad4eb49727d9f3572bae8ff519dbdf"
+  integrity sha512-yUpAwksbHrlZIWD49JmveNSfBG4oAK0AwMknfSaPMnP5N7UT8oFRVCqwjGb1XQovi//7KLbPQKZpbofiLGzpDw==
+  dependencies:
+    "@types/google.maps" "^3.53.1"
+
 "@isaacs/cliui@^9.0.0":
   version "9.0.0"
   resolved "https://registry.npmjs.org/@isaacs/cliui/-/cliui-9.0.0.tgz#4d0a3f127058043bf2e7ee169eaf30ed901302f3"
@@ -1507,6 +1514,11 @@
   version "1.0.9"
   resolved "https://registry.npmjs.org/@types/estree/-/estree-1.0.9.tgz#cf3f0e876d7bee15a93ab925b82bf570a3904a24"
   integrity sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==
+
+"@types/google.maps@^3.53.1":
+  version "3.66.0"
+  resolved "https://registry.npmjs.org/@types/google.maps/-/google.maps-3.66.0.tgz#ce499664f384fc919c3ff40e63b5770d269b1dfb"
+  integrity sha512-HOvl5nXOBazgI9rgG79mWm4sNuA08ig+AMvdCQ/rEAzXJQFfKj/LqjaP+fHLM5JFa68+VKiN15NWFBos8/Kr9w==
 
 "@types/node@^24.13.2":
   version "24.13.3"

@@ -40,11 +40,14 @@ export const Page = () => {
         icon={faClipboardList}
         section="Logística"
         title="Pedidos"
-        description="Gestiona pedidos entrantes, prepáralos y márcalos listos para entrega."
+        description="Gestiona tus pedidos."
         action={
-          <div className="flex flex-wrap justify-end gap-2">
+          <div className="flex w-auto flex-row justify-end gap-2 phone-portrait:w-full">
             <CopyCatalogLinkButton />
-            <Button onClick={() => navigate("/orders/new")}>
+            <Button
+              className="min-w-0 flex-none phone-portrait:flex-1 phone-portrait:gap-1 phone-portrait:px-3 phone-portrait:py-2.5 phone-portrait:text-xs"
+              onClick={() => navigate("/orders/new")}
+            >
               <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
               Nuevo pedido
             </Button>

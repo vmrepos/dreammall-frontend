@@ -32,6 +32,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     return subscribe((data) => {
       console.log("New Message Received", data)
+      if (String(data.type).startsWith("shipment_")) return
       const type = data.type === "order_absent_customer" ? "order_driving_back" : data.type
       const o = toOrder(data.message as Parameters<typeof toOrder>[0])
       switch (type) {

@@ -14,11 +14,17 @@ export const DeliveryStatusBanners = ({ delivery }: Props) => (
     )}
     {delivery.status === "returned" && (
       <p className="mb-4 rounded-xl bg-brand-light px-4 py-3 text-sm text-brand">
-        Pedido recibido de vuelta. Puedes reenviar o cancelar el pedido{" "}
-        <Link to={`/orders/${delivery.order_id}`} className="font-semibold underline">
-          #{delivery.order_id}
-        </Link>
-        .
+        {delivery.order_id != null ? (
+          <>
+            Pedido recibido de vuelta. Puedes reenviar o cancelar el pedido{" "}
+            <Link to={`/orders/${delivery.order_id}`} className="font-semibold underline">
+              #{delivery.order_id}
+            </Link>
+            .
+          </>
+        ) : (
+          "Envío recibido de vuelta. Puedes reenviarlo o cancelarlo."
+        )}
       </p>
     )}
   </>

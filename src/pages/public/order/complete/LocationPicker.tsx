@@ -11,6 +11,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../../components/atoms/Button"
 import { cn } from "../../../../utils/format"
+import {
+  getGoogleMaps,
+  googleMapsKey,
+  loadGoogleMaps,
+  type GoogleMapsApi,
+  type GoogleLatLng,
+} from "../../../../services/googleMaps"
 
 const DEFAULT_CENTER = { latitude: -17.7833, longitude: -63.1821 }
 const MIN_ZOOM = 12
@@ -23,6 +30,8 @@ type Props = {
   latitude: number | null
   longitude: number | null
   onChange: (latitude: number, longitude: number) => void
+  onAddressChange?: (address: string) => void
+  openOnMount?: boolean
   /** Customer page: GPS. Restaurant staff: hide it so the pin is not the kitchen. */
   allowDeviceLocation?: boolean
 }
@@ -33,60 +42,12 @@ type MapSurfaceProps = Props & {
   interactive?: boolean
 }
 
-type GoogleMapsApi = {
-  Map: new (
-    el: HTMLElement,
-    opts: Record<string, unknown>,
-  ) => {
-    setCenter: (c: { lat: number; lng: number }) => void
-    setZoom: (zoom: number) => void
-    panTo: (c: { lat: number; lng: number }) => void
-    addListener: (event: string, handler: (e?: { latLng?: LatLng }) => void) => void
-  }
-  Marker: new (opts: Record<string, unknown>) => {
-    setPosition: (c: { lat: number; lng: number } | LatLng) => void
-    getPosition: () => LatLng | null
-    addListener: (event: string, handler: () => void) => void
-  }
-  event: { trigger: (instance: unknown, eventName: string) => void }
-}
-
-type LatLng = { lat: () => number; lng: () => number }
-
-const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined
 const cartoKey = String(import.meta.env.VITE_CARTO_API_KEY ?? "").trim()
 
 const cartoTileUrl = (zoom: number, x: number, y: number) => {
   const host = ["a", "b", "c", "d"][Math.abs(x) % 4]
   const url = `https://${host}.basemaps.cartocdn.com/rastertiles/voyager/${zoom}/${x}/${y}.png`
   return cartoKey ? `${url}?key=${encodeURIComponent(cartoKey)}` : url
-}
-
-const getGoogleMaps = () =>
-  (window as unknown as { google?: { maps: GoogleMapsApi } }).google?.maps
-
-let googleMapsLoader: Promise<GoogleMapsApi> | null = null
-
-const loadGoogleMaps = (key: string) => {
-  const existing = getGoogleMaps()
-  if (existing) return Promise.resolve(existing)
-  if (googleMapsLoader) return googleMapsLoader
-
-  googleMapsLoader = new Promise((resolve, reject) => {
-    const script = document.createElement("script")
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}`
-    script.async = true
-    script.dataset.googleMaps = "true"
-    script.onload = () => {
-      const maps = getGoogleMaps()
-      if (maps) resolve(maps)
-      else reject(new Error("Google Maps no cargó"))
-    }
-    script.onerror = () => reject(new Error("Google Maps no cargó"))
-    document.head.appendChild(script)
-  })
-
-  return googleMapsLoader
 }
 
 const lngToTileX = (lng: number, zoom: number) => ((lng + 180) / 360) * 2 ** zoom
@@ -116,6 +77,8 @@ export const LocationPicker = ({
   latitude,
   longitude,
   onChange,
+  onAddressChange,
+  openOnMount = false,
   allowDeviceLocation = true,
 }: Props) => {
   const onChangeRef = useRef(onChange)
@@ -124,7 +87,7 @@ export const LocationPicker = ({
   const [geoError, setGeoError] = useState("")
   const [locating, setLocating] = useState(allowDeviceLocation)
   const [useGoogle, setUseGoogle] = useState(Boolean(googleMapsKey))
-  const [fullScreen, setFullScreen] = useState(false)
+  const [fullScreen, setFullScreen] = useState(openOnMount)
 
   const coordsRef = useRef({ latitude, longitude })
   coordsRef.current = { latitude, longitude }
@@ -183,6 +146,7 @@ export const LocationPicker = ({
       latitude={latitude}
       longitude={longitude}
       onChange={onChange}
+      onAddressChange={onAddressChange}
       useGoogle={useGoogle && Boolean(googleMapsKey)}
       apiKey={googleMapsKey}
       onUnavailable={() => setUseGoogle(false)}
@@ -291,6 +255,7 @@ const MapSurface = ({
   latitude,
   longitude,
   onChange,
+  onAddressChange,
   useGoogle,
   apiKey,
   onUnavailable,
@@ -312,6 +277,7 @@ const MapSurface = ({
         latitude={latitude}
         longitude={longitude}
         onChange={onChange}
+        onAddressChange={onAddressChange}
         onUnavailable={onUnavailable}
         showControls={showControls}
         interactive={interactive}
@@ -338,6 +304,7 @@ const GoogleMapPin = ({
   latitude,
   longitude,
   onChange,
+  onAddressChange,
   onUnavailable,
   showControls,
   interactive,
@@ -349,8 +316,10 @@ const GoogleMapPin = ({
   const mapRef = useRef<InstanceType<GoogleMapsApi["Map"]> | null>(null)
   const markerRef = useRef<InstanceType<GoogleMapsApi["Marker"]> | null>(null)
   const onChangeRef = useRef(onChange)
+  const onAddressChangeRef = useRef(onAddressChange)
   const onUnavailableRef = useRef(onUnavailable)
   onChangeRef.current = onChange
+  onAddressChangeRef.current = onAddressChange
   onUnavailableRef.current = onUnavailable
 
   const lat = latitude ?? DEFAULT_CENTER.latitude
@@ -362,6 +331,7 @@ const GoogleMapPin = ({
 
   useEffect(() => {
     let cancelled = false
+    let geocodeRequest = 0
 
     const start = async () => {
       try {
@@ -382,18 +352,35 @@ const GoogleMapPin = ({
           map,
           draggable: Boolean(interactive),
         })
+        const geocoder = new maps.Geocoder()
+
+        const updateAddress = (position: GoogleLatLng) => {
+          const requestId = ++geocodeRequest
+          void geocoder
+            .geocode({ location: { lat: position.lat(), lng: position.lng() } })
+            .then((response: { results: Array<{ formatted_address?: string }> }) => {
+              if (cancelled || requestId !== geocodeRequest) return
+              const address = response.results[0]?.formatted_address?.trim()
+              if (address) onAddressChangeRef.current?.(address)
+            })
+            .catch(() => {
+              // Keep the selected coordinates when reverse geocoding is unavailable.
+            })
+        }
 
         marker.addListener("dragend", () => {
           const position = marker.getPosition()
           if (!position) return
           onChangeRef.current(position.lat(), position.lng())
+          updateAddress(position)
         })
-        map.addListener("click", (event) => {
+        map.addListener("click", (event: { latLng?: GoogleLatLng | null }) => {
           if (!interactive) return
           const position = event?.latLng
           if (!position) return
           marker.setPosition(position)
           onChangeRef.current(position.lat(), position.lng())
+          updateAddress(position)
         })
 
         mapRef.current = map

@@ -129,7 +129,7 @@ export const AvailableProducts = ({
                 ? showDescription
                   ? "grid-cols-1 gap-2"
                   : "grid-cols-1 gap-1.5"
-                : "grid-cols-2 gap-3",
+                : "grid-cols-2 gap-3 phone:grid-cols-1 phone:gap-1.5",
             )}
           >
             {visibleProducts.map((product) => {
@@ -277,11 +277,12 @@ const ProductTile = ({
         compact
           ? "min-h-12 flex-row items-center gap-2 px-3 py-2"
           : "min-h-[5.5rem] flex-col justify-between px-3 py-2.5 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(12,107,61,0.12)]",
+        "phone:min-h-12 phone:flex-row phone:items-center phone:gap-2 phone:px-3 phone:py-2",
       )}
     >
       {addedCount > 0 && !compact ? (
         <span
-          className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full text-[11px] font-bold text-white"
+          className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full text-[11px] font-bold text-white phone:hidden"
           style={{ background: "var(--cat-solid)" }}
         >
           {addedCount}
@@ -292,11 +293,12 @@ const ProductTile = ({
           "font-semibold leading-snug text-ink",
           compact ? "min-w-0 flex-1 truncate text-sm" : "line-clamp-2 text-sm",
           addedCount > 0 && !compact && "pr-7",
+          "phone:min-w-0 phone:flex-1 phone:truncate phone:text-sm phone:line-clamp-none phone:pr-0",
         )}
       >
         {product.name}
       </p>
-      <div className={cn("flex items-center gap-2", compact ? "shrink-0" : "mt-2 items-end justify-between")}>
+      <div className={cn("flex items-center gap-2", compact ? "shrink-0" : "mt-2 items-end justify-between", "phone:mt-0 phone:shrink-0 phone:items-center")}>
         {badge ? (
           <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
             {badge}
@@ -308,6 +310,14 @@ const ProductTile = ({
         {addedCount > 0 && compact ? (
           <span
             className="flex size-6 items-center justify-center rounded-full text-[11px] font-bold text-white"
+            style={{ background: "var(--cat-solid)" }}
+          >
+            {addedCount}
+          </span>
+        ) : null}
+        {addedCount > 0 && !compact ? (
+          <span
+            className="hidden size-6 items-center justify-center rounded-full text-[11px] font-bold text-white phone:flex"
             style={{ background: "var(--cat-solid)" }}
           >
             {addedCount}

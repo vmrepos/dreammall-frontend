@@ -17,10 +17,8 @@ export const orderStatusConfig: Record<TOrderStatus, StatusConfig> = {
 }
 
 export const deliveryStatusConfig: Record<TDeliveryStatus, StatusConfig> = {
-  pending: { label: "Pendiente", variant: "warning" },
   awaiting_driver: { label: "Buscando repartidor", variant: "warning" },
   assigned: { label: "Asignada", variant: "info" },
-  awaiting_pickup: { label: "Esperando recogida", variant: "info" },
   in_transit: { label: "En camino", variant: "info" },
   delivered: { label: "Entregada", variant: "success" },
   driving_back: { label: "Regresando al local", variant: "danger" },
@@ -30,7 +28,6 @@ export const deliveryStatusConfig: Record<TDeliveryStatus, StatusConfig> = {
 
 /** Happy-path statuses shown on the delivery progress bar. */
 export const deliveryProgressSteps: TDeliveryStatus[] = [
-  "pending",
   "awaiting_driver",
   "assigned",
   "in_transit",
@@ -63,8 +60,6 @@ export const getDeliveryStepTimestamp = (
   step: TDeliveryStatus,
 ): string | null => {
   switch (step) {
-    case "pending":
-      return delivery.created_at
     case "awaiting_driver":
       return delivery.awaiting_driver_at
     case "assigned":

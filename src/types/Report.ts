@@ -62,7 +62,9 @@ export type TReportOrderRow = {
 export type TReportDeliveryRow = {
   id: number
   created_at: string
-  order_id: number
+  order_id: number | null
+  shipment_id: number | null
+  source_type: "order" | "shipment"
   status: TDeliveryStatus
   driver: { id: number; name: string } | null
 }

@@ -60,9 +60,38 @@ export const ProductTable = ({ menuId, products, onProductsChange }: Props) => {
 
   const toggleNextActive = productToToggle ? !productToToggle.active : false
 
+  const editDelete = (product: TProduct) => (
+    <>
+      <Button
+        variant="ghost"
+        className="px-3 py-2"
+        onClick={() => navigate(`/menu/${menuId}/products/${product.id}/edit`)}
+      >
+        <FontAwesomeIcon icon={faPen} className="size-4" aria-hidden />
+        Editar
+      </Button>
+      <Button
+        variant="ghost"
+        className="px-3 py-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+        onClick={() => setProductToDelete(product)}
+      >
+        <FontAwesomeIcon icon={faTrash} className="size-4" aria-hidden />
+        Eliminar
+      </Button>
+    </>
+  )
+
+  const activeToggle = (product: TProduct) => (
+    <Toggle
+      checked={product.active}
+      label={`${product.active ? "Desactivar" : "Activar"} ${product.name}`}
+      onChange={() => setProductToToggle(product)}
+    />
+  )
+
   return (
     <>
-      <Card>
+      <Card className="@container">
         {products.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
             <p className="text-sm text-gray-500">Este menú no tiene productos todavía.</p>
@@ -71,77 +100,72 @@ export const ProductTable = ({ menuId, products, onProductsChange }: Props) => {
             </Button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/80 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  <th className="px-6 py-3">Producto</th>
-                  <th className="px-6 py-3">Precio</th>
-                  <th className="px-6 py-3">Tipo</th>
-                  <th className="px-6 py-3">Estado</th>
-                  <th className="px-6 py-3">Activo</th>
-                  <th className="px-6 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {products.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50/60">
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900">{product.name}</p>
-                      {product.description && (
-                        <p className="mt-1 text-xs text-gray-500">{product.description}</p>
-                      )}
-                      {(product.product_option_groups?.length ?? 0) > 0 && (
-                        <Badge variant="brand" className="mt-2">
-                          Personalizable
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-gray-900">
+          <>
+            <ul className="divide-y divide-gray-100 @min-[48rem]:hidden">
+              {products.map((product) => (
+                <li key={product.id} className="px-4 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <ProductCopy product={product} />
+                    <p className="shrink-0 text-sm font-semibold tabular-nums text-ink">
                       {formatCurrency(product.price)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={product.combo ? "info" : "default"}>
-                        {product.combo ? "Combo" : "Simple"}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={product.active ? "success" : "default"}>
-                        {product.active ? "Activo" : "Inactivo"}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Toggle
-                        checked={product.active}
-                        label={`${product.active ? "Desactivar" : "Activar"} ${product.name}`}
-                        onChange={() => setProductToToggle(product)}
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          className="px-3 py-2"
-                          onClick={() => navigate(`/menu/${menuId}/products/${product.id}/edit`)}
-                        >
-                          <FontAwesomeIcon icon={faPen} className="size-4" aria-hidden />
-                          Editar
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => setProductToDelete(product)}
-                        >
-                          <FontAwesomeIcon icon={faTrash} className="size-4" aria-hidden />
-                          Eliminar
-                        </Button>
-                      </div>
-                    </td>
+                    </p>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <ProductBadges product={product} />
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center justify-end gap-1">
+                    {activeToggle(product)}
+                    {editDelete(product)}
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="hidden @min-[48rem]:block">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/80 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                    <th className="px-6 py-3">Producto</th>
+                    <th className="px-6 py-3">Precio</th>
+                    <th className="px-6 py-3">Tipo</th>
+                    <th className="px-6 py-3">Estado</th>
+                    <th className="px-6 py-3">Activo</th>
+                    <th className="px-6 py-3" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {products.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50/60">
+                      <td className="px-6 py-4">
+                        <ProductCopy product={product} />
+                      </td>
+                      <td className="px-6 py-4 font-medium tabular-nums text-ink">
+                        {formatCurrency(product.price)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant={product.combo ? "info" : "default"}>
+                          {product.combo ? "Combo" : "Simple"}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant={product.active ? "success" : "default"}>
+                          {product.active ? "Activo" : "Inactivo"}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4">
+                        {activeToggle(product)}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {editDelete(product)}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </Card>
 
@@ -182,3 +206,28 @@ export const ProductTable = ({ menuId, products, onProductsChange }: Props) => {
     </>
   )
 }
+
+const ProductCopy = ({ product }: { product: TProduct }) => (
+  <div className="min-w-0">
+    <p className="font-medium text-ink">{product.name}</p>
+    {product.description ? (
+      <p className="mt-1 text-xs text-ink-muted">{product.description}</p>
+    ) : null}
+    {(product.product_option_groups?.length ?? 0) > 0 ? (
+      <Badge variant="brand" className="mt-2">
+        Personalizable
+      </Badge>
+    ) : null}
+  </div>
+)
+
+const ProductBadges = ({ product }: { product: TProduct }) => (
+  <>
+    <Badge variant={product.combo ? "info" : "default"}>
+      {product.combo ? "Combo" : "Simple"}
+    </Badge>
+    <Badge variant={product.active ? "success" : "default"}>
+      {product.active ? "Activo" : "Inactivo"}
+    </Badge>
+  </>
+)

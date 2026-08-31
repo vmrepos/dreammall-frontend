@@ -15,12 +15,11 @@ import { useRestaurant } from "../../../../context/RestaurantContext"
 import { usePrepProgress } from "../../../../hooks/usePrepProgress"
 import { apiClient } from "../../../../services/apiClient"
 import type { TOrderStatus } from "../../../../types/Order"
-import { canCancelDelivery, canCancelOrder, canConfirmReturn, canMarkPreparing, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../../utils/status"
+import { canCancelOrder, canConfirmReturn, canMarkPreparing, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../../utils/status"
 import { formatCurrency, formatDate } from "../../../../utils/format"
 import { DeliveryCard } from "../shared/DeliveryCard"
 import { ReadyCountdown } from "../shared/ReadyCountdown"
 import { DELIVERIES_SECTION_ENABLED } from "../../deliveries/Deliveries"
-import { CopyOrderLinkButton } from "./CopyOrderLinkButton"
 import { CopySummaryImageButton } from "./CopySummaryImageButton"
 
 const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
@@ -42,7 +41,7 @@ export const Page = () => {
   )
   const [loading, setLoading] = useState(!order)
   const [notFound, setNotFound] = useState(false)
-  const [confirmAction, setConfirmAction] = useState<"preparing" | "ready" | "cancel" | "cancelTrip" | "return" | "retry" | null>(null)
+  const [confirmAction, setConfirmAction] = useState<"preparing" | "ready" | "cancel" | "return" | "retry" | null>(null)
   const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
@@ -108,10 +107,6 @@ export const Page = () => {
         await fetchOrder(order.id)
         toast.success("Buscando un nuevo repartidor")
         if (DELIVERIES_SECTION_ENABLED) navigate(`/deliveries/${delivery.id}`)
-      } else if (confirmAction === "cancelTrip" && order.delivery) {
-        await apiClient.deliveries.cancel(order.delivery.id)
-        await fetchOrder(order.id)
-        toast.success("Buscando otro repartidor")
       }
       setConfirmAction(null)
     } catch {
@@ -120,9 +115,7 @@ export const Page = () => {
           ? "No se pudo preparar el pedido."
           : confirmAction === "retry"
             ? "No se pudo reenviar la entrega."
-            : confirmAction === "cancelTrip"
-              ? "No se pudo cancelar la entrega."
-              : "No se pudo actualizar el pedido.",
+            : "No se pudo actualizar el pedido.",
       )
     } finally {
       setConfirming(false)
@@ -143,22 +136,22 @@ export const Page = () => {
   }
 
   return (
-    <div className="mx-auto max-w-screen-2xl">
+    <div className="@container mx-auto max-w-screen-2xl">
       <Link
         to="/orders"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
+        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand @min-[40rem]:mb-6"
       >
         <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />
         Volver a pedidos
       </Link>
 
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
+      <div className="mb-6 flex flex-col gap-4 @min-[40rem]:flex-row @min-[40rem]:items-start @min-[40rem]:justify-between">
+        <div className="min-w-0">
           <div className="mb-2 flex items-center gap-2 text-brand">
             <FontAwesomeIcon icon={faClipboardList} className="size-5" aria-hidden />
             <span className="text-sm font-semibold uppercase tracking-wide">Pedido #{order.id}</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-900">{orderStatusConfig[order.status].label}</h1>
             <OrderStatusBadge status={order.status} />
           </div>
@@ -176,68 +169,52 @@ export const Page = () => {
               </>
             )}
           </p>
-          {order.public_token ? (
-            <>
-              <p className="mt-3 text-sm text-gray-500">
-                El cliente completa nombre, teléfono y ubicación con este enlace.
-                {!canPrepare && order.status === "pending"
-                  ? " También puedes completar el destino aquí, sin usar el GPS de este dispositivo."
-                  : ""}
-              </p>
-              <div className="mt-3">
-                <CopyOrderLinkButton publicToken={order.public_token} />
-              </div>
-            </>
-          ) : null}
         </div>
 
-        <div className="flex flex-wrap justify-end gap-3">
-          {nextStatus === "preparing" && (
-            <Button
-              disabled={!canPrepare}
-              title={canPrepare ? undefined : "Falta la ubicación del cliente"}
-              onClick={() => canPrepare && setConfirmAction("preparing")}
-            >
-              Preparando
-            </Button>
-          )}
-          {nextStatus === "ready" && (
-            <Button onClick={() => setConfirmAction("ready")}>{nextLabel}</Button>
-          )}
-          {order.delivery && canConfirmReturn(order.delivery) && (
-            <Button onClick={() => setConfirmAction("return")}>Confirmar devolución</Button>
-          )}
-          {canRetryDelivery(order.status, order.delivery) && (
+        {canRetryDelivery(order.status, order.delivery) && (
+          <div className="flex w-full flex-col gap-2 [&>button]:w-full @min-[40rem]:w-auto @min-[40rem]:flex-row @min-[40rem]:flex-wrap @min-[40rem]:justify-end @min-[40rem]:[&>button]:w-auto">
             <Button onClick={() => setConfirmAction("retry")}>Reenviar entrega</Button>
-          )}
-          {order.delivery && canCancelDelivery(order.delivery.status) && (
-            <Button variant="secondary" onClick={() => setConfirmAction("cancelTrip")}>
-              Cancelar entrega
-            </Button>
-          )}
-          {canCancelOrder(order.status, order.delivery) && (
-            <Button variant="danger" onClick={() => setConfirmAction("cancel")}>
-              Cancelar pedido
-            </Button>
-          )}
-          {DELIVERIES_SECTION_ENABLED && order.delivery && (
-            <Button variant="secondary" onClick={() => navigate(`/deliveries/${order.delivery?.id}`)}>
-              Ver entrega
-            </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,1fr)_minmax(16rem,1fr)]">
         <Card className="flex h-full flex-col border-2 !border-brand/50">
           <CardHeader title="Detalle del pedido" description="Productos incluidos en este pedido" />
-          <div className="min-h-0 flex-1 overflow-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <OrderItemsTable items={order.items} />
           </div>
           <div className="mt-auto flex shrink-0 items-center justify-between border-t border-gray-100 bg-gray-50/50 px-6 py-3">
             <span className="text-sm font-semibold text-gray-700">Subtotal ítems</span>
             <span className="font-semibold tabular-nums text-gray-900">{formatCurrency(subtotal)}</span>
           </div>
+          {(nextStatus === "preparing" ||
+            nextStatus === "ready" ||
+            (order.delivery && canConfirmReturn(order.delivery)) ||
+            canCancelOrder(order.status, order.delivery)) && (
+            <div className="flex shrink-0 flex-col gap-2 border-t border-gray-100 px-6 py-4 [&>button]:w-full @min-[40rem]:flex-row @min-[40rem]:justify-end @min-[40rem]:[&>button]:w-auto">
+              {nextStatus === "preparing" && (
+                <Button
+                  disabled={!canPrepare}
+                  title={canPrepare ? undefined : "Falta la ubicación del cliente"}
+                  onClick={() => canPrepare && setConfirmAction("preparing")}
+                >
+                  Preparando
+                </Button>
+              )}
+              {nextStatus === "ready" && (
+                <Button onClick={() => setConfirmAction("ready")}>{nextLabel}</Button>
+              )}
+              {order.delivery && canConfirmReturn(order.delivery) && (
+                <Button onClick={() => setConfirmAction("return")}>Confirmar devolución</Button>
+              )}
+              {canCancelOrder(order.status, order.delivery) && (
+                <Button variant="danger" onClick={() => setConfirmAction("cancel")}>
+                  Cancelar pedido
+                </Button>
+              )}
+            </div>
+          )}
         </Card>
 
         <OrderSummaryCard
@@ -302,17 +279,6 @@ export const Page = () => {
         message="El pedido quedará listo y se buscará un nuevo repartidor. ¿Deseas continuar?"
         confirmLabel="Sí, reenviar"
         confirmVariant="primary"
-        confirming={confirming}
-        onConfirm={handleConfirm}
-        onCancel={() => !confirming && setConfirmAction(null)}
-      />
-
-      <ConfirmDialog
-        open={confirmAction === "cancelTrip"}
-        title="Cancelar entrega"
-        message="Se liberará el repartidor y se buscará otro."
-        confirmLabel="Sí, buscar otro"
-        confirmVariant="danger"
         confirming={confirming}
         onConfirm={handleConfirm}
         onCancel={() => !confirming && setConfirmAction(null)}

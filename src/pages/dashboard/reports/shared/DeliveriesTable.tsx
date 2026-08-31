@@ -17,7 +17,7 @@ export const DeliveriesTable = ({ deliveries }: Props) => {
         <thead>
           <tr className="border-b border-gray-100 bg-gray-50/80 text-xs font-semibold uppercase tracking-wide text-gray-500">
             <th className="px-6 py-3">Fecha</th>
-            <th className="px-6 py-3">Pedido</th>
+            <th className="px-6 py-3">Referencia</th>
             <th className="px-6 py-3">Repartidor</th>
             <th className="px-6 py-3">Estado</th>
           </tr>
@@ -31,19 +31,25 @@ export const DeliveriesTable = ({ deliveries }: Props) => {
                 navigate(
                   DELIVERIES_SECTION_ENABLED
                     ? `/deliveries/${delivery.id}`
-                    : `/orders/${delivery.order_id}`,
+                    : delivery.order_id
+                      ? `/orders/${delivery.order_id}`
+                      : `/deliveries/${delivery.id}`,
                 )
               }
             >
               <td className="px-6 py-4 text-gray-500">{formatDate(delivery.created_at)}</td>
               <td className="px-6 py-4">
-                <Link
-                  to={`/orders/${delivery.order_id}`}
-                  className="font-medium text-brand hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  #{delivery.order_id}
-                </Link>
+                {delivery.order_id ? (
+                  <Link
+                    to={`/orders/${delivery.order_id}`}
+                    className="font-medium text-brand hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Pedido #{delivery.order_id}
+                  </Link>
+                ) : (
+                  <span className="font-medium text-gray-700">Envío #{delivery.shipment_id}</span>
+                )}
               </td>
               <td className="px-6 py-4 text-gray-700">
                 {delivery.driver?.name ?? "—"}

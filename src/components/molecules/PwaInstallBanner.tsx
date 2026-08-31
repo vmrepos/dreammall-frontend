@@ -6,19 +6,38 @@ import { usePwaInstall } from "../../hooks/usePwaInstall"
 import { cn } from "../../utils/format"
 import { isCustomerHost } from "../../utils/host"
 
+const dashboardPrefixes = [
+  "/orders",
+  "/menu",
+  "/deliveries",
+  "/profile",
+  "/settings",
+  "/reports",
+]
+
 export const PwaInstallBanner = () => {
   const { pathname } = useLocation()
   const enabled = !isCustomerHost() && !pathname.startsWith("/pedido")
   const { mode, install, dismiss } = usePwaInstall(enabled)
   const aboveOrdersRail = pathname.startsWith("/orders")
+  const onDashboard = dashboardPrefixes.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  )
 
   if (!enabled || !mode) return null
 
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-x-0 z-50 flex justify-center p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
-        aboveOrdersRail ? "bottom-[5.75rem]" : "bottom-0",
+        "pointer-events-none fixed inset-x-0 z-[55] flex justify-center p-3",
+        !onDashboard && "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+        aboveOrdersRail
+          ? onDashboard
+            ? "bottom-[5.75rem] phone:bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))]"
+            : "bottom-[5.75rem]"
+          : onDashboard
+            ? "bottom-0 phone:bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))]"
+            : "bottom-0",
       )}
     >
       <div

@@ -5,38 +5,49 @@ import { faArrowLeft, faTruck } from "@fortawesome/free-solid-svg-icons"
 import { toast } from "sonner"
 import { ConfirmDialog } from "../../../../components/molecules/ConfirmDialog"
 import { useForm } from "../../../../hooks/useForm"
-import { useOrders } from "../../../../context/OrdersContext"
 import { apiClient } from "../../../../services/apiClient"
-import type { DeliveryPreview } from "../../../../services/deliveries"
-import { CourierForm, type TCourierFormValues } from "./CourierForm"
+import type { ShipmentPreview } from "../../../../services/shipments"
+import type { TShipmentFormValues } from "../../../../types/Shipment"
+import type { TAddressSelection } from "../../../../components/molecules/AddressSearchField"
+import { CourierForm } from "./CourierForm"
 
-const initialValues: TCourierFormValues = {
-  customer_name: "",
-  customer_phone: "",
-  notes: "",
-  latitude: null,
-  longitude: null,
+const initialValues: TShipmentFormValues = {
+  pickup_name: "",
+  pickup_phone: "",
+  pickup_address: "",
+  pickup_latitude: null,
+  pickup_longitude: null,
+  recipient_name: "",
+  recipient_phone: "",
+  destination_address: "",
+  destination_latitude: null,
+  destination_longitude: null,
+  description: "",
 }
 
 export const Page = () => {
   const navigate = useNavigate()
-  const { createOrder, markPreparing } = useOrders()
-  const [preview, setPreview] = useState<DeliveryPreview | null>(null)
+  const [preview, setPreview] = useState<ShipmentPreview | null>(null)
   const [isCalculating, setIsCalculating] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const { values, handleChange, mutate } = useForm<TCourierFormValues>({
+  const { values, handleChange, mutate } = useForm<TShipmentFormValues>({
     initialValues,
     onSubmit: () => undefined,
   })
 
   const calculatePreview = async () => {
-    if (values.latitude == null || values.longitude == null) return
+    if (
+      values.pickup_latitude == null ||
+      values.pickup_longitude == null ||
+      values.destination_latitude == null ||
+      values.destination_longitude == null
+    ) return
 
     setIsCalculating(true)
     try {
-      const data = await apiClient.deliveries.preview(values.latitude, values.longitude)
+      const data = await apiClient.shipments.preview(values)
       setPreview(data)
     } catch {
       setPreview(null)
@@ -47,25 +58,13 @@ export const Page = () => {
   }
 
   const createDelivery = async () => {
-    if (preview == null || values.latitude == null || values.longitude == null) return
+    if (preview == null) return
 
     setIsCreating(true)
     try {
-      const order = await createOrder({
-        items_attributes: [],
-        delivery_fee: Number(preview.fee),
-        discount: 0,
-        notes: values.notes.trim(),
-        latitude: values.latitude,
-        longitude: values.longitude,
-        distance_km: Number(preview.distance_km),
-        customer_name: values.customer_name.trim(),
-        customer_phone: values.customer_phone.trim(),
-      })
-      const preparing = await markPreparing(order.id)
+      const delivery = await apiClient.shipments.create(values)
       toast.success("Buscando un repartidor")
-      const deliveryId = preparing.delivery?.id
-      navigate(deliveryId ? `/deliveries/${deliveryId}` : `/orders/${order.id}`)
+      navigate(`/deliveries/${delivery.id}`)
     } catch {
       toast.error("No se pudo crear la entrega.")
     } finally {
@@ -92,7 +91,7 @@ export const Page = () => {
         <h1 className="text-2xl font-bold text-gray-900">Solicitar entrega</h1>
         <p className="mt-1 text-[15px] text-gray-500">
           Envía un paquete sin armar un pedido de comida. Al confirmar, Pedí2 busca
-          un repartidor. Cuando el paquete esté empacado, márcalo listo en la entrega.
+            un repartidor y lo enviará a recoger el paquete.
         </p>
       </div>
 
@@ -102,8 +101,36 @@ export const Page = () => {
         isCalculating={isCalculating}
         isCreating={isCreating}
         onChange={handleChange}
-        onPinChange={(latitude, longitude) => {
-          mutate({ latitude, longitude })
+        onPickupAddressSelect={(selection: TAddressSelection) => {
+          mutate({
+            pickup_address: selection.address,
+            pickup_latitude: selection.latitude,
+            pickup_longitude: selection.longitude,
+          })
+          setPreview(null)
+        }}
+        onDestinationAddressSelect={(selection: TAddressSelection) => {
+          mutate({
+            destination_address: selection.address,
+            destination_latitude: selection.latitude,
+            destination_longitude: selection.longitude,
+          })
+          setPreview(null)
+        }}
+        onPickupAddressChange={(pickup_address) => {
+          mutate({ pickup_address })
+          setPreview(null)
+        }}
+        onDestinationAddressChange={(destination_address) => {
+          mutate({ destination_address })
+          setPreview(null)
+        }}
+        onPickupCoordinatesChange={(pickup_latitude, pickup_longitude) => {
+          mutate({ pickup_latitude, pickup_longitude })
+          setPreview(null)
+        }}
+        onDestinationCoordinatesChange={(destination_latitude, destination_longitude) => {
+          mutate({ destination_latitude, destination_longitude })
           setPreview(null)
         }}
         onCalculate={() => void calculatePreview()}
@@ -114,7 +141,7 @@ export const Page = () => {
       <ConfirmDialog
         open={showConfirm}
         title="Confirmar entrega"
-        message="Pedí2 buscará un repartidor. ¿Deseas continuar?"
+        message="Pedí2 buscará un repartidor para recoger el paquete. ¿Deseas continuar?"
         confirmLabel="Sí, solicitar"
         confirmVariant="primary"
         confirming={isCreating}

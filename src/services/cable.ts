@@ -19,6 +19,7 @@ export type RestaurantsChannelHandle = {
 
 export type RestaurantsChannelMessage = {
   type: string
+  message?: unknown
   order?: unknown
 }
 

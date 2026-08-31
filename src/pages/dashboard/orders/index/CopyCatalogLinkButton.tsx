@@ -30,7 +30,12 @@ export const CopyCatalogLinkButton = () => {
   }
 
   return (
-    <Button variant="secondary" onClick={() => void handleShare()} disabled={!token}>
+    <Button
+      variant="secondary"
+      className="min-w-0 flex-none phone-portrait:flex-1 phone-portrait:gap-1 phone-portrait:px-3 phone-portrait:py-2.5 phone-portrait:text-xs"
+      onClick={() => void handleShare()}
+      disabled={!token}
+    >
       <FontAwesomeIcon icon={copied ? faCheck : faShareNodes} className="size-4" aria-hidden />
       {copied ? "Enlace copiado" : "Compartir menú"}
     </Button>

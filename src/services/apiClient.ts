@@ -8,6 +8,7 @@ import { RestaurantsAPI } from "./restaurants";
 import { ReportsAPI } from "./reports";
 import { PublicOrdersAPI } from "./publicOrders";
 import { PublicCatalogAPI } from "./publicCatalog";
+import { ShipmentsAPI } from "./shipments";
 
 export { axiosInstance } from "./axiosInstance";
 
@@ -22,4 +23,5 @@ export const apiClient = {
   reports: ReportsAPI,
   publicOrders: PublicOrdersAPI,
   publicCatalog: PublicCatalogAPI,
+  shipments: ShipmentsAPI,
 }

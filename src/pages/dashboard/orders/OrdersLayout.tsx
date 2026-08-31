@@ -22,10 +22,9 @@ export const OrdersLayout = () => {
 
   return (
     <div
-      className="pb-24"
+      className="pb-[var(--orders-rail-h)] phone-portrait:pb-0 phone-portrait:[--orders-rail-h:0px]"
       style={{ "--orders-rail-h": "5.75rem" } as CSSProperties}
     >
-      <Outlet />
       <OrderQueueBar
         orders={queue}
         attentionOrderIds={attentionOrderIds}
@@ -34,6 +33,7 @@ export const OrdersLayout = () => {
         onSelect={(orderId) => navigate(`/orders/${orderId}`)}
         onCreate={() => navigate("/orders/new")}
       />
+      <Outlet />
     </div>
   )
 }
