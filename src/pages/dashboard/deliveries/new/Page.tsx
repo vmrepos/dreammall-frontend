@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faTruck } from "@fortawesome/free-solid-svg-icons"
@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { ConfirmDialog } from "../../../../components/molecules/ConfirmDialog"
 import { useForm } from "../../../../hooks/useForm"
 import { apiClient } from "../../../../services/apiClient"
+import { googleMapsKey, reverseGeocode } from "../../../../services/googleMaps"
 import type { ShipmentPreview } from "../../../../services/shipments"
 import type { TShipmentFormValues } from "../../../../types/Shipment"
 import type { TAddressSelection } from "../../../../components/molecules/AddressSearchField"
@@ -32,10 +33,44 @@ export const Page = () => {
   const [isCreating, setIsCreating] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const { values, handleChange, mutate } = useForm<TShipmentFormValues>({
+  const { values, handleChange, mutate, setValues } = useForm<TShipmentFormValues>({
     initialValues,
     onSubmit: () => undefined,
   })
+
+  useEffect(() => {
+    if (!navigator.geolocation) return
+
+    let cancelled = false
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        if (cancelled) return
+
+        const pickup_latitude = position.coords.latitude
+        const pickup_longitude = position.coords.longitude
+        const pickup_address = googleMapsKey
+          ? (await reverseGeocode(pickup_latitude, pickup_longitude)) ?? ""
+          : ""
+
+        setValues((prev) => {
+          if (prev.pickup_latitude != null || prev.pickup_longitude != null) return prev
+          return {
+            ...prev,
+            pickup_latitude,
+            pickup_longitude,
+            ...(pickup_address ? { pickup_address } : {}),
+          }
+        })
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
+    )
+
+    return () => {
+      cancelled = true
+    }
+  }, [setValues])
 
   const calculatePreview = async () => {
     if (

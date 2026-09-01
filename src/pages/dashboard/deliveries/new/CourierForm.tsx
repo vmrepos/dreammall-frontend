@@ -126,7 +126,6 @@ export const CourierForm = ({
                 onChange={onPickupCoordinatesChange}
                 onAddressChange={onPickupAddressChange}
                 openOnMount
-                allowDeviceLocation={false}
               />
             </div>
           ) : null}

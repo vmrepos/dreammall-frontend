@@ -71,3 +71,20 @@ export const loadGooglePlaces = (key: string) => {
 
   return googlePlacesLoader
 }
+
+export const reverseGeocode = async (
+  latitude: number,
+  longitude: number,
+): Promise<string | null> => {
+  if (!googleMapsKey) return null
+
+  try {
+    const maps = await loadGoogleMaps(googleMapsKey)
+    const geocoder = new maps.Geocoder()
+    const response: { results: Array<{ formatted_address?: string }> } =
+      await geocoder.geocode({ location: { lat: latitude, lng: longitude } })
+    return response.results[0]?.formatted_address?.trim() ?? null
+  } catch {
+    return null
+  }
+}
