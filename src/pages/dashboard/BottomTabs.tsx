@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
   faArrowRightFromBracket,
@@ -15,6 +16,28 @@ import { isNavActive, moreNavItems, tabNavItems } from "./nav"
 
 const PHONE =
   "(max-width: 767px), ((pointer: coarse) and (max-width: 1023px))"
+
+const TabFace = ({
+  icon,
+  label,
+  active,
+}: {
+  icon: IconDefinition
+  label: string
+  active: boolean
+}) => (
+  <>
+    <span
+      className={cn(
+        "flex size-7 items-center justify-center rounded-lg",
+        active && "bg-white/12",
+      )}
+    >
+      <FontAwesomeIcon icon={icon} className="size-4" aria-hidden />
+    </span>
+    <span className="max-w-full truncate">{label}</span>
+  </>
+)
 
 export const BottomTabs = () => {
   const { pathname } = useLocation()
@@ -35,22 +58,21 @@ export const BottomTabs = () => {
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-accent-clay/50 via-accent-sun/40 to-brand/60"
           aria-hidden
         />
-        <ul className="grid h-14 grid-cols-4 px-1.5">
+        <ul className="grid h-14 grid-cols-4">
           {tabNavItems.map(({ to, label, icon }) => (
             <li key={to} className="min-w-0">
               <NavLink
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    "mx-0.5 my-1 flex h-[calc(100%-0.5rem)] flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold tracking-wide transition",
-                    isActive
-                      ? "bg-brand text-white shadow-sm"
-                      : "text-white/60 hover:bg-sidebar-hover hover:text-white",
+                    "flex h-full flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-semibold tracking-wide transition",
+                    isActive ? "text-white" : "text-white/50 hover:text-white",
                   )
                 }
               >
-                <FontAwesomeIcon icon={icon} className="size-4" aria-hidden />
-                <span className="max-w-full truncate">{label}</span>
+                {({ isActive }) => (
+                  <TabFace icon={icon} label={label} active={isActive} />
+                )}
               </NavLink>
             </li>
           ))}
@@ -58,17 +80,18 @@ export const BottomTabs = () => {
             <button
               type="button"
               className={cn(
-                "mx-0.5 my-1 flex h-[calc(100%-0.5rem)] w-[calc(100%-0.25rem)] flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] font-semibold tracking-wide transition",
-                moreOpen || moreActive
-                  ? "bg-brand text-white shadow-sm"
-                  : "text-white/60 hover:bg-sidebar-hover hover:text-white",
+                "flex h-full w-full flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-semibold tracking-wide transition",
+                moreOpen || moreActive ? "text-white" : "text-white/50 hover:text-white",
               )}
               aria-expanded={moreOpen}
               aria-controls="dashboard-more-sheet"
               onClick={() => setMoreOpen((open) => !open)}
             >
-              <FontAwesomeIcon icon={faEllipsis} className="size-4" aria-hidden />
-              <span>Más</span>
+              <TabFace
+                icon={faEllipsis}
+                label="Más"
+                active={moreOpen || moreActive}
+              />
             </button>
           </li>
         </ul>
