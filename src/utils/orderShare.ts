@@ -2,14 +2,18 @@ import { customerOrigin } from "./host"
 
 export const publicOrderPath = (publicToken: string) => `/pedido/${publicToken}`
 
+export const restaurantCompletePath = (publicToken: string) =>
+  `${publicOrderPath(publicToken)}?from_restaurant=true`
+
 export const publicOrderUrl = (
   publicToken: string,
   options?: { fromRestaurant?: boolean },
 ) => {
   const origin = options?.fromRestaurant ? window.location.origin : customerOrigin()
-  const url = `${origin}${publicOrderPath(publicToken)}`
-  if (!options?.fromRestaurant) return url
-  return `${url}?from_restaurant=true`
+  const path = options?.fromRestaurant
+    ? restaurantCompletePath(publicToken)
+    : publicOrderPath(publicToken)
+  return `${origin}${path}`
 }
 
 export const copyToClipboard = async (value: string) => {
@@ -40,11 +44,24 @@ export const publicCatalogUrl = (orderingToken: string) =>
 
 const isMobileUa = () => /Android|iPhone|iPad/i.test(navigator.userAgent)
 
-const whatsAppHref = (url: string) => {
-  const encoded = encodeURIComponent(url)
-  if (isMobileUa()) return `https://wa.me/?text=${encoded}`
-  return `https://web.whatsapp.com/send?text=${encoded}`
+export const whatsAppDigits = (phone: string) => {
+  const digits = phone.replace(/\D/g, "")
+  if (digits.length === 8) return `591${digits}`
+  return digits
 }
+
+export const whatsAppMessageHref = (phone: string, text: string) => {
+  const digits = whatsAppDigits(phone)
+  const encoded = encodeURIComponent(text)
+  if (!digits) {
+    if (isMobileUa()) return `https://wa.me/?text=${encoded}`
+    return `https://web.whatsapp.com/send?text=${encoded}`
+  }
+  if (isMobileUa()) return `https://wa.me/${digits}?text=${encoded}`
+  return `https://web.whatsapp.com/send?phone=${digits}&text=${encoded}`
+}
+
+const whatsAppHref = (url: string) => whatsAppMessageHref("", url)
 
 export type TShareUrlResult = "shared" | "copied" | "cancelled"
 

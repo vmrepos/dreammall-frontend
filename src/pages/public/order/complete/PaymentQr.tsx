@@ -20,8 +20,8 @@ export const PaymentQr = ({ restaurantName, qrUrl }: Props) => {
         <h2 className="mt-3 text-base font-semibold text-ink">Paga tu pedido</h2>
         <p className="mt-1 text-sm leading-relaxed text-ink-muted">
           {restaurantName
-            ? `Transfiere con el QR de ${restaurantName}. Cuando confirmen el pago, empezarán a preparar tu pedido.`
-            : "Transfiere con el QR del restaurante. Cuando confirmen el pago, empezarán a preparar tu pedido."}
+            ? `Transfiere con el QR de ${restaurantName}. Cuando hayas pagado, toca Ya pagué.`
+            : "Transfiere con el QR del restaurante. Cuando hayas pagado, toca Ya pagué."}
         </p>
         {imageSrc ? (
           <img

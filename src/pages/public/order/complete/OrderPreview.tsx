@@ -66,6 +66,17 @@ export const OrderPreview = ({ order }: Props) => {
             {formatCurrency(order.total_amount)}
           </dd>
         </div>
+        {order.payment_method === "cash" && order.change_for != null ? (
+          <div className="flex justify-between gap-2">
+            <dt className="text-ink-muted">Cambio de</dt>
+            <dd className="font-medium tabular-nums">{formatCurrency(order.change_for)}</dd>
+          </div>
+        ) : order.payment_method === "qr" ? (
+          <div className="flex justify-between gap-2">
+            <dt className="text-ink-muted">Pago</dt>
+            <dd className="font-medium">QR</dd>
+          </div>
+        ) : null}
         {order.delivery_code ? (
           <div className="rounded-xl bg-brand-light px-4 py-4 text-center">
             <dt className="text-xs font-semibold uppercase tracking-wide text-ink-muted">

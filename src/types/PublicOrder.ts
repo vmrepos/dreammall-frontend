@@ -1,5 +1,6 @@
 import type { TMenu } from "./Menu"
 import type { TOrderItem } from "./OrderItem"
+import type { TPaymentMethod } from "./Order"
 
 export type TPublicOrder = {
   id: number
@@ -14,6 +15,9 @@ export type TPublicOrder = {
   notes?: string | null
   customer_name?: string | null
   customer_phone?: string | null
+  payment_method?: TPaymentMethod | null
+  change_for?: number | null
+  completed_by_restaurant?: boolean
   items: TOrderItem[]
 }
 
@@ -31,6 +35,13 @@ export type TPublicOrderCompletePayload = {
   notes: string
   latitude: number
   longitude: number
+  from_restaurant?: boolean
+}
+
+export type TPublicOrderPaymentPayload = {
+  payment_method: TPaymentMethod
+  change_for?: number | null
+  from_restaurant?: boolean
 }
 
 export type TPublicCatalog = {

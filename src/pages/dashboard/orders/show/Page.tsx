@@ -17,6 +17,7 @@ import { apiClient } from "../../../../services/apiClient"
 import type { TOrderStatus } from "../../../../types/Order"
 import { canCancelOrder, canConfirmReturn, canMarkPreparing, canRetryDelivery, getNextOrderStatus, orderStatusConfig } from "../../../../utils/status"
 import { formatCurrency, formatDate } from "../../../../utils/format"
+import { restaurantCompletePath } from "../../../../utils/orderShare"
 import { DeliveryCard } from "../shared/DeliveryCard"
 import { ReadyCountdown } from "../shared/ReadyCountdown"
 import { DELIVERIES_SECTION_ENABLED } from "../../deliveries/Deliveries"
@@ -194,13 +195,23 @@ export const Page = () => {
             canCancelOrder(order.status, order.delivery)) && (
             <div className="flex shrink-0 flex-col gap-2 border-t border-gray-100 px-6 py-4 [&>button]:w-full @min-[40rem]:flex-row @min-[40rem]:justify-end @min-[40rem]:[&>button]:w-auto">
               {nextStatus === "preparing" && (
-                <Button
-                  disabled={!canPrepare}
-                  title={canPrepare ? undefined : "Falta la ubicación del cliente"}
-                  onClick={() => canPrepare && setConfirmAction("preparing")}
-                >
-                  Preparando
-                </Button>
+                <>
+                  {!canPrepare && order.public_token ? (
+                    <Link
+                      to={restaurantCompletePath(order.public_token)}
+                      className="inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-brand transition hover:bg-brand-light"
+                    >
+                      Completar desde el restaurante
+                    </Link>
+                  ) : null}
+                  <Button
+                    disabled={!canPrepare}
+                    title={canPrepare ? undefined : "Falta la ubicación del cliente"}
+                    onClick={() => canPrepare && setConfirmAction("preparing")}
+                  >
+                    Preparando
+                  </Button>
+                </>
               )}
               {nextStatus === "ready" && (
                 <Button onClick={() => setConfirmAction("ready")}>{nextLabel}</Button>

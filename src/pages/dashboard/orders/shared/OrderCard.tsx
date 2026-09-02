@@ -130,6 +130,13 @@ export const OrderCard = ({ order }: Props) => {
                   {order.customer_name}
                 </p>
               ) : null}
+              {order.payment_method === "cash" && order.change_for != null ? (
+                <p className="mt-0.5 text-xs font-medium text-ink-muted">
+                  Efectivo · cambio de {formatCurrency(order.change_for)}
+                </p>
+              ) : order.payment_method === "qr" ? (
+                <p className="mt-0.5 text-xs font-medium text-ink-muted">Pago QR</p>
+              ) : null}
               <p className="mt-0.5 text-xs text-ink-muted">
                 {formatDateTime(order.created_at)}
                 {order.status === "preparing" && (

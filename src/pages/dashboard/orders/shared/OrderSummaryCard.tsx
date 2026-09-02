@@ -4,6 +4,7 @@ import { DetailRow } from "../../../../components/molecules/DetailRow"
 import type { TOrder } from "../../../../types/Order"
 import { cn, formatCurrency } from "../../../../utils/format"
 import { cancelReasonLabel } from "../../../../utils/status"
+import { isPaymentMethod, paymentMethodLabel } from "../../../../utils/payment"
 
 type Props = {
   order: TOrder
@@ -40,6 +41,19 @@ export const OrderSummaryCard = ({ order, className, headerAction }: Props) => {
           ) : null}
         </div>
       )}
+      {isPaymentMethod(order.payment_method) ? (
+        <DetailRow
+          label="Pago"
+          value={
+            order.payment_method === "cash" && order.change_for != null
+              ? `${paymentMethodLabel.cash} · cambio de ${formatCurrency(order.change_for)}`
+              : paymentMethodLabel[order.payment_method]
+          }
+        />
+      ) : null}
+      {order.completed_by_restaurant ? (
+        <p className="mt-2 text-xs text-ink-muted">Datos completados en el local</p>
+      ) : null}
       {order.distance_km != null && (
         <DetailRow label="Distancia" value={`${Number(order.distance_km).toFixed(2)} km`} />
       )}

@@ -13,6 +13,7 @@ import type { TOrderForm } from "../../../../types/Order"
 import type { TOrderItemOption } from "../../../../types/OrderItem"
 import type { TProduct } from "../../../../types/Product"
 import { cn, formatCurrency } from "../../../../utils/format"
+import { restaurantCompletePath } from "../../../../utils/orderShare"
 import { AvailableProducts } from "./AvailableProducts"
 import { OrderCartPanel } from "./OrderCartPanel"
 import { OrderSummary } from "./OrderSummary"
@@ -51,26 +52,37 @@ export const Page = () => {
   const [customizing, setCustomizing] = useState<TProduct | null>(null)
   const [customizeKey, setCustomizeKey] = useState(0)
 
-  const { values, handleChange, handleSubmit, mutate, setValues } = useForm<TOrderForm>({
-    initialValues,
-    onSubmit: async (formValues) => {
-      if (formValues.items_attributes.length === 0) return
-      const subtotal = lineSubtotal(formValues.items_attributes)
-      if (toMoney(Number(formValues.discount)) > toMoney(subtotal + Number(formValues.delivery_fee))) {
-        toast.error("El descuento no puede ser mayor al total")
+  const saveOrder = async (formValues: TOrderForm, completeFromRestaurant: boolean) => {
+    if (formValues.items_attributes.length === 0) return
+    const subtotal = lineSubtotal(formValues.items_attributes)
+    if (toMoney(Number(formValues.discount)) > toMoney(subtotal + Number(formValues.delivery_fee))) {
+      toast.error("El descuento no puede ser mayor al total")
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      const order = await createOrder({ ...formValues })
+      toast.success("Pedido creado")
+      if (completeFromRestaurant) {
+        if (!order.public_token) {
+          toast.error("No se pudo abrir el enlace del cliente.")
+          navigate(`/orders/${order.id}`)
+          return
+        }
+        navigate(restaurantCompletePath(order.public_token))
         return
       }
-      setIsSubmitting(true)
-      try {
-        const order = await createOrder({ ...formValues })
-        toast.success("Pedido creado")
-        navigate(`/orders/${order.id}`)
-      } catch {
-        toast.error("No se pudo crear el pedido. Intenta de nuevo.")
-      } finally {
-        setIsSubmitting(false)
-      }
-    },
+      navigate(`/orders/${order.id}`)
+    } catch {
+      toast.error("No se pudo crear el pedido. Intenta de nuevo.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const { values, handleChange, handleSubmit, mutate, setValues } = useForm<TOrderForm>({
+    initialValues,
+    onSubmit: (formValues) => saveOrder(formValues, false),
   })
 
   const cart = useCart({
@@ -262,6 +274,7 @@ export const Page = () => {
                 handleChange(e)
               }}
               onBack={() => setStep(1)}
+              onCompleteFromRestaurant={() => void saveOrder(values, true)}
             />
           </div>
         )}

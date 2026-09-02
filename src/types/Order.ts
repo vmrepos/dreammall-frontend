@@ -1,6 +1,8 @@
 import type { TDelivery } from "./Delivery"
 import type { TOrderItem, TOrderItemForm } from "./OrderItem"
 
+export type TPaymentMethod = "cash" | "qr"
+
 export type TOrderStatus =
   | "pending"
   | "preparing"
@@ -31,6 +33,9 @@ export type TOrder = {
   public_token: string | null
   customer_name: string | null
   customer_phone: string | null
+  payment_method: TPaymentMethod | null
+  change_for: number | null
+  completed_by_restaurant: boolean
 }
 
 export type TOrderForm = {

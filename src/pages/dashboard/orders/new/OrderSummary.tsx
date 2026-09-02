@@ -17,6 +17,7 @@ type Props = {
   canSubmit: boolean
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onBack: () => void
+  onCompleteFromRestaurant: () => void
   className?: string
 }
 
@@ -31,6 +32,7 @@ export const OrderSummary = ({
   canSubmit,
   onChange,
   onBack,
+  onCompleteFromRestaurant,
   className,
 }: Props) => (
   <Card
@@ -39,9 +41,17 @@ export const OrderSummary = ({
   >
     <h2 className="mb-3 text-base font-semibold text-gray-900">Resumen</h2>
 
-    <p className="rounded-lg bg-brand-light px-3 py-2 text-xs leading-relaxed text-gray-700">
-      El cliente completa sus datos con el enlace. El envío se calcula después.
-    </p>
+    <div className="rounded-lg bg-brand-light px-3 py-2 text-xs leading-relaxed text-gray-700">
+      <p>El cliente completa sus datos con el enlace. El envío se calcula después.</p>
+      <button
+        type="button"
+        className="mt-1.5 font-semibold text-brand underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+        disabled={!canSubmit}
+        onClick={onCompleteFromRestaurant}
+      >
+        Completar desde el restaurante
+      </button>
+    </div>
 
     <ul className="mt-4 divide-y divide-gray-100 rounded-lg border border-gray-100">
       {items.map((line) => (

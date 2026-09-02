@@ -16,7 +16,17 @@ export const toOrder = (raw: TOrderWire): TOrder => {
         : "returned"
       : (raw.status as TOrderStatus)
 
-  return { ...raw, status, delivery, public_token: raw.public_token ?? null, customer_name: raw.customer_name ?? null, customer_phone: raw.customer_phone ?? null }
+  return {
+    ...raw,
+    status,
+    delivery,
+    public_token: raw.public_token ?? null,
+    customer_name: raw.customer_name ?? null,
+    customer_phone: raw.customer_phone ?? null,
+    payment_method: raw.payment_method === "cash" || raw.payment_method === "qr" ? raw.payment_method : null,
+    change_for: raw.change_for != null ? Number(raw.change_for) : null,
+    completed_by_restaurant: Boolean(raw.completed_by_restaurant),
+  }
 }
 
 const toCreatePayload = (input: TOrderForm) => {

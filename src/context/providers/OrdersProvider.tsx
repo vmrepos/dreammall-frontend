@@ -61,6 +61,10 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         case "order_location_updated":
           toast.success(`Pedido #${o.id}: el cliente confirmó la ubicación`)
           markAttention(o.id)
+          break
+        case "order_payment_updated":
+          toast.success(`Pedido #${o.id}: eligió forma de pago`)
+          markAttention(o.id)
           break;
         case "delivery_assigned":
           toast.success(`Pedido #${o.id}: repartidor asignado`)

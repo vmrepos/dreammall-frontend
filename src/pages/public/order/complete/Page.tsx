@@ -1,15 +1,19 @@
 import { useEffect, useState, type ReactNode } from "react"
-import { useParams, useSearchParams } from "react-router-dom"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import axios from "axios"
-import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons"
+import { faArrowLeft, faCircleExclamation } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { BrandLogo } from "../../../../components/atoms/BrandLogo"
 import { useForm } from "../../../../hooks/useForm"
 import { apiClient } from "../../../../services/apiClient"
+import type { TPaymentMethod } from "../../../../types/Order"
 import type { TPublicOrder, TPublicOrderCompleteForm } from "../../../../types/PublicOrder"
+import { isPaymentMethod } from "../../../../utils/payment"
 import { CustomerForm } from "./CustomerForm"
 import { PayStep } from "./PayStep"
 import { StatusCard } from "./StatusCard"
 import { SummaryStep } from "./SummaryStep"
+import { WaitingStep } from "./WaitingStep"
 
 const initialValues: TPublicOrderCompleteForm = {
   name: "",
@@ -40,16 +44,17 @@ const orderHasCustomerData = (order: TPublicOrder) => Boolean(order.customer_nam
 const kitchenStarted = (order: TPublicOrder) =>
   Boolean(order.status) && order.status !== "pending"
 
-
-type Step = "details" | "pay" | "confirmed"
+type Step = "details" | "pay" | "waiting" | "confirmed"
 
 const stepForOrder = (order: TPublicOrder | null): Step => {
   if (!order || !orderHasCustomerData(order)) return "details"
   if (kitchenStarted(order)) return "confirmed"
+  if (isPaymentMethod(order.payment_method)) return "waiting"
   return "pay"
 }
 
 export const Page = () => {
+  const navigate = useNavigate()
   const { token } = useParams()
   const [searchParams] = useSearchParams()
   const fromRestaurant =
@@ -62,6 +67,8 @@ export const Page = () => {
   const [step, setStep] = useState<Step>("details")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const [method, setMethod] = useState<TPaymentMethod>("qr")
+  const [changeFor, setChangeFor] = useState("")
 
   const { values, handleChange, handleSubmit, mutate } = useForm<TPublicOrderCompleteForm>({
     initialValues,
@@ -88,6 +95,7 @@ export const Page = () => {
           notes: formValues.notes.trim(),
           latitude: formValues.latitude,
           longitude: formValues.longitude,
+          ...(fromRestaurant ? { from_restaurant: true } : {}),
         })
         setPreview(quoted)
         setStep(stepForOrder(quoted))
@@ -103,6 +111,45 @@ export const Page = () => {
     },
   })
 
+  const confirmPayment = async () => {
+    if (!publicToken) return
+    if (method === "cash") {
+      const bill = Number(changeFor)
+      const total = Number(preview?.total_amount ?? 0)
+      if (!Number.isFinite(bill) || bill <= 0) {
+        setError("Indica de qué billete necesitas cambio.")
+        return
+      }
+      if (bill < total) {
+        setError("El billete debe cubrir el total.")
+        return
+      }
+    }
+    setError("")
+    setIsSubmitting(true)
+    try {
+      const quoted = await apiClient.publicOrders.complete(publicToken, {
+        payment_method: method,
+        change_for: method === "cash" ? Number(changeFor) : null,
+        ...(fromRestaurant ? { from_restaurant: true } : {}),
+      })
+      setPreview(quoted)
+      if (fromRestaurant) {
+        navigate(`/orders/${quoted.id}`, { replace: true })
+        return
+      }
+      setStep("waiting")
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response?.status === 404) {
+        setLoadState("unavailable")
+        return
+      }
+      setError(errorMessage(e))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   useEffect(() => {
     if (!publicToken) return
     let cancelled = false
@@ -112,6 +159,10 @@ export const Page = () => {
         const order = await apiClient.publicOrders.show(publicToken)
         if (cancelled) return
         setPreview(order)
+        if (fromRestaurant && isPaymentMethod(order.payment_method)) {
+          navigate(`/orders/${order.id}`, { replace: true })
+          return
+        }
         setStep(stepForOrder(order))
         setLoadState("ready")
       } catch {
@@ -123,11 +174,10 @@ export const Page = () => {
     return () => {
       cancelled = true
     }
-  }, [publicToken])
+  }, [publicToken, fromRestaurant, navigate])
 
-  // Poll while waiting for kitchen to mark preparing — no public Action Cable.
   useEffect(() => {
-    if (!publicToken || step !== "pay") return
+    if (!publicToken || step !== "waiting") return
     let cancelled = false
 
     const poll = async () => {
@@ -178,20 +228,35 @@ export const Page = () => {
         ? "Completar ubicación"
         : "Completa tu pedido"
       : step === "pay"
-        ? "Paga tu pedido"
-        : "Tu pedido"
+        ? "¿Cómo vas a pagar?"
+        : step === "waiting"
+          ? "Esperando confirmación del comercio"
+          : "Tu pedido"
   const subtitle =
     step === "details"
       ? fromRestaurant
         ? "Marca el destino en el mapa. No uses la ubicación de este dispositivo."
         : "Indica tu ubicación para calcular el envío."
       : step === "pay"
-        ? "Transfiere con el QR. El resumen y el código aparecen cuando el comercio confirme el pago."
-        : "Guarda el código de entrega para dárselo al repartidor."
+        ? fromRestaurant
+          ? "Elige efectivo o QR. Al confirmar, volvemos al pedido."
+          : "Elige efectivo o QR. El comercio confirma y empieza a preparar."
+        : step === "waiting"
+          ? "Te avisamos aquí cuando el comercio confirme."
+          : "Guarda el código de entrega para dárselo al repartidor."
 
   return (
     <Shell>
       <header className="mb-6">
+        {fromRestaurant && preview ? (
+          <Link
+            to={`/orders/${preview.id}`}
+            className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-ink-muted transition hover:text-brand"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />
+            Volver al pedido
+          </Link>
+        ) : null}
         <h1 className="text-[1.75rem] font-bold leading-tight text-brand">{title}</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
           {preview ? `${orderLabel}. ` : null}
@@ -201,8 +266,22 @@ export const Page = () => {
 
       {step === "confirmed" && preview ? (
         <SummaryStep order={preview} />
+      ) : step === "waiting" && preview ? (
+        <WaitingStep order={preview} />
       ) : step === "pay" && preview ? (
-        <PayStep order={preview} />
+        <PayStep
+          order={preview}
+          method={method}
+          changeFor={changeFor}
+          error={error}
+          isSubmitting={isSubmitting}
+          onMethodChange={(next) => {
+            setMethod(next)
+            setError("")
+          }}
+          onChangeFor={setChangeFor}
+          onConfirm={() => void confirmPayment()}
+        />
       ) : (
         <CustomerForm
           values={values}
