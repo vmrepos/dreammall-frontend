@@ -6,6 +6,7 @@ import { useTheme } from "../../context/ThemeContext"
 import { BrandLogo } from "../../components/atoms/BrandLogo"
 import { Toggle } from "../../components/atoms/Toggle"
 import { sidebarNavItems } from "./nav"
+import { ImpersonationControls } from "./shared/ImpersonationControls"
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -16,7 +17,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   ].join(" ")
 
 export const Sidebar = () => {
-  const { restaurant, logout } = useAuth()
+  const { restaurant, isAdmin, logout } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -37,16 +38,18 @@ export const Sidebar = () => {
           <BrandLogo variant="dark" className="h-14 w-[11.5rem]" />
         </div>
         <h1 className="truncate text-sm font-medium text-white/65">
-          {restaurant?.name ?? "Mi restaurante"}
+          {restaurant?.name ?? (isAdmin ? "Admin" : "Mi restaurante")}
         </h1>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1" aria-label="Principal">
-        {sidebarNavItems.map(({ to, label }) => (
-          <NavLink key={to} to={to} className={navLinkClass}>
-            {label}
-          </NavLink>
-        ))}
+        {restaurant
+          ? sidebarNavItems.map(({ to, label }) => (
+              <NavLink key={to} to={to} className={navLinkClass}>
+                {label}
+              </NavLink>
+            ))
+          : null}
       </nav>
 
       <div className="mt-auto flex items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2.5">
@@ -63,6 +66,10 @@ export const Sidebar = () => {
           label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
           onChange={toggleTheme}
         />
+      </div>
+
+      <div className="mt-3">
+        <ImpersonationControls variant="sidebar" />
       </div>
 
       <button

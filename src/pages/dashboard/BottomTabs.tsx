@@ -13,6 +13,7 @@ import { useTheme } from "../../context/ThemeContext"
 import { Toggle } from "../../components/atoms/Toggle"
 import { cn } from "../../utils/format"
 import { isNavActive, moreNavItems, tabNavItems } from "./nav"
+import { ImpersonationControls } from "./shared/ImpersonationControls"
 
 const PHONE =
   "(max-width: 767px), ((pointer: coarse) and (max-width: 1023px))"
@@ -107,7 +108,7 @@ type MoreSheetProps = {
 }
 
 const MoreSheet = ({ open, onClose }: MoreSheetProps) => {
-  const { restaurant, logout } = useAuth()
+  const { restaurant, isAdmin, logout } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -168,7 +169,7 @@ const MoreSheet = ({ open, onClose }: MoreSheetProps) => {
           <span className="h-1 w-10 rounded-full bg-gray-200" />
         </div>
         <p id="dashboard-more-title" className="truncate px-5 pt-3 text-sm font-medium text-ink-muted">
-          {restaurant?.name ?? "Mi restaurante"}
+          {restaurant?.name ?? (isAdmin ? "Admin" : "Mi restaurante")}
         </p>
         <nav className="mt-2 flex flex-col px-3" aria-label="Más opciones">
           {moreNavItems.map(({ to, label, icon }) => (
@@ -188,6 +189,9 @@ const MoreSheet = ({ open, onClose }: MoreSheetProps) => {
             </NavLink>
           ))}
         </nav>
+        <div className="mx-3 mt-1">
+          <ImpersonationControls variant="sheet" onPicked={onClose} />
+        </div>
         <div className="mx-3 mt-2 flex items-center justify-between gap-3 rounded-xl bg-gray-100 px-3 py-2.5">
           <div className="flex items-center gap-2 text-sm text-ink-muted">
             <FontAwesomeIcon

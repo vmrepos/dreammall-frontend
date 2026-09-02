@@ -2,10 +2,10 @@ import { Navigate, Outlet } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 
 export const ProtectedRoute = () => {
-  const { restaurant, isLoading } = useAuth()
+  const { restaurant, isAdmin, isLoading } = useAuth()
 
   if (isLoading) return <div>Loading...</div>
-  if (!restaurant) return <Navigate to="/login" replace />
+  if (!restaurant && !isAdmin) return <Navigate to="/login" replace />
 
   return <Outlet />
 }

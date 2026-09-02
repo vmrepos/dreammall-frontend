@@ -1,4 +1,4 @@
-import type { TRestaurant, TRestaurantForm } from "../types/Restaurant";
+import type { TRestaurant, TRestaurantForm, TRestaurantSummary } from "../types/Restaurant";
 import { axiosInstance } from "./axiosInstance";
 import { DirectUploadsAPI } from "./directUploads";
 
@@ -25,6 +25,10 @@ export const RestaurantsAPI = {
   },
   getProfile: async (): Promise<TRestaurant> => {
     const response = await axiosInstance.get(`/restaurants/profile`);
+    return response.data.data;
+  },
+  listImpersonatable: async (): Promise<TRestaurantSummary[]> => {
+    const response = await axiosInstance.get<{ data: TRestaurantSummary[] }>("/restaurants/impersonatable");
     return response.data.data;
   },
 };

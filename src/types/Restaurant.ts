@@ -26,6 +26,8 @@ export type TRestaurant = {
   };
 };
 
+export type TRestaurantSummary = Pick<TRestaurant, "id" | "name" | "address" | "whatsapp">
+
 
 export type TRestaurantForm = Partial<TRestaurant> & {
   payment_qr?: File | string | null

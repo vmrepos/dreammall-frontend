@@ -7,7 +7,7 @@ export type TUser = {
   last_name: string;
   username: string;
   phone_number: string;
-
+  admin?: boolean;
 }
 
 export type TUserForm = Partial<TUser> & {
