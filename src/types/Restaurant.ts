@@ -20,6 +20,7 @@ export type TRestaurant = {
   ordering_token?: string | null;
   payment_qr_url?: string | null
   logo_url?: string | null;
+  listed?: boolean;
   demand?: {
     online: number;
     available: number;
