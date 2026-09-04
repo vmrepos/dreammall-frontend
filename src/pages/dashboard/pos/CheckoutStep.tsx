@@ -19,6 +19,9 @@ type Props = {
   total: number
   maxDiscount: number
   discountError: string
+  couponApplied: number
+  couponError: string
+  couponStatus: "idle" | "loading" | "ready" | "error"
   feeStatus: FeeStatus
   feeError: string
   paymentError: string
@@ -44,6 +47,9 @@ export const CheckoutStep = ({
   total,
   maxDiscount,
   discountError,
+  couponApplied,
+  couponError,
+  couponStatus,
   feeStatus,
   feeError,
   paymentError,
@@ -148,6 +154,27 @@ export const CheckoutStep = ({
                 ) : null}
               </div>
               <div>
+                <Label htmlFor="coupon_code">Cupón Pedí2</Label>
+                <Input
+                  id="coupon_code"
+                  name="coupon_code"
+                  className="mt-1.5"
+                  inputMode="numeric"
+                  maxLength={8}
+                  placeholder="8 dígitos"
+                  value={values.coupon_code ?? ""}
+                  onChange={onChange}
+                />
+                {couponStatus === "loading" ? (
+                  <p className="mt-1.5 text-sm text-ink-muted">Verificando cupón…</p>
+                ) : null}
+                {couponError ? (
+                  <p className="mt-1.5 text-sm text-red-600" role="alert">
+                    {couponError}
+                  </p>
+                ) : null}
+              </div>
+              <div>
                 <Label htmlFor="notes">Notas</Label>
                 <Input
                   id="notes"
@@ -184,6 +211,14 @@ export const CheckoutStep = ({
                   -{formatCurrency(values.discount)}
                 </dd>
               </div>
+              {couponApplied > 0 ? (
+                <div className="flex justify-between gap-2">
+                  <dt className="text-gray-500">Cupón Pedí2</dt>
+                  <dd className="font-medium tabular-nums text-gray-900">
+                    -{formatCurrency(couponApplied)}
+                  </dd>
+                </div>
+              ) : null}
               <div className="flex justify-between gap-2 border-t border-gray-100 pt-2">
                 <dt className="font-semibold text-gray-900">Total</dt>
                 <dd className="text-base font-bold tabular-nums text-brand">

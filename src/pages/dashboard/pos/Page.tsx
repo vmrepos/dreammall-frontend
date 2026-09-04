@@ -111,6 +111,7 @@ const initialValues: TOrderForm = {
   notes: "",
   customer_name: "",
   customer_phone: "",
+  coupon_code: "",
 }
 
 export const Page = () => {
@@ -127,6 +128,9 @@ export const Page = () => {
   const [paymentError, setPaymentError] = useState("")
   const [feeStatus, setFeeStatus] = useState<"idle" | "loading" | "ready" | "error">("idle")
   const [feeError, setFeeError] = useState("")
+  const [couponApplied, setCouponApplied] = useState(0)
+  const [couponError, setCouponError] = useState("")
+  const [couponStatus, setCouponStatus] = useState<"idle" | "loading" | "ready" | "error">("idle")
 
   const { values, handleChange, handleSubmit, mutate, setValues } = useForm<TOrderForm>({
     initialValues,
@@ -134,7 +138,7 @@ export const Page = () => {
       const subtotal = lineSubtotal(formValues.items_attributes)
       const payable = Math.max(
         0,
-        subtotal + Number(formValues.delivery_fee) - toMoney(Number(formValues.discount)),
+        subtotal + Number(formValues.delivery_fee) - toMoney(Number(formValues.discount)) - couponApplied,
       )
       const gaps = collectGaps({
         formValues,
@@ -260,6 +264,44 @@ export const Page = () => {
     }
   }, [values.latitude, values.longitude, setValues])
 
+  const couponCode = (values.coupon_code ?? "").replace(/\D/g, "").slice(0, 8)
+
+  useEffect(() => {
+    if (couponCode.length !== 8) {
+      setCouponApplied(0)
+      setCouponError("")
+      setCouponStatus("idle")
+      return
+    }
+
+    let cancelled = false
+    setCouponStatus("loading")
+    setCouponError("")
+
+    void apiClient.coupons
+      .preview({
+        code: couponCode,
+        subtotal: lineSubtotal(values.items_attributes),
+        delivery_fee: Number(values.delivery_fee),
+        discount: toMoney(Number(values.discount)),
+      })
+      .then((quote) => {
+        if (cancelled) return
+        setCouponApplied(toMoney(Number(quote.applied_amount)))
+        setCouponStatus("ready")
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setCouponApplied(0)
+        setCouponStatus("error")
+        setCouponError(apiErrorMessage(error, "No se pudo aplicar el cupón."))
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [couponCode, values.items_attributes, values.delivery_fee, values.discount])
+
   const handleAddProduct = (product: TProduct) => {
     if (productHasOptions(product)) {
       setCustomizeKey((key) => key + 1)
@@ -278,7 +320,7 @@ export const Page = () => {
   const maxDiscount = toMoney(Math.max(0, cart.subtotal + Number(values.delivery_fee)))
   const discount = toMoney(Number(values.discount))
   const discountTooHigh = discount > maxDiscount
-  const total = Math.max(0, cart.subtotal + Number(values.delivery_fee) - discount)
+  const total = Math.max(0, cart.subtotal + Number(values.delivery_fee) - discount - couponApplied)
   const gaps = collectGaps({
     formValues: values,
     itemCount: cart.items.length,
@@ -365,6 +407,9 @@ export const Page = () => {
             total={total}
             maxDiscount={maxDiscount}
             discountError={discountTooHigh ? "El descuento no puede ser mayor al total" : ""}
+            couponApplied={couponApplied}
+            couponError={couponError}
+            couponStatus={couponStatus}
             feeStatus={feeStatus}
             feeError={feeError}
             paymentError={paymentError}
@@ -377,6 +422,10 @@ export const Page = () => {
             onChange={(e) => {
               if (e.target.name === "discount") {
                 handleDiscountChange(e)
+                return
+              }
+              if (e.target.name === "coupon_code") {
+                mutate({ coupon_code: e.target.value.replace(/\D/g, "").slice(0, 8) })
                 return
               }
               handleChange(e)

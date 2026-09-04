@@ -36,6 +36,11 @@ export type TOrder = {
   payment_method: TPaymentMethod | null
   change_for: number | null
   completed_by_restaurant: boolean
+  coupon: {
+    code: string
+    amount: number
+    applied_amount: number
+  } | null
 }
 
 export type TOrderForm = {
@@ -49,6 +54,7 @@ export type TOrderForm = {
   distance_km?: number
   customer_name?: string
   customer_phone?: string
+  coupon_code?: string
 }
 
 export type TOrderCancelReason = "customer_cancelled" | "restaurant_cancelled" | "other"

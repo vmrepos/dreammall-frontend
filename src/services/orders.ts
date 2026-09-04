@@ -2,9 +2,10 @@ import type { TOrder, TOrderForm, TOrderStatus } from "../types/Order"
 import { axiosInstance } from "./apiClient"
 import { toDelivery } from "./deliveries"
 
-type TOrderWire = Omit<TOrder, "status" | "delivery"> & {
+type TOrderWire = Omit<TOrder, "status" | "delivery" | "coupon"> & {
   status: string
   delivery: Parameters<typeof toDelivery>[0] | null
+  coupon: TOrder["coupon"]
 }
 
 export const toOrder = (raw: TOrderWire): TOrder => {
@@ -26,15 +27,24 @@ export const toOrder = (raw: TOrderWire): TOrder => {
     payment_method: raw.payment_method === "cash" || raw.payment_method === "qr" ? raw.payment_method : null,
     change_for: raw.change_for != null ? Number(raw.change_for) : null,
     completed_by_restaurant: Boolean(raw.completed_by_restaurant),
+    coupon: raw.coupon
+      ? {
+          code: raw.coupon.code,
+          amount: Number(raw.coupon.amount),
+          applied_amount: Number(raw.coupon.applied_amount),
+        }
+      : null,
   }
 }
 
 const toCreatePayload = (input: TOrderForm) => {
-  const { items_attributes, ...rest } = input
+  const { items_attributes, coupon_code, ...rest } = input
+  const code = coupon_code?.replace(/\D/g, "") ?? ""
 
   return {
     order: {
       ...rest,
+      ...(code.length === 8 ? { coupon_code: code } : {}),
       items_attributes: items_attributes.map(
         ({ product_id, name, quantity, unit_price, order_item_options }) => ({
           product_id,

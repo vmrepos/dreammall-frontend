@@ -30,6 +30,12 @@ export const OrderSummaryCard = ({ order, className, headerAction }: Props) => {
       <DetailRow label="Subtotal" value={formatCurrency(subtotal)} />
       <DetailRow label="Envío" value={formatCurrency(order.delivery_fee)} />
       <DetailRow label="Descuento" value={`-${formatCurrency(order.discount)}`} />
+      {order.coupon ? (
+        <DetailRow
+          label={`Cupón ${order.coupon.code}`}
+          value={`-${formatCurrency(order.coupon.applied_amount)}`}
+        />
+      ) : null}
       {(order.customer_name || order.customer_phone) && (
         <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2.5">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Cliente</p>

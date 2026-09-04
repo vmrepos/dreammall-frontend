@@ -9,6 +9,7 @@ import { ReportsAPI } from "./reports";
 import { PublicOrdersAPI } from "./publicOrders";
 import { PublicCatalogAPI } from "./publicCatalog";
 import { ShipmentsAPI } from "./shipments";
+import { CouponsAPI } from "./coupons";
 
 export { axiosInstance } from "./axiosInstance";
 
@@ -24,4 +25,5 @@ export const apiClient = {
   publicOrders: PublicOrdersAPI,
   publicCatalog: PublicCatalogAPI,
   shipments: ShipmentsAPI,
+  coupons: CouponsAPI,
 }
