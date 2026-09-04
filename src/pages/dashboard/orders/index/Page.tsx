@@ -9,7 +9,6 @@ import { PageHeader } from "../../../../components/molecules/PageHeader"
 import { useOrders } from "../../../../context/OrdersContext"
 import { orderStatusConfig } from "../../../../utils/status"
 import { OrderCard } from "../shared/OrderCard"
-import { CopyCatalogLinkButton } from "./CopyCatalogLinkButton"
 import { StatusFilters } from "./StatusFilters"
 import type { StatusFilter } from "./statusFilters"
 
@@ -42,16 +41,13 @@ export const Page = () => {
         title="Pedidos"
         description="Gestiona tus pedidos."
         action={
-          <div className="flex w-auto flex-row justify-end gap-2 phone-portrait:w-full">
-            <CopyCatalogLinkButton />
-            <Button
-              className="min-w-0 flex-none phone-portrait:flex-1 phone-portrait:gap-1 phone-portrait:px-3 phone-portrait:py-2.5 phone-portrait:text-xs"
-              onClick={() => navigate("/orders/new")}
-            >
-              <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
-              Nuevo pedido
-            </Button>
-          </div>
+          <Button
+            className="min-w-0 phone-portrait:w-full phone-portrait:gap-1 phone-portrait:px-3 phone-portrait:py-2.5 phone-portrait:text-xs"
+            onClick={() => navigate("/orders/new")}
+          >
+            <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
+            Nuevo pedido
+          </Button>
         }
       />
 

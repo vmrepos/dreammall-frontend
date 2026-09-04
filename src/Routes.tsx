@@ -16,6 +16,7 @@ import { Reports } from "./pages/dashboard/reports/Reports"
 import { Settings } from "./pages/dashboard/settings/Settings"
 import { Pos } from "./pages/dashboard/pos/Pos"
 import { PublicOrder } from "./pages/public/order/Order"
+import { Locales } from "./pages/public/locales/Locales"
 import { isCustomerHost } from "./utils/host"
 
 export const AppRoutes = () => {
@@ -26,6 +27,9 @@ export const AppRoutes = () => {
       <Routes>
         <Route path="/pedido/:token" element={<PublicOrder.Complete />} />
         <Route path="/pedir/:token" element={<PublicOrder.Shop />} />
+        <Route path="/pedir" element={<Navigate to="/locales" replace />} />
+        <Route path="/locales" element={<Locales.Index />} />
+        {customerHost ? <Route path="/" element={<Locales.Index />} /> : null}
         <Route path="*" element={customerHost ? <PublicOrder.NeedLink /> : <RestaurantApp />} />
       </Routes>
     </BrowserRouter>

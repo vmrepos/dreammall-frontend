@@ -13,6 +13,7 @@ import { BrandLogo } from "../../components/atoms/BrandLogo"
 import { Toggle } from "../../components/atoms/Toggle"
 import { sidebarNavItems } from "./nav"
 import { ImpersonationControls } from "./shared/ImpersonationControls"
+import { ShareCatalogButton } from "./shared/ShareCatalogButton"
 import { cn } from "../../utils/format"
 import { resolveMediaUrl } from "../../utils/mediaUrl"
 
@@ -98,6 +99,11 @@ export const Sidebar = ({ collapsed, onToggle }: Props) => {
               </NavLink>
             ))
           : null}
+        {restaurant ? (
+          <div className={cn("mt-2 border-t border-white/10 pt-2", collapsed && "flex justify-center")}>
+            <ShareCatalogButton variant="sidebar" compact={collapsed} />
+          </div>
+        ) : null}
       </nav>
 
       {collapsed ? (

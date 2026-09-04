@@ -14,6 +14,7 @@ import { Toggle } from "../../components/atoms/Toggle"
 import { cn } from "../../utils/format"
 import { isNavActive, moreNavItems, tabNavItems } from "./nav"
 import { ImpersonationControls } from "./shared/ImpersonationControls"
+import { ShareCatalogButton } from "./shared/ShareCatalogButton"
 
 const PHONE =
   "(max-width: 767px), ((pointer: coarse) and (max-width: 1023px))"
@@ -172,6 +173,7 @@ const MoreSheet = ({ open, onClose }: MoreSheetProps) => {
           {restaurant?.name ?? (isAdmin ? "Admin" : "Mi restaurante")}
         </p>
         <nav className="mt-2 flex flex-col px-3" aria-label="Más opciones">
+          <ShareCatalogButton variant="sheet" onCopied={onClose} />
           {moreNavItems.map(({ to, label, icon }) => (
             <NavLink
               key={to}

@@ -42,6 +42,10 @@ export const publicCatalogPath = (orderingToken: string) => `/pedir/${orderingTo
 export const publicCatalogUrl = (orderingToken: string) =>
   `${customerOrigin()}${publicCatalogPath(orderingToken)}`
 
+export const copyPublicCatalogUrl = async (orderingToken: string) => {
+  await copyToClipboard(publicCatalogUrl(orderingToken))
+}
+
 const isMobileUa = () => /Android|iPhone|iPad/i.test(navigator.userAgent)
 
 export const whatsAppDigits = (phone: string) => {
@@ -60,23 +64,3 @@ export const whatsAppMessageHref = (phone: string, text: string) => {
   if (isMobileUa()) return `https://wa.me/${digits}?text=${encoded}`
   return `https://web.whatsapp.com/send?phone=${digits}&text=${encoded}`
 }
-
-const whatsAppHref = (url: string) => whatsAppMessageHref("", url)
-
-export type TShareUrlResult = "shared" | "copied" | "cancelled"
-
-export const shareOrCopyUrl = async (url: string): Promise<TShareUrlResult> => {
-  await copyToClipboard(url)
-
-  const anchor = document.createElement("a")
-  anchor.href = whatsAppHref(url)
-  anchor.target = "_blank"
-  anchor.rel = "noopener noreferrer"
-  document.body.appendChild(anchor)
-  anchor.click()
-  anchor.remove()
-  return "copied"
-}
-
-export const sharePublicCatalogUrl = async (orderingToken: string) =>
-  shareOrCopyUrl(publicCatalogUrl(orderingToken))

@@ -57,6 +57,13 @@ export type TPublicCatalog = {
   menus: TMenu[]
 }
 
+export type TPublicRestaurant = {
+  name: string
+  ordering_token: string
+  address: string
+  logo_url: string | null
+}
+
 export type TPublicOrderCreateItem = {
   product_id: number
   quantity: number

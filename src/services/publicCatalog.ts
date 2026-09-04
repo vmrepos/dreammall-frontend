@@ -1,7 +1,7 @@
 import type { TCouponQuote } from "./coupons"
 import type { TMenu } from "../types/Menu"
 import type { TProduct, TProductOptionGroup } from "../types/Product"
-import type { TPublicCatalog, TPublicOrder, TPublicOrderCreatePayload } from "../types/PublicOrder"
+import type { TPublicCatalog, TPublicOrder, TPublicOrderCreatePayload, TPublicRestaurant } from "../types/PublicOrder"
 import { publicClient, toPublicOrder } from "./publicOrders"
 
 type TCatalogProductWire = Partial<TProduct> & {
@@ -24,6 +24,13 @@ type TCatalogWire = {
   whatsapp?: string | null
   logo_url?: string | null
   menus?: TCatalogMenuWire[]
+}
+
+type TRestaurantWire = {
+  name: string
+  ordering_token: string
+  address?: string | null
+  logo_url?: string | null
 }
 
 const toOptionGroup = (group: TProductOptionGroup): TProductOptionGroup => ({
@@ -62,7 +69,18 @@ const toCatalog = (raw: TCatalogWire): TPublicCatalog => ({
   menus: (raw.menus ?? []).map(toMenu),
 })
 
+const toRestaurant = (raw: TRestaurantWire): TPublicRestaurant => ({
+  name: raw.name,
+  ordering_token: raw.ordering_token,
+  address: raw.address ?? "",
+  logo_url: raw.logo_url ?? null,
+})
+
 export const PublicCatalogAPI = {
+  list: async (): Promise<TPublicRestaurant[]> => {
+    const response = await publicClient.get("/public/restaurants")
+    return (response.data.data as TRestaurantWire[]).map(toRestaurant)
+  },
   show: async (orderingToken: string): Promise<TPublicCatalog> => {
     const response = await publicClient.get(`/public/restaurants/${orderingToken}`)
     return toCatalog(response.data.data as TCatalogWire)
