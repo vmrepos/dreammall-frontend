@@ -34,7 +34,7 @@ export const Page = () => {
     setIsSubmitting(true)
     try {
       await authService.resetPassword(token, password, passwordConfirmation)
-      navigate("/login", { replace: true })
+      navigate("/login?reset=1", { replace: true })
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.error

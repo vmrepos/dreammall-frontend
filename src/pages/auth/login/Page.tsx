@@ -16,6 +16,7 @@ export const Page = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const resetDone = searchParams.get("reset") === "1"
 
   const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault()
@@ -54,6 +55,12 @@ export const Page = () => {
             Accede a tu panel de comercio
           </p>
         </header>
+
+        {resetDone ? (
+          <div className="mb-5 rounded-xl bg-brand-light px-4 py-3.5 text-sm leading-relaxed text-ink">
+            Contraseña actualizada. Ya puedes iniciar sesión.
+          </div>
+        ) : null}
 
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
           <FormField
