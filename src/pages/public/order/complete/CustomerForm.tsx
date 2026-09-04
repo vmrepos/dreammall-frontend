@@ -1,4 +1,4 @@
-import type { ChangeEvent, FormEvent } from "react"
+import type { ChangeEvent, FormEvent, ReactNode } from "react"
 import { faLocationDot, faUser } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../../components/atoms/Button"
 import { Card } from "../../../../components/atoms/Card"
@@ -30,6 +30,9 @@ type Props = {
   onLocationChange: (latitude: number, longitude: number) => void
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
   fromRestaurant?: boolean
+  extraFields?: ReactNode
+  totals?: ReactNode
+  submitDisabled?: boolean
 }
 
 export const CustomerForm = ({
@@ -41,6 +44,9 @@ export const CustomerForm = ({
   onLocationChange,
   onSubmit,
   fromRestaurant = false,
+  extraFields,
+  totals,
+  submitDisabled = false,
 }: Props) => {
   const phoneReady = values.phone.length === PHONE_DIGITS
 
@@ -107,6 +113,10 @@ export const CustomerForm = ({
           <p className="text-xs text-ink-muted">8 dígitos, sin el código de país.</p>
         </div>
 
+        {extraFields}
+
+        {totals}
+
         {error ? (
           <div
             className="rounded-xl bg-red-50 px-4 py-3.5 text-left text-sm leading-snug text-red-600"
@@ -119,7 +129,7 @@ export const CustomerForm = ({
         <Button
           type="submit"
           className="w-full"
-          disabled={isSubmitting || !phoneReady || values.latitude == null || values.longitude == null}
+          disabled={isSubmitting || submitDisabled || !phoneReady || values.latitude == null || values.longitude == null}
         >
           {isSubmitting ? "Calculando envío..." : "Ver resumen"}
         </Button>

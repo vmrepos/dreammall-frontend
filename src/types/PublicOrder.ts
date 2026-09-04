@@ -18,6 +18,11 @@ export type TPublicOrder = {
   payment_method?: TPaymentMethod | null
   change_for?: number | null
   completed_by_restaurant?: boolean
+  coupon?: {
+    code: string
+    amount: number
+    applied_amount: number
+  } | null
   items: TOrderItem[]
 }
 
@@ -63,4 +68,5 @@ export type TPublicOrderCreateItem = {
 
 export type TPublicOrderCreatePayload = TPublicOrderCompletePayload & {
   items: TPublicOrderCreateItem[]
+  coupon_code?: string
 }

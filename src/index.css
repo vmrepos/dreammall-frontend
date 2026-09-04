@@ -31,10 +31,15 @@
   --color-accent-sun: #d4a017;
   --color-accent-clay: #c0392b;
 
-  --color-surface: #f4f6f4;
+  --color-surface: #e2e8e4;
   --color-surface-elevated: #ffffff;
   --color-ink: #1c241f;
   --color-ink-muted: #5c675f;
+
+  --color-gray-50: #eef2ef;
+  --color-gray-100: #dce3de;
+  --color-gray-200: #b7c2bc;
+  --color-gray-300: #93a099;
 
   --color-sidebar: #0a2f22;
   --color-sidebar-hover: #124033;

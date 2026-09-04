@@ -1,3 +1,4 @@
+import type { TCouponQuote } from "./coupons"
 import type { TMenu } from "../types/Menu"
 import type { TProduct, TProductOptionGroup } from "../types/Product"
 import type { TPublicCatalog, TPublicOrder, TPublicOrderCreatePayload } from "../types/PublicOrder"
@@ -72,5 +73,25 @@ export const PublicCatalogAPI = {
   ): Promise<TPublicOrder> => {
     const response = await publicClient.post(`/public/restaurants/${orderingToken}/orders`, input)
     return toPublicOrder(response.data.data)
+  },
+  previewCoupon: async (
+    orderingToken: string,
+    input: { code: string; subtotal: number; delivery_fee: number; discount: number },
+  ): Promise<TCouponQuote> => {
+    const response = await publicClient.post(`/public/restaurants/${orderingToken}/coupons/preview`, {
+      coupon: input,
+    })
+    return response.data.data as TCouponQuote
+  },
+  previewDelivery: async (
+    orderingToken: string,
+    latitude: number,
+    longitude: number,
+  ): Promise<{ fee: number; distance_km: number }> => {
+    const response = await publicClient.post(`/public/restaurants/${orderingToken}/deliveries/preview`, {
+      delivery: { latitude, longitude },
+    })
+    const data = response.data.data as { fee: number | string; distance_km: number | string }
+    return { fee: Number(data.fee), distance_km: Number(data.distance_km) }
   },
 }

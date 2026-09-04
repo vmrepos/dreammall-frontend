@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMoneyBill, faQrcode } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../components/atoms/Button"
+import { Card } from "../../../components/atoms/Card"
 import { Input } from "../../../components/atoms/Input"
 import { Label } from "../../../components/atoms/Label"
 import type { TOrderForm, TPaymentMethod } from "../../../types/Order"
@@ -92,25 +93,25 @@ export const CheckoutStep = ({
             </section>
           ) : null}
 
-          <section className="rounded-[20px] border border-gray-200/80 bg-surface-elevated p-4 md:p-5">
+          <Card className="p-4 md:p-5">
             <h2 className="text-base font-semibold text-ink">Cliente</h2>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div className="flex justify-between gap-3">
+            <dl className="mt-3 divide-y divide-gray-200 text-sm">
+              <div className="flex justify-between gap-3 py-2 first:pt-0 last:pb-0">
                 <dt className="text-ink-muted">Nombre</dt>
                 <dd className={name ? "font-medium text-ink" : "text-ink-muted"}>{name || "—"}</dd>
               </div>
-              <div className="flex justify-between gap-3">
+              <div className="flex justify-between gap-3 py-2 first:pt-0 last:pb-0">
                 <dt className="text-ink-muted">Teléfono</dt>
                 <dd className={phone ? "font-medium text-ink" : "text-ink-muted"}>
                   {phone ? `+591 ${phone}` : "—"}
                 </dd>
               </div>
             </dl>
-          </section>
+          </Card>
 
-          <section className="rounded-[20px] border border-gray-200/80 bg-surface-elevated p-4 md:p-5">
+          <Card className="p-4 md:p-5">
             <h2 className="text-base font-semibold text-ink">Pedido</h2>
-            <ul className="mt-3 divide-y divide-gray-100 rounded-lg border border-gray-100">
+            <ul className="mt-3 divide-y divide-gray-200 rounded-lg border border-gray-200">
               {items.map((line) => (
                 <li
                   key={line.clientKey}
@@ -188,7 +189,7 @@ export const CheckoutStep = ({
               </div>
             </div>
 
-            <dl className="mt-4 space-y-2 border-t border-gray-100 pt-3 text-sm">
+            <dl className="mt-4 space-y-2 border-t border-gray-200 pt-3 text-sm">
               <div className="flex justify-between gap-2">
                 <dt className="text-gray-500">Subtotal</dt>
                 <dd className="font-medium tabular-nums text-gray-900">
@@ -219,7 +220,7 @@ export const CheckoutStep = ({
                   </dd>
                 </div>
               ) : null}
-              <div className="flex justify-between gap-2 border-t border-gray-100 pt-2">
+              <div className="flex justify-between gap-2 border-t border-gray-200 pt-2">
                 <dt className="font-semibold text-gray-900">Total</dt>
                 <dd className="text-base font-bold tabular-nums text-brand">
                   {formatCurrency(total)}
@@ -231,11 +232,11 @@ export const CheckoutStep = ({
                 {feeError}
               </p>
             ) : null}
-          </section>
+          </Card>
         </div>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-4">
-          <section className="rounded-[20px] border border-gray-200/80 bg-surface-elevated p-4 md:p-5">
+          <Card className="p-4 md:p-5">
             <h2 className="text-base font-semibold text-ink">Forma de pago</h2>
             <div
               className="mt-3 grid grid-cols-2 rounded-2xl bg-gray-100 p-1"
@@ -287,8 +288,8 @@ export const CheckoutStep = ({
             ) : (
               <div className="mt-4">
                 <Label htmlFor="change_for">Cambio de</Label>
-                <div className="mt-1.5 flex overflow-hidden rounded-xl border border-gray-200 bg-surface-elevated transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-muted">
-                  <span className="flex shrink-0 items-center border-r border-gray-200 bg-gray-50 px-3.5 text-[15px] font-semibold text-ink">
+                <div className="mt-1.5 flex overflow-hidden rounded-xl border border-gray-300 bg-surface-elevated transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-muted">
+                  <span className="flex shrink-0 items-center border-r border-gray-300 bg-gray-50 px-3.5 text-[15px] font-semibold text-ink">
                     Bs
                   </span>
                   <input
@@ -315,7 +316,7 @@ export const CheckoutStep = ({
                 {paymentError}
               </p>
             ) : null}
-          </section>
+          </Card>
 
           <div className="flex flex-col gap-2">
             <Button type="submit" disabled={isSubmitting} className="w-full rounded-lg py-2.5">

@@ -60,6 +60,12 @@ export const OrderPreview = ({ order }: Props) => {
             <dd className="font-medium tabular-nums">-{formatCurrency(order.discount)}</dd>
           </div>
         )}
+        {order.coupon ? (
+          <div className="flex justify-between gap-2">
+            <dt className="text-ink-muted">Cupón {order.coupon.code}</dt>
+            <dd className="font-medium tabular-nums">-{formatCurrency(order.coupon.applied_amount)}</dd>
+          </div>
+        ) : null}
         <div className="flex justify-between gap-2 border-t border-gray-100 pt-2">
           <dt className="font-semibold text-ink">Total</dt>
           <dd className="text-base font-bold tabular-nums text-brand">

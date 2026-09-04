@@ -11,19 +11,22 @@ import type { TOrderItemForm, TOrderItemOption } from "../../../../types/OrderIt
 import type { TProduct } from "../../../../types/Product"
 import { ProductList } from "../../../../utils/utils"
 import { publicOrderPath } from "../../../../utils/orderShare"
-import { cn } from "../../../../utils/format"
 import { resolveMediaUrl } from "../../../../utils/mediaUrl"
-import { CustomerForm } from "../complete/CustomerForm"
 import { StatusCard } from "../complete/StatusCard"
 import { ProductOptionsDialog } from "../../../dashboard/orders/new/ProductOptionsDialog"
 import { CatalogStep } from "./CatalogStep"
+import { CheckoutStep } from "./CheckoutStep"
+import { PreviewStep } from "./PreviewStep"
+import { Stepper, type TShopStep } from "./Stepper"
 
 type TShopForm = TPublicOrderCompleteForm & {
   items_attributes: TOrderItemForm[]
+  coupon_code: string
 }
 
 const initialValues: TShopForm = {
   items_attributes: [],
+  coupon_code: "",
   name: "",
   phone: "",
   notes: "",
@@ -37,17 +40,38 @@ const isBoliviaPhone = (value: string) => value.length === PHONE_DIGITS && /^\d+
 
 const toBoliviaPhone = (value: string) => `+591${value}`
 
+const toMoney = (n: number) => Math.round(Number(n) * 100) / 100
+
 const productHasOptions = (product: TProduct) =>
   (product.product_option_groups ?? []).some((group) =>
     (group.product_options ?? []).some((option) => option.active !== false),
   )
 
-const errorMessage = (error: unknown) => {
-  if (!axios.isAxiosError(error)) return "No se pudo crear el pedido. Intenta de nuevo."
+const errorMessage = (error: unknown, fallback = "No se pudo crear el pedido. Intenta de nuevo.") => {
+  if (!axios.isAxiosError(error)) return fallback
   const body = error.response?.data?.error as string | string[] | undefined
   if (Array.isArray(body)) return body.join(", ")
   if (typeof body === "string" && body.trim()) return body
-  return "No se pudo crear el pedido. Intenta de nuevo."
+  return fallback
+}
+
+const copyFor = (step: TShopStep) => {
+  if (step === 1) {
+    return {
+      title: "Arma tu pedido",
+      description: "Elige tus productos y continúa para revisar el pedido.",
+    }
+  }
+  if (step === 2) {
+    return {
+      title: "Revisa tu pedido",
+      description: "Ajusta cantidades o quita productos antes de indicar la entrega.",
+    }
+  }
+  return {
+    title: "Tus datos",
+    description: "Indica tu ubicación para calcular el envío. Si tienes un cupón Pedí2, escríbelo aquí.",
+  }
 }
 
 export const Page = () => {
@@ -58,11 +82,17 @@ export const Page = () => {
   const [loadState, setLoadState] = useState<"loading" | "ready" | "unavailable">(
     orderingToken ? "loading" : "unavailable",
   )
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<TShopStep>(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [customizing, setCustomizing] = useState<TProduct | null>(null)
   const [customizeKey, setCustomizeKey] = useState(0)
+  const [deliveryFee, setDeliveryFee] = useState(0)
+  const [feeStatus, setFeeStatus] = useState<"idle" | "loading" | "ready" | "error">("idle")
+  const [feeError, setFeeError] = useState("")
+  const [couponApplied, setCouponApplied] = useState(0)
+  const [couponError, setCouponError] = useState("")
+  const [couponStatus, setCouponStatus] = useState<"idle" | "loading" | "ready" | "error">("idle")
 
   const { values, handleChange, handleSubmit, mutate, setValues } = useForm<TShopForm>({
     initialValues,
@@ -86,6 +116,7 @@ export const Page = () => {
         return
       }
 
+      const couponCode = formValues.coupon_code.replace(/\D/g, "").slice(0, 8)
       setError("")
       setIsSubmitting(true)
       try {
@@ -95,6 +126,7 @@ export const Page = () => {
           notes: formValues.notes.trim(),
           latitude: formValues.latitude,
           longitude: formValues.longitude,
+          ...(couponCode.length === 8 ? { coupon_code: couponCode } : {}),
           items: formValues.items_attributes.map((line) => ({
             product_id: line.product_id,
             quantity: line.quantity,
@@ -144,6 +176,75 @@ export const Page = () => {
     }
   }, [orderingToken])
 
+  useEffect(() => {
+    if (values.latitude == null || values.longitude == null || !orderingToken) {
+      setFeeStatus("idle")
+      setFeeError("")
+      setDeliveryFee(0)
+      return
+    }
+
+    let cancelled = false
+    setFeeStatus("loading")
+    setFeeError("")
+
+    void apiClient.publicCatalog
+      .previewDelivery(orderingToken, values.latitude, values.longitude)
+      .then((preview) => {
+        if (cancelled) return
+        setDeliveryFee(toMoney(preview.fee))
+        setFeeStatus("ready")
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setDeliveryFee(0)
+        setFeeStatus("error")
+        setFeeError(errorMessage(error, "No se pudo calcular el envío para esta ubicación."))
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [orderingToken, values.latitude, values.longitude])
+
+  const couponCode = values.coupon_code.replace(/\D/g, "").slice(0, 8)
+
+  useEffect(() => {
+    if (couponCode.length !== 8 || !orderingToken) {
+      setCouponApplied(0)
+      setCouponError("")
+      setCouponStatus("idle")
+      return
+    }
+
+    let cancelled = false
+    setCouponStatus("loading")
+    setCouponError("")
+
+    void apiClient.publicCatalog
+      .previewCoupon(orderingToken, {
+        code: couponCode,
+        subtotal: cart.subtotal,
+        delivery_fee: deliveryFee,
+        discount: 0,
+      })
+      .then((quote) => {
+        if (cancelled) return
+        setCouponApplied(toMoney(Number(quote.applied_amount)))
+        setCouponStatus("ready")
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setCouponApplied(0)
+        setCouponStatus("error")
+        setCouponError(errorMessage(error, "No se pudo aplicar el cupón."))
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [orderingToken, couponCode, cart.subtotal, deliveryFee])
+
   const handleAddProduct = (product: TProduct) => {
     if (productHasOptions(product)) {
       setCustomizeKey((key) => key + 1)
@@ -153,10 +254,22 @@ export const Page = () => {
     cart.add(product)
   }
 
+  const handleDecrement = (product: TProduct) => {
+    const last = [...cart.items].reverse().find((line) => line.product_id === product.id)
+    if (!last) return
+    cart.updateQuantity(last.clientKey, last.quantity - 1)
+  }
+
   const handleConfirmOptions = (options: TOrderItemOption[]) => {
     if (!customizing) return
     cart.add(customizing, options)
     setCustomizing(null)
+  }
+
+  const goToStep = (next: TShopStep) => {
+    if (next !== 1 && cart.items.length === 0) return
+    setError("")
+    setStep(next)
   }
 
   if (!orderingToken || loadState === "unavailable") {
@@ -184,7 +297,8 @@ export const Page = () => {
     counts[line.product_id] = (counts[line.product_id] ?? 0) + line.quantity
     return counts
   }, {})
-
+  const total = Math.max(0, cart.subtotal + deliveryFee - couponApplied)
+  const copy = copyFor(step)
   const logoSrc = resolveMediaUrl(catalog.logo_url)
 
   return (
@@ -200,78 +314,65 @@ export const Page = () => {
           ) : null}
           <p className="text-sm font-semibold uppercase tracking-wide text-brand">{catalog.name}</p>
         </div>
-        <h1 className="mt-1 text-[1.75rem] font-bold leading-tight text-ink">
-          {step === 1 ? "Arma tu pedido" : "Tus datos"}
-        </h1>
-        <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
-          {step === 1
-            ? "Elige tus productos y continúa para indicar la entrega."
-            : "Indica tu ubicación para calcular el envío."}
-        </p>
-        <ol className="mt-4 flex items-center gap-2 text-sm font-semibold">
-          <li>
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className={cn(
-                "rounded-full px-3 py-1.5 transition",
-                step === 1 ? "bg-brand text-white" : "bg-gray-100 text-ink hover:bg-gray-200",
-              )}
-            >
-              1. Pedido
-            </button>
-          </li>
-          <li className="text-gray-300" aria-hidden>
-            →
-          </li>
-          <li>
-            <button
-              type="button"
-              disabled={cart.items.length === 0}
-              onClick={() => setStep(2)}
-              className={cn(
-                "rounded-full px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-50",
-                step === 2 ? "bg-brand text-white" : "bg-gray-100 text-ink hover:bg-gray-200",
-              )}
-            >
-              2. Datos
-            </button>
-          </li>
-        </ol>
+        <h1 className="mt-1 text-[1.75rem] font-bold leading-tight text-ink">{copy.title}</h1>
+        <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">{copy.description}</p>
+        <Stepper step={step} canPreview={cart.items.length > 0} onStep={goToStep} />
       </header>
 
       {step === 1 ? (
         <CatalogStep
           products={products}
           menus={catalog.menus}
-          items={cart.items}
           addedCounts={addedCounts}
+          itemCount={cart.items.length}
           subtotal={cart.subtotal}
           onAdd={handleAddProduct}
+          onDecrement={handleDecrement}
+          onContinue={() => goToStep(2)}
+        />
+      ) : null}
+
+      {step === 2 ? (
+        <PreviewStep
+          items={cart.items}
+          subtotal={cart.subtotal}
           updateQuantity={cart.updateQuantity}
           removeFromCart={cart.remove}
-          onContinue={() => setStep(2)}
+          onBack={() => goToStep(1)}
+          onContinue={() => goToStep(3)}
         />
-      ) : (
+      ) : null}
+
+      {step === 3 ? (
         <div className="flex flex-col gap-3">
           <button
             type="button"
             className="self-start text-sm font-medium text-ink-muted hover:text-brand"
-            onClick={() => setStep(1)}
+            onClick={() => goToStep(2)}
           >
             ← Volver al pedido
           </button>
-          <CustomerForm
+          <CheckoutStep
             values={values}
             isSubmitting={isSubmitting}
             error={error}
+            couponCode={values.coupon_code}
+            couponApplied={couponApplied}
+            couponError={couponError}
+            couponStatus={couponStatus}
+            subtotal={cart.subtotal}
+            deliveryFee={deliveryFee}
+            feeStatus={feeStatus}
+            feeError={feeError}
+            total={total}
             onChange={handleChange}
             onPhoneChange={(phone) => mutate({ phone })}
             onLocationChange={(latitude, longitude) => mutate({ latitude, longitude })}
+            onCouponChange={(code) => mutate({ coupon_code: code })}
             onSubmit={handleSubmit}
           />
         </div>
-      )}
+      ) : null}
 
       {customizing && (
         <ProductOptionsDialog

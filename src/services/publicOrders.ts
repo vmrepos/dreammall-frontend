@@ -6,7 +6,9 @@ export const publicClient = axios.create({
   withCredentials: false,
 })
 
-type TPublicOrderWire = TPublicOrder
+type TPublicOrderWire = TPublicOrder & {
+  coupon?: TPublicOrder["coupon"]
+}
 
 export const toPublicOrder = (raw: TPublicOrderWire): TPublicOrder => ({
   ...raw,
@@ -14,6 +16,13 @@ export const toPublicOrder = (raw: TPublicOrderWire): TPublicOrder => ({
   payment_method: raw.payment_method === "cash" || raw.payment_method === "qr" ? raw.payment_method : null,
   change_for: raw.change_for != null ? Number(raw.change_for) : null,
   completed_by_restaurant: Boolean(raw.completed_by_restaurant),
+  coupon: raw.coupon
+    ? {
+        code: raw.coupon.code,
+        amount: Number(raw.coupon.amount),
+        applied_amount: Number(raw.coupon.applied_amount),
+      }
+    : null,
 })
 
 export const PublicOrdersAPI = {

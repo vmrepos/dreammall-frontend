@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { Card } from "../../../../components/atoms/Card"
@@ -9,6 +9,9 @@ import { categoryColorVars } from "../../../../utils/categoryColor"
 import { cn, formatCurrency } from "../../../../utils/format"
 
 const ALL_CATEGORY = "all" as const
+
+const sortProducts = (list: TProduct[]) =>
+  [...list].sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, "es"))
 
 type Props = {
   products: TProduct[]
@@ -29,6 +32,11 @@ type Props = {
   framed?: boolean
   /** Extra columns on large screens (fast-track POS). */
   density?: "default" | "wide"
+  /**
+   * `filter` — chips hide other menus (POS).
+   * `sections` — chips jump to a heading; the full catalog stays grouped (public /pedir).
+   */
+  layout?: "filter" | "sections"
 }
 
 export const AvailableProducts = ({
@@ -44,6 +52,7 @@ export const AvailableProducts = ({
   scrollContainer = "panel",
   framed = true,
   density = "default",
+  layout = "filter",
 }: Props) => {
   const { isDark } = useTheme()
   const [categoryId, setCategoryId] = useState<typeof ALL_CATEGORY | number>(ALL_CATEGORY)
@@ -69,15 +78,69 @@ export const AvailableProducts = ({
       categoryId === ALL_CATEGORY
         ? products
         : products.filter((product) => product.menu_id === categoryId)
-    return [...filtered].sort(
-      (a, b) => a.position - b.position || a.name.localeCompare(b.name, "es"),
-    )
+    return sortProducts(filtered)
   }, [categoryId, products])
+
+  const sections = useMemo(
+    () =>
+      categories
+        .map((menu) => ({
+          menu,
+          products: sortProducts(products.filter((product) => product.menu_id === menu.id)),
+        }))
+        .filter((section) => section.products.length > 0),
+    [categories, products],
+  )
+
+  const skipSpy = useRef(false)
+
+  const scrollToCategory = (id: typeof ALL_CATEGORY | number) => {
+    setCategoryId(id)
+    skipSpy.current = true
+    window.setTimeout(() => {
+      skipSpy.current = false
+    }, 700)
+    if (id === ALL_CATEGORY) {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+      return
+    }
+    document.getElementById(`menu-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+    document.getElementById(`chip-${id}`)?.scrollIntoView({
+      inline: "center",
+      block: "nearest",
+      behavior: "smooth",
+    })
+  }
+
+  useEffect(() => {
+    if (layout !== "sections" || sections.length === 0) return
+
+    const nodes = sections
+      .map((section) => document.getElementById(`menu-${section.menu.id}`))
+      .filter((node): node is HTMLElement => node != null)
+    if (nodes.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (skipSpy.current) return
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        const id = visible[0]?.target.id
+        if (!id) return
+        const menuId = Number(id.replace("menu-", ""))
+        if (Number.isFinite(menuId)) setCategoryId(menuId)
+      },
+      { rootMargin: "-20% 0px -65% 0px", threshold: 0.1 },
+    )
+    nodes.forEach((node) => observer.observe(node))
+    return () => observer.disconnect()
+  }, [layout, sections])
 
   const pageScroll = scrollContainer === "page"
   const frameClass = cn(
-    framed && "border-2 !border-brand/50",
-    pageScroll ? (framed ? "!overflow-visible" : "") : "flex h-full min-h-0 flex-col",
+    framed && "overflow-hidden border-2 !border-brand/50",
+    pageScroll ? "" : "flex h-full min-h-0 flex-col",
     className,
   )
 
@@ -85,9 +148,13 @@ export const AvailableProducts = ({
     <>
       <div
         className={cn(
-          "shrink-0 border-b border-gray-100",
-          pageScroll && "sticky top-0 z-20 bg-surface-elevated",
-          compact ? "px-2 py-1.5" : "px-4 py-3",
+          "shrink-0",
+          framed ? "border-b border-gray-100" : "border-b border-gray-200/80",
+          pageScroll && framed && "sticky top-0 z-20 bg-surface-elevated",
+          pageScroll && !framed && "sticky top-0 z-20 bg-surface",
+          compact ? "py-1.5" : "py-3",
+          compact && framed && "px-2",
+          !compact && framed && "px-4",
         )}
       >
         <div
@@ -98,20 +165,25 @@ export const AvailableProducts = ({
             "touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           )}
         >
-          <CategoryChip
-            label="Todos"
-            selected={categoryId === ALL_CATEGORY}
-            compact={compact}
-            onSelect={() => setCategoryId(ALL_CATEGORY)}
-          />
+          {layout === "sections" ? null : (
+            <CategoryChip
+              label="Todos"
+              selected={categoryId === ALL_CATEGORY}
+              compact={compact}
+              onSelect={() => setCategoryId(ALL_CATEGORY)}
+            />
+          )}
           {categories.map((menu, index) => (
             <CategoryChip
               key={menu.id}
+              id={`chip-${menu.id}`}
               label={menu.name}
-              selected={categoryId === menu.id}
+              selected={categoryId === menu.id || (layout === "sections" && categoryId === ALL_CATEGORY && index === 0)}
               compact={compact}
               colorVars={categoryColorVars(index, isDark)}
-              onSelect={() => setCategoryId(menu.id)}
+              onSelect={() =>
+                layout === "sections" ? scrollToCategory(menu.id) : setCategoryId(menu.id)
+              }
             />
           ))}
         </div>
@@ -124,37 +196,47 @@ export const AvailableProducts = ({
       ) : (
         <div
           className={cn(
-            pageScroll ? "p-2" : cn("min-h-0 flex-1 overflow-y-auto", compact ? "p-2" : "p-3"),
+            pageScroll
+              ? framed
+                ? "p-2"
+                : "pt-3"
+              : cn("min-h-0 flex-1 overflow-y-auto", compact ? "p-2" : "p-3"),
           )}
         >
-          <div
-            className={cn(
-              "grid",
-              density === "wide"
-                ? "grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 phone:grid-cols-1 phone:gap-1.5"
-                : compact
-                  ? showDescription
-                    ? "grid-cols-1 gap-2"
-                    : "grid-cols-1 gap-1.5"
-                  : "grid-cols-2 gap-3 phone:grid-cols-1 phone:gap-1.5",
-            )}
-          >
-            {visibleProducts.map((product) => {
-              const index = colorIndexByMenuId.get(product.menu_id)
-              return (
-                <ProductTile
-                  key={product.id}
-                  product={product}
-                  addedCount={addedCounts[product.id] ?? 0}
+          {layout === "sections"
+            ? sections.map(({ menu, products: sectionProducts }, index) => (
+                <section
+                  key={menu.id}
+                  id={`menu-${menu.id}`}
+                  className={cn("scroll-mt-[3.75rem]", index > 0 && "mt-5")}
+                >
+                  <h2 className="px-1 pb-2 text-sm font-semibold text-ink">{menu.name}</h2>
+                  <ProductGrid
+                    products={sectionProducts}
+                    addedCounts={addedCounts}
+                    colorIndexByMenuId={colorIndexByMenuId}
+                    isDark={isDark}
+                    compact={compact}
+                    showDescription={showDescription}
+                    density={density}
+                    onAdd={onAdd}
+                    onDecrement={onDecrement}
+                  />
+                </section>
+              ))
+            : (
+                <ProductGrid
+                  products={visibleProducts}
+                  addedCounts={addedCounts}
+                  colorIndexByMenuId={colorIndexByMenuId}
+                  isDark={isDark}
                   compact={compact}
                   showDescription={showDescription}
-                  colorVars={index == null ? undefined : categoryColorVars(index, isDark)}
-                  onAdd={() => onAdd(product)}
-                  onDecrement={onDecrement ? () => onDecrement(product) : undefined}
+                  density={density}
+                  onAdd={onAdd}
+                  onDecrement={onDecrement}
                 />
-              )
-            })}
-          </div>
+              )}
         </div>
       )}
     </>
@@ -168,6 +250,7 @@ export const AvailableProducts = ({
 }
 
 type CategoryChipProps = {
+  id?: string
   label: string
   selected: boolean
   onSelect: () => void
@@ -175,9 +258,10 @@ type CategoryChipProps = {
   colorVars?: ReturnType<typeof categoryColorVars>
 }
 
-const CategoryChip = ({ label, selected, onSelect, compact = false, colorVars }: CategoryChipProps) => (
+const CategoryChip = ({ id, label, selected, onSelect, compact = false, colorVars }: CategoryChipProps) => (
   <button
     type="button"
+    id={id}
     onClick={onSelect}
     style={colorVars}
     className={cn(
@@ -201,6 +285,59 @@ const CategoryChip = ({ label, selected, onSelect, compact = false, colorVars }:
     ) : null}
     {label}
   </button>
+)
+
+type ProductGridProps = {
+  products: TProduct[]
+  addedCounts: Record<number, number>
+  colorIndexByMenuId: Map<number, number>
+  isDark: boolean
+  compact: boolean
+  showDescription: boolean
+  density: "default" | "wide"
+  onAdd: (product: TProduct) => void
+  onDecrement?: (product: TProduct) => void
+}
+
+const ProductGrid = ({
+  products,
+  addedCounts,
+  colorIndexByMenuId,
+  isDark,
+  compact,
+  showDescription,
+  density,
+  onAdd,
+  onDecrement,
+}: ProductGridProps) => (
+  <div
+    className={cn(
+      "grid",
+      density === "wide"
+        ? "grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 phone:grid-cols-1 phone:gap-1.5"
+        : compact
+          ? showDescription
+            ? "grid-cols-1 gap-2"
+            : "grid-cols-1 gap-1.5"
+          : "grid-cols-2 gap-3 phone:grid-cols-1 phone:gap-1.5",
+    )}
+  >
+    {products.map((product) => {
+      const index = colorIndexByMenuId.get(product.menu_id)
+      return (
+        <ProductTile
+          key={product.id}
+          product={product}
+          addedCount={addedCounts[product.id] ?? 0}
+          compact={compact}
+          showDescription={showDescription}
+          colorVars={index == null ? undefined : categoryColorVars(index, isDark)}
+          onAdd={() => onAdd(product)}
+          onDecrement={onDecrement ? () => onDecrement(product) : undefined}
+        />
+      )
+    })}
+  </div>
 )
 
 type ProductTileProps = {
