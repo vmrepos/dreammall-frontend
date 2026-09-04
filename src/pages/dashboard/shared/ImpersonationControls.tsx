@@ -10,10 +10,11 @@ import { ImpersonateDialog } from "./ImpersonateDialog"
 
 type Props = {
   variant: "sidebar" | "sheet"
+  compact?: boolean
   onPicked?: () => void
 }
 
-export const ImpersonationControls = ({ variant, onPicked }: Props) => {
+export const ImpersonationControls = ({ variant, compact = false, onPicked }: Props) => {
   const { isAdmin, impersonate } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -56,11 +57,21 @@ export const ImpersonationControls = ({ variant, onPicked }: Props) => {
 
   return (
     <>
-      <button type="button" className={cn("flex w-full items-center gap-3", buttonClass)} onClick={() => void openDialog()}>
-        {variant === "sheet" && (
+      <button
+        type="button"
+        className={cn(
+          "flex items-center",
+          compact ? "size-10 justify-center self-center" : "w-full gap-3",
+          buttonClass,
+          compact && "px-0",
+        )}
+        title={compact ? "Ver como…" : undefined}
+        onClick={() => void openDialog()}
+      >
+        {(variant === "sheet" || compact) && (
           <FontAwesomeIcon icon={faUserSecret} className="size-4" aria-hidden />
         )}
-        Ver como…
+        <span className={compact ? "sr-only" : ""}>Ver como…</span>
       </button>
       <ImpersonateDialog
         open={open}

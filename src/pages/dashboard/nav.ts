@@ -1,6 +1,7 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import {
   faBookOpen,
+  faCashRegister,
   faChartPie,
   faClipboardList,
   faGear,
@@ -16,6 +17,7 @@ export type TNavItem = {
 }
 
 export const sidebarNavItems: TNavItem[] = [
+  { to: "/pos", label: "POS", icon: faCashRegister },
   { to: "/menu", label: "Menú", icon: faBookOpen },
   { to: "/orders", label: "Pedidos", icon: faClipboardList },
   ...(DELIVERIES_SECTION_ENABLED
@@ -35,6 +37,7 @@ export const tabNavItems: TNavItem[] = [
 ]
 
 export const moreNavItems: TNavItem[] = [
+  { to: "/pos", label: "POS", icon: faCashRegister },
   ...(DELIVERIES_SECTION_ENABLED
     ? [{ to: "/reports", label: "Reportes", icon: faChartPie }]
     : []),

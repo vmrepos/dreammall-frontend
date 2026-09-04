@@ -18,6 +18,8 @@ type Props = {
   creating: boolean
   onSelect: (id: number) => void
   onCreate: () => void
+  /** Skip padded-main bleed; parent is already edge-to-edge (POS). */
+  flush?: boolean
 }
 
 export const OrderQueueBar = ({
@@ -27,6 +29,7 @@ export const OrderQueueBar = ({
   creating,
   onSelect,
   onCreate,
+  flush = false,
 }: Props) => {
   const attention = new Set(attentionOrderIds)
 
@@ -34,10 +37,11 @@ export const OrderQueueBar = ({
     <div
       className={cn(
         "z-40 border-gray-200 bg-surface-elevated/95 backdrop-blur-sm",
-        "fixed inset-x-0 bottom-[var(--bottom-tabs-h,0px)] left-64 border-t",
+        "fixed inset-x-0 bottom-[var(--bottom-tabs-h,0px)] left-[var(--sidebar-w,16rem)] border-t",
         "phone:left-0",
         "phone-portrait:sticky phone-portrait:top-0 phone-portrait:bottom-auto phone-portrait:left-0 phone-portrait:z-30",
-        "phone-portrait:border-t-0 phone-portrait:border-b phone-portrait:-mx-4 phone-portrait:-mt-4",
+        "phone-portrait:border-t-0 phone-portrait:border-b",
+        !flush && "phone-portrait:-mx-4 phone-portrait:-mt-4",
       )}
     >
       <div className="flex items-stretch gap-2 overflow-x-auto px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] phone:pb-2 phone-portrait:px-4 phone-portrait:py-2 phone-portrait:pb-2">

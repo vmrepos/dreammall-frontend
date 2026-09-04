@@ -14,6 +14,7 @@ import { Orders } from "./pages/dashboard/orders/Orders"
 import { Profile } from "./pages/dashboard/profile/Profile"
 import { Reports } from "./pages/dashboard/reports/Reports"
 import { Settings } from "./pages/dashboard/settings/Settings"
+import { Pos } from "./pages/dashboard/pos/Pos"
 import { PublicOrder } from "./pages/public/order/Order"
 import { isCustomerHost } from "./utils/host"
 
@@ -47,6 +48,8 @@ const RestaurantApp = () => (
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Dashboard />}>
             <Route index element={<Navigate to="/orders" replace />} />
+            <Route path="pos" element={<Pos.Index />} />
+            <Route path="pos/import-location" element={<Pos.ImportLocation />} />
             <Route path="orders" element={<Orders.Layout />}>
               <Route index element={<Orders.Index />} />
               <Route path="new" element={<Orders.Create />} />

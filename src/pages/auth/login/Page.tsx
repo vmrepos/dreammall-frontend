@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo, faEnvelope, faLock } from "@fortawesome/free-solid-svg-icons"
 import { BrandLogo } from "../../../components/atoms/BrandLogo"
 import { FormField, PasswordField } from "../../../components/molecules/FormField"
 import { useAuth } from "../../../context/AuthContext"
+import { safeInternalPath } from "../../../utils/navigation"
 import axios from "axios"
 
 export const Page = () => {
@@ -14,6 +15,7 @@ export const Page = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault()
@@ -22,7 +24,7 @@ export const Page = () => {
 
     try {
       await login(email, password)
-      navigate("/", { replace: true })
+      navigate(safeInternalPath(searchParams.get("next")) ?? "/", { replace: true })
     } catch (e) {
       if (axios.isAxiosError(e)) {
         setError(e.response?.data.error)

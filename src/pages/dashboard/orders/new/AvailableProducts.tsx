@@ -25,6 +25,10 @@ type Props = {
    * `page` — document scrolls; menu chips stay sticky and only pan horizontally (mobile /pedir).
    */
   scrollContainer?: "panel" | "page"
+  /** Drop the Card chrome when the parent already provides a pane. */
+  framed?: boolean
+  /** Extra columns on large screens (fast-track POS). */
+  density?: "default" | "wide"
 }
 
 export const AvailableProducts = ({
@@ -38,6 +42,8 @@ export const AvailableProducts = ({
   emptyMessage = "No hay productos activos. Activa un menú y sus productos primero.",
   className,
   scrollContainer = "panel",
+  framed = true,
+  density = "default",
 }: Props) => {
   const { isDark } = useTheme()
   const [categoryId, setCategoryId] = useState<typeof ALL_CATEGORY | number>(ALL_CATEGORY)
@@ -69,15 +75,14 @@ export const AvailableProducts = ({
   }, [categoryId, products])
 
   const pageScroll = scrollContainer === "page"
+  const frameClass = cn(
+    framed && "border-2 !border-brand/50",
+    pageScroll ? (framed ? "!overflow-visible" : "") : "flex h-full min-h-0 flex-col",
+    className,
+  )
 
-  return (
-    <Card
-      className={cn(
-        "border-2 !border-brand/50",
-        pageScroll ? "!overflow-visible" : "flex h-full min-h-0 flex-col",
-        className,
-      )}
-    >
+  const body = (
+    <>
       <div
         className={cn(
           "shrink-0 border-b border-gray-100",
@@ -125,11 +130,13 @@ export const AvailableProducts = ({
           <div
             className={cn(
               "grid",
-              compact
-                ? showDescription
-                  ? "grid-cols-1 gap-2"
-                  : "grid-cols-1 gap-1.5"
-                : "grid-cols-2 gap-3 phone:grid-cols-1 phone:gap-1.5",
+              density === "wide"
+                ? "grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 phone:grid-cols-1 phone:gap-1.5"
+                : compact
+                  ? showDescription
+                    ? "grid-cols-1 gap-2"
+                    : "grid-cols-1 gap-1.5"
+                  : "grid-cols-2 gap-3 phone:grid-cols-1 phone:gap-1.5",
             )}
           >
             {visibleProducts.map((product) => {
@@ -150,8 +157,14 @@ export const AvailableProducts = ({
           </div>
         </div>
       )}
-    </Card>
+    </>
   )
+
+  if (!framed) {
+    return <div className={frameClass}>{body}</div>
+  }
+
+  return <Card className={frameClass}>{body}</Card>
 }
 
 type CategoryChipProps = {
@@ -209,8 +222,7 @@ const ProductTile = ({
   showDescription = false,
   colorVars,
 }: ProductTileProps) => {
-  const customizable = (product.product_option_groups?.length ?? 0) > 0
-  const badge = product.combo ? "Combo" : customizable ? "Opciones" : null
+  const badge = product.combo ? "Combo" : null
   const description = showDescription ? product.description?.trim() : ""
   const listWithCopy = compact && showDescription
 
@@ -275,9 +287,8 @@ const ProductTile = ({
         colorVars ? "border-[var(--cat-border)]" : "border-gray-200/80",
         addedCount > 0 && "border-[var(--cat-solid)]",
         compact
-          ? "min-h-12 flex-row items-center gap-2 px-3 py-2"
-          : "min-h-[5.5rem] flex-col justify-between px-3 py-2.5 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(12,107,61,0.12)]",
-        "phone:min-h-12 phone:flex-row phone:items-center phone:gap-2 phone:px-3 phone:py-2",
+          ? "min-h-16 flex-row items-center gap-2 px-3 py-2.5"
+          : "min-h-[5.5rem] flex-col justify-between px-3 py-2.5 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(12,107,61,0.12)] phone:min-h-12 phone:flex-row phone:items-center phone:gap-2 phone:px-3 phone:py-2",
       )}
     >
       {addedCount > 0 && !compact ? (
@@ -291,22 +302,24 @@ const ProductTile = ({
       <p
         className={cn(
           "font-semibold leading-snug text-ink",
-          compact ? "min-w-0 flex-1 truncate text-sm" : "line-clamp-2 text-sm",
+          compact ? "min-w-0 flex-1 line-clamp-2 text-sm" : "line-clamp-2 text-sm",
           addedCount > 0 && !compact && "pr-7",
-          "phone:min-w-0 phone:flex-1 phone:truncate phone:text-sm phone:line-clamp-none phone:pr-0",
+          !compact && "phone:min-w-0 phone:flex-1 phone:truncate phone:text-sm phone:line-clamp-none phone:pr-0",
         )}
       >
         {product.name}
       </p>
-      <div className={cn("flex items-center gap-2", compact ? "shrink-0" : "mt-2 items-end justify-between", "phone:mt-0 phone:shrink-0 phone:items-center")}>
+      <div className={cn("flex items-center gap-2", compact ? "shrink-0" : "mt-2 items-end justify-between", !compact && "phone:mt-0 phone:shrink-0 phone:items-center")}>
         {badge ? (
           <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
             {badge}
           </span>
         ) : null}
-        <p className="text-sm font-bold tabular-nums text-brand">
-          {formatCurrency(product.price)}
-        </p>
+        {compact ? null : (
+          <p className="text-sm font-bold tabular-nums text-brand">
+            {formatCurrency(product.price)}
+          </p>
+        )}
         {addedCount > 0 && compact ? (
           <span
             className="flex size-6 items-center justify-center rounded-full text-[11px] font-bold text-white"

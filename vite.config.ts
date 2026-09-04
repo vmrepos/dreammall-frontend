@@ -25,6 +25,16 @@ export default defineConfig({
         start_url: "/",
         scope: "/",
         categories: ["business", "food"],
+        share_target: {
+          action: "/pos/import-location",
+          method: "GET",
+          enctype: "application/x-www-form-urlencoded",
+          params: {
+            title: "title",
+            text: "text",
+            url: "url",
+          },
+        },
         icons: [
           {
             src: "pwa-192.png",
