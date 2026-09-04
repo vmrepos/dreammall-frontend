@@ -27,6 +27,10 @@ export const RestaurantsAPI = {
     const response = await axiosInstance.get(`/restaurants/profile`);
     return response.data.data;
   },
+  expandMapsUrl: async (url: string): Promise<string> => {
+    const response = await axiosInstance.post("/restaurants/expand_maps_url", { url })
+    return (response.data.data as { url: string }).url
+  },
   listImpersonatable: async (): Promise<TRestaurantSummary[]> => {
     const response = await axiosInstance.get<{ data: TRestaurantSummary[] }>("/restaurants/impersonatable");
     return response.data.data;

@@ -57,7 +57,7 @@ export const PayloadDump = ({ live, stored, onCopy }: Props) => {
         <Dump payload={shown} />
       ) : (
         <p className="text-sm text-ink-muted">
-          Comparte una ubicación de WhatsApp a Pedí2, o abre{" "}
+            Comparte una ubicación de Maps a Pedí2, o abre{" "}
           <code className="rounded bg-gray-100 px-1 py-0.5 text-[13px]">
             /pos/import-location?title=…&text=…&url=…
           </code>{" "}

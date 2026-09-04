@@ -13,6 +13,7 @@ import { apiClient } from "../../../services/apiClient"
 import type { TOrderForm, TPaymentMethod } from "../../../types/Order"
 import type { TOrderItemOption } from "../../../types/OrderItem"
 import type { TProduct } from "../../../types/Product"
+import { clearPosStartLocation, readPosStartLocation } from "../../../utils/posStartLocation"
 import { cn } from "../../../utils/format"
 import { CatalogStep } from "./CatalogStep"
 import { CheckoutStep } from "./CheckoutStep"
@@ -185,6 +186,7 @@ export const Page = () => {
           return
         }
         toast.success("Pedido creado")
+        clearPosStartLocation()
         navigate(`/orders/${order.id}`)
       } catch (error) {
         toast.error(apiErrorMessage(error, "No se pudo crear el pedido. Intenta de nuevo."))
@@ -211,6 +213,14 @@ export const Page = () => {
       })
     },
   })
+
+  useEffect(() => {
+    const start = readPosStartLocation()
+    if (!start) return
+    mutate({ latitude: start.latitude, longitude: start.longitude })
+    // Shared pin is applied once when this POS screen mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mutate is not stable
+  }, [])
 
   useEffect(() => {
     if (values.latitude == null || values.longitude == null) {

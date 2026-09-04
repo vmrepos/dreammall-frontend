@@ -52,6 +52,11 @@ export const shareTargetHasContent = (payload: TShareTargetPayload | null): payl
   )
 }
 
+export const shareTargetBlob = (payload: TShareTargetPayload): string =>
+  [payload.title, payload.text, payload.url, payload.search, ...Object.values(payload.params)]
+    .filter(Boolean)
+    .join("\n")
+
 export const readStoredShareTarget = (): TShareTargetPayload | null => {
   if (typeof window === "undefined") return null
   const raw = sessionStorage.getItem(SHARE_TARGET_STORAGE_KEY)
