@@ -15,12 +15,17 @@ import type { TRestaurantForm } from "../../../types/Restaurant"
 import { Notification } from "../../../components/atoms/Notification"
 import { formatCoords, parseCoords } from "../../../utils/format"
 import { revokePreviewIfBlob } from "../../../utils/utils"
+import { LogoField } from "./LogoField"
 import { PaymentQrField } from "./PaymentQrField"
 
 export const Page = () => {
   const { restaurant, loading, updateRestaurant } = useRestaurant()
   const [profile, setProfile] = useState<TRestaurantForm | null>(null)
   const [coordsInput, setCoordsInput] = useState("")
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [removeLogo, setRemoveLogo] = useState(false)
+  const [logoError, setLogoError] = useState("")
   const [qrFile, setQrFile] = useState<File | null>(null)
   const [qrPreview, setQrPreview] = useState<string | null>(null)
   const [removeQr, setRemoveQr] = useState(false)
@@ -41,6 +46,13 @@ export const Page = () => {
       close_time: restaurant.close_time,
     })
     setCoordsInput(formatCoords(restaurant.latitude, restaurant.longitude))
+    setLogoFile(null)
+    setLogoPreview((current) => {
+      revokePreviewIfBlob(current)
+      return null
+    })
+    setRemoveLogo(false)
+    setLogoError("")
     setQrFile(null)
     setQrPreview((current) => {
       revokePreviewIfBlob(current)
@@ -59,6 +71,8 @@ export const Page = () => {
     try {
       await updateRestaurant({
         ...profile,
+        ...(logoFile ? { logo: logoFile } : {}),
+        ...(removeLogo && !logoFile ? { logo: null } : {}),
         ...(qrFile ? { payment_qr: qrFile } : {}),
         ...(removeQr && !qrFile ? { payment_qr: null } : {}),
       })
@@ -146,6 +160,30 @@ export const Page = () => {
               type="time"
               value={profile.close_time ?? ""}
               onChange={(ev) => setProfile({ ...profile, close_time: ev.target.value })}
+            />
+          </div>
+
+          <div className="border-t border-gray-100 pt-5">
+            <LogoField
+              existingUrl={restaurant?.logo_url}
+              file={logoFile}
+              preview={logoPreview}
+              pendingRemoval={removeLogo}
+              error={logoError}
+              onFileChange={(file, preview) => {
+                revokePreviewIfBlob(logoPreview)
+                setLogoFile(file)
+                setLogoPreview(preview)
+                setRemoveLogo(false)
+              }}
+              onRemove={() => {
+                revokePreviewIfBlob(logoPreview)
+                setLogoFile(null)
+                setLogoPreview(null)
+                setRemoveLogo(Boolean(restaurant?.logo_url) && !logoFile)
+                setLogoError("")
+              }}
+              onError={setLogoError}
             />
           </div>
 

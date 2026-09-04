@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { Button } from "../../../../components/atoms/Button"
 import type { TProduct } from "../../../../types/Product"
 import { formatCurrency } from "../../../../utils/format"
+import { resolveMediaUrl } from "../../../../utils/mediaUrl"
 import logoPedi2 from "../../../../assets/logo-pedi2-horizontal-light.png"
 
 const FLYER_BG = "#fffaf2"
@@ -19,6 +20,7 @@ type Props = {
   open: boolean
   menuName: string
   restaurantName: string
+  restaurantLogoUrl?: string | null
   address?: string | null
   whatsapp?: string | null
   products: TProduct[]
@@ -45,6 +47,7 @@ export const MenuShareDialog = ({
   open,
   menuName,
   restaurantName,
+  restaurantLogoUrl,
   address,
   whatsapp,
   products,
@@ -53,6 +56,7 @@ export const MenuShareDialog = ({
   const flyerRef = useRef<HTMLDivElement>(null)
   const [exporting, setExporting] = useState(false)
   const items = productsForFlyer(products)
+  const restaurantLogoSrc = resolveMediaUrl(restaurantLogoUrl)
 
   if (!open) return null
 
@@ -163,6 +167,22 @@ export const MenuShareDialog = ({
                     objectFit: "contain",
                   }}
                 />
+                {restaurantLogoSrc ? (
+                  <img
+                    src={restaurantLogoSrc}
+                    alt=""
+                    crossOrigin="anonymous"
+                    style={{
+                      display: "block",
+                      width: 72,
+                      height: 72,
+                      margin: "0 auto 16px",
+                      objectFit: "cover",
+                      borderRadius: 16,
+                      background: "#fff",
+                    }}
+                  />
+                ) : null}
                 <p
                   style={{
                     margin: 0,

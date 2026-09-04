@@ -48,6 +48,7 @@ export type TPublicCatalog = {
   name: string
   ordering_token: string
   whatsapp?: string | null
+  logo_url?: string | null
   menus: TMenu[]
 }
 

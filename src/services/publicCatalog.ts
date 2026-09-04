@@ -21,6 +21,7 @@ type TCatalogWire = {
   name: string
   ordering_token: string
   whatsapp?: string | null
+  logo_url?: string | null
   menus?: TCatalogMenuWire[]
 }
 
@@ -56,6 +57,7 @@ const toCatalog = (raw: TCatalogWire): TPublicCatalog => ({
   name: raw.name,
   ordering_token: raw.ordering_token,
   whatsapp: raw.whatsapp ?? null,
+  logo_url: raw.logo_url ?? null,
   menus: (raw.menus ?? []).map(toMenu),
 })
 

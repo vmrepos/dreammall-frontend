@@ -1,7 +1,7 @@
 import { axiosInstance } from "./axiosInstance"
 import type { TDirectUpload } from "../types/DirectUpload"
 
-const DIRECT_UPLOAD_FOLDERS = ["avatars", "documents", "menus", "products", "uploads", "payments"] as const
+const DIRECT_UPLOAD_FOLDERS = ["avatars", "documents", "menus", "products", "uploads", "payments", "logos"] as const
 
 export type TDirectUploadFolder = (typeof DIRECT_UPLOAD_FOLDERS)[number]
 

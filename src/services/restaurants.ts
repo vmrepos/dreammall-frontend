@@ -1,18 +1,31 @@
 import type { TRestaurant, TRestaurantForm, TRestaurantSummary } from "../types/Restaurant";
 import { axiosInstance } from "./axiosInstance";
-import { DirectUploadsAPI } from "./directUploads";
+import { DirectUploadsAPI, type TDirectUploadFolder } from "./directUploads";
+
+const toSignedUpload = async (
+  file: File | string | null | undefined,
+  folder: TDirectUploadFolder,
+) => {
+  if (file instanceof File) {
+    const blob = await DirectUploadsAPI.upload(file, folder)
+    return blob.signed_id
+  }
+  if (file === null) return ""
+  return undefined
+}
 
 const toProfilePayload = async (profile: TRestaurantForm) => {
-  const { payment_qr, ...rest } = profile;
+  const { payment_qr, logo, ...rest } = profile;
   const payload: Record<string, unknown> = { ...rest };
   delete payload.payment_qr_url;
+  delete payload.logo_url;
 
-  if (payment_qr instanceof File) {
-    const blob = await DirectUploadsAPI.upload(payment_qr, "uploads");
-    payload.payment_qr = blob.signed_id;
-  } else if (payment_qr === null) {
-    payload.payment_qr = "";
-  }
+  const [paymentQrId, logoId] = await Promise.all([
+    toSignedUpload(payment_qr, "uploads"),
+    toSignedUpload(logo, "logos"),
+  ])
+  if (paymentQrId !== undefined) payload.payment_qr = paymentQrId
+  if (logoId !== undefined) payload.logo = logoId
 
   return payload;
 };

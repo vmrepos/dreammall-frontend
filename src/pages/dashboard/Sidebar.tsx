@@ -14,6 +14,7 @@ import { Toggle } from "../../components/atoms/Toggle"
 import { sidebarNavItems } from "./nav"
 import { ImpersonationControls } from "./shared/ImpersonationControls"
 import { cn } from "../../utils/format"
+import { resolveMediaUrl } from "../../utils/mediaUrl"
 
 type Props = {
   collapsed: boolean
@@ -33,6 +34,7 @@ export const Sidebar = ({ collapsed, onToggle }: Props) => {
   const { restaurant, isAdmin, logout } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
+  const restaurantLogo = resolveMediaUrl(restaurant?.logo_url)
 
   const handleLogout = async () => {
     await logout()
@@ -56,8 +58,17 @@ export const Sidebar = ({ collapsed, onToggle }: Props) => {
         {collapsed ? null : (
           <div className="min-w-0">
             <BrandLogo variant="dark" className="mb-2 h-14 w-[11.5rem]" />
-            <h1 className="truncate text-sm font-medium text-white/65">
-              {restaurant?.name ?? (isAdmin ? "Admin" : "Mi restaurante")}
+            <h1 className="flex items-center gap-2 truncate text-sm font-medium text-white/65">
+              {restaurantLogo ? (
+                <img
+                  src={restaurantLogo}
+                  alt=""
+                  className="size-6 shrink-0 rounded-md object-cover"
+                />
+              ) : null}
+              <span className="truncate">
+                {restaurant?.name ?? (isAdmin ? "Admin" : "Mi restaurante")}
+              </span>
             </h1>
           </div>
         )}

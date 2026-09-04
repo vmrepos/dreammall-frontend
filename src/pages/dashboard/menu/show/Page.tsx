@@ -125,6 +125,7 @@ export const Page = () => {
         open={shareOpen}
         menuName={menu.name}
         restaurantName={restaurant?.name ?? "Mi restaurante"}
+        restaurantLogoUrl={restaurant?.logo_url}
         address={restaurant?.address}
         whatsapp={restaurant?.whatsapp}
         products={menu.products ?? []}

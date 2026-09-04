@@ -18,7 +18,8 @@ export type TRestaurant = {
   delivery_radius: number;
   prep_time: number;
   ordering_token?: string | null;
-  payment_qr_url?: string | null;
+  payment_qr_url?: string | null
+  logo_url?: string | null;
   demand?: {
     online: number;
     available: number;
@@ -31,4 +32,5 @@ export type TRestaurantSummary = Pick<TRestaurant, "id" | "name" | "address" | "
 
 export type TRestaurantForm = Partial<TRestaurant> & {
   payment_qr?: File | string | null
+  logo?: File | string | null
 }

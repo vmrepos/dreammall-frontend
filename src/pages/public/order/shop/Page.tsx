@@ -12,6 +12,7 @@ import type { TProduct } from "../../../../types/Product"
 import { ProductList } from "../../../../utils/utils"
 import { publicOrderPath } from "../../../../utils/orderShare"
 import { cn } from "../../../../utils/format"
+import { resolveMediaUrl } from "../../../../utils/mediaUrl"
 import { CustomerForm } from "../complete/CustomerForm"
 import { StatusCard } from "../complete/StatusCard"
 import { ProductOptionsDialog } from "../../../dashboard/orders/new/ProductOptionsDialog"
@@ -184,10 +185,21 @@ export const Page = () => {
     return counts
   }, {})
 
+  const logoSrc = resolveMediaUrl(catalog.logo_url)
+
   return (
     <Shell>
       <header className="mb-6">
-        <p className="text-sm font-semibold uppercase tracking-wide text-brand">{catalog.name}</p>
+        <div className="flex items-center gap-3">
+          {logoSrc ? (
+            <img
+              src={logoSrc}
+              alt=""
+              className="size-14 shrink-0 rounded-2xl border border-gray-200 bg-white object-cover"
+            />
+          ) : null}
+          <p className="text-sm font-semibold uppercase tracking-wide text-brand">{catalog.name}</p>
+        </div>
         <h1 className="mt-1 text-[1.75rem] font-bold leading-tight text-ink">
           {step === 1 ? "Arma tu pedido" : "Tus datos"}
         </h1>
