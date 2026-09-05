@@ -5,7 +5,7 @@ import { faCircleInfo, faEnvelope, faLock } from "@fortawesome/free-solid-svg-ic
 import { BrandLogo } from "../../../components/atoms/BrandLogo"
 import { FormField, PasswordField } from "../../../components/molecules/FormField"
 import { useAuth } from "../../../context/AuthContext"
-import { safeInternalPath } from "../../../utils/navigation"
+import { restaurantInternalPath, restaurantPath } from "../../../utils/navigation"
 import axios from "axios"
 
 export const Page = () => {
@@ -25,7 +25,7 @@ export const Page = () => {
 
     try {
       await login(email, password)
-      navigate(safeInternalPath(searchParams.get("next")) ?? "/", { replace: true })
+      navigate(restaurantInternalPath(searchParams.get("next")) ?? restaurantPath("/orders"), { replace: true })
     } catch (e) {
       if (axios.isAxiosError(e)) {
         setError(e.response?.data.error)
@@ -119,13 +119,13 @@ export const Page = () => {
         </div>
         <p className="mt-6 text-center text-[13px] text-ink-muted">
 
-          <Link to="/forgot-password" className="font-semibold text-brand hover:underline">
+          <Link to="/r/forgot-password" className="font-semibold text-brand hover:underline">
             Olvidé mi contraseña
           </Link>
         </p>
         <p className="mt-6 text-center text-[13px] text-ink-muted">
           ¿No tienes cuenta?{" "}
-          <Link to="/register" className="font-semibold text-brand hover:underline">
+          <Link to="/r/register" className="font-semibold text-brand hover:underline">
             Regístrate aquí
           </Link>
         </p>

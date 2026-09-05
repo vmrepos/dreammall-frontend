@@ -33,7 +33,7 @@ export const Dashboard = () => {
 
   const handleStopImpersonating = async () => {
     await stopImpersonating()
-    navigate("/menu", { replace: true })
+    navigate("/r/menu", { replace: true })
   }
 
   return (

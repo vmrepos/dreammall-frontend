@@ -110,7 +110,7 @@ export const Page = () => {
     setIsSubmitting(true)
     apiClient.users.createAccount(data)
       .then(() => {
-        navigate("/register/thanks", {
+        navigate("/r/register/thanks", {
           replace: true,
           state: {
             email: user.email,
@@ -342,7 +342,7 @@ export const Page = () => {
               </Button>
             ) : (
               <Link
-                to="/login"
+                to="/r/login"
                 className="text-sm font-medium text-gray-500 transition hover:text-brand"
               >
                 ¿Ya tienes cuenta? Inicia sesión

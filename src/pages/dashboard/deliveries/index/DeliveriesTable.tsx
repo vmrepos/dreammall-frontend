@@ -41,7 +41,7 @@ export const DeliveriesTable = ({ deliveries }: Props) => {
             <tr
               key={delivery.id}
               className={tableRowLinkClass}
-              onClick={() => navigate(`/deliveries/${delivery.id}`)}
+              onClick={() => navigate(`/r/deliveries/${delivery.id}`)}
             >
               <td className="px-6 py-4 font-medium text-gray-900">#{delivery.id}</td>
               <td className="px-6 py-4 text-gray-500">{formatDate(delivery.created_at)}</td>
@@ -133,7 +133,7 @@ export const DeliveriesTable = ({ deliveries }: Props) => {
                   </div>
                 </dl>
                 <Link
-                  to={`/deliveries/${delivery.id}`}
+                  to={`/r/deliveries/${delivery.id}`}
                   className="mt-4 inline-flex text-sm font-semibold text-brand hover:underline"
                 >
                   Ver detalles

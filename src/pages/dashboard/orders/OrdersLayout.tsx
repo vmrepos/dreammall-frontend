@@ -4,7 +4,7 @@ import { OrdersQueueRail } from "./shared/OrdersQueueRail"
 
 export const OrdersLayout = () => {
   const { pathname } = useLocation()
-  const creating = pathname.endsWith("/orders/new")
+  const creating = pathname.endsWith("/r/orders/new")
 
   return (
     <div

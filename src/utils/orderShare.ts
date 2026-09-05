@@ -1,5 +1,3 @@
-import { customerOrigin } from "./host"
-
 export const publicOrderPath = (publicToken: string) => `/pedido/${publicToken}`
 
 export const restaurantCompletePath = (publicToken: string) =>
@@ -9,11 +7,10 @@ export const publicOrderUrl = (
   publicToken: string,
   options?: { fromRestaurant?: boolean },
 ) => {
-  const origin = options?.fromRestaurant ? window.location.origin : customerOrigin()
   const path = options?.fromRestaurant
     ? restaurantCompletePath(publicToken)
     : publicOrderPath(publicToken)
-  return `${origin}${path}`
+  return `${window.location.origin}${path}`
 }
 
 export const copyToClipboard = async (value: string) => {
@@ -40,7 +37,7 @@ export const copyPublicOrderUrl = async (publicToken: string) => {
 export const publicCatalogPath = (orderingToken: string) => `/pedir/${orderingToken}`
 
 export const publicCatalogUrl = (orderingToken: string) =>
-  `${customerOrigin()}${publicCatalogPath(orderingToken)}`
+  `${window.location.origin}${publicCatalogPath(orderingToken)}`
 
 export const copyPublicCatalogUrl = async (orderingToken: string) => {
   await copyToClipboard(publicCatalogUrl(orderingToken))

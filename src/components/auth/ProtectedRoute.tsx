@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
+import { restaurantPath } from "../../utils/navigation"
 
 export const ProtectedRoute = () => {
   const { restaurant, isAdmin, isLoading } = useAuth()
@@ -8,7 +9,7 @@ export const ProtectedRoute = () => {
   if (isLoading) return <div>Loading...</div>
   if (!restaurant && !isAdmin) {
     const next = encodeURIComponent(`${location.pathname}${location.search}`)
-    return <Navigate to={`/login?next=${next}`} replace />
+    return <Navigate to={`${restaurantPath("/login")}?next=${next}`} replace />
   }
 
   return <Outlet />

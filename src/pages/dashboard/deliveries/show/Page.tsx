@@ -88,7 +88,7 @@ export const Page = () => {
     return (
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="text-2xl font-bold text-gray-900">Entrega no encontrada</h1>
-        <Link to="/deliveries" className="mt-4 inline-block text-brand hover:underline">
+        <Link to="/r/deliveries" className="mt-4 inline-block text-brand hover:underline">
           Volver a entregas
         </Link>
       </div>
@@ -101,7 +101,7 @@ export const Page = () => {
       const replacement = await apiClient.deliveries.cancel(delivery.id)
       setShowCancelDialog(false)
       toast.success("Buscando otro repartidor")
-      navigate(`/deliveries/${replacement.id}`)
+      navigate(`/r/deliveries/${replacement.id}`)
     } catch {
       toast.error("No se pudo cancelar la entrega")
     } finally {
@@ -132,7 +132,7 @@ export const Page = () => {
           : await apiClient.shipments.retry(delivery.shipment_id!)
       setShowRetryDialog(false)
       toast.success("Buscando un nuevo repartidor")
-      navigate(`/deliveries/${created.id}`)
+      navigate(`/r/deliveries/${created.id}`)
     } catch {
       toast.error("No se pudo reenviar la entrega.")
     } finally {
@@ -161,7 +161,7 @@ export const Page = () => {
   return (
     <div className="mx-auto max-w-6xl">
       <Link
-        to="/deliveries"
+        to="/r/deliveries"
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand phone:mb-4"
       >
         <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />
@@ -313,7 +313,7 @@ export const Page = () => {
             <DetailRow
               label="Pedido"
               value={`#${delivery.order_id}`}
-              href={`/orders/${delivery.order_id}`}
+              href={`/r/orders/${delivery.order_id}`}
             />
           ) : (
             <DetailRow label="Envío" value={`#${delivery.shipment_id}`} />

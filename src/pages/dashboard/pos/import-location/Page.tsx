@@ -69,7 +69,7 @@ export const Page = () => {
         }
         stashPosStartLocation(coords)
         toast.success("Ubicación cargada. Completa los datos del cliente.")
-        navigate("/pos", { replace: true })
+        navigate("/r/pos", { replace: true })
       })
       .catch(() => {
         if (!cancelled) setStatus("failed")
@@ -107,7 +107,7 @@ export const Page = () => {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <GoBack text="Volver al POS" route="/pos" />
+      <GoBack text="Volver al POS" route="/r/pos" />
       <PageHeader
         icon={faLocationArrow}
         section="POS"

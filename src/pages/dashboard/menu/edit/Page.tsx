@@ -63,7 +63,7 @@ export const Page = () => {
         name,
         image: image.file ?? undefined,
       })
-      navigate(`/menu/${menu.id}`)
+      navigate(`/r/menu/${menu.id}`)
     } catch (err) {
       console.error(err)
       setError("No se pudo guardar el menú. Intenta de nuevo.")
@@ -82,7 +82,7 @@ export const Page = () => {
   return (
     <div className="mx-auto max-w-3xl">
       <Link
-        to={`/menu/${menu.id}`}
+        to={`/r/menu/${menu.id}`}
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
       >
         <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />
@@ -114,7 +114,7 @@ export const Page = () => {
             <Button
               type="button"
               variant="secondary"
-              onClick={() => navigate(`/menu/${menu.id}`)}
+              onClick={() => navigate(`/r/menu/${menu.id}`)}
             >
               Cancelar
             </Button>

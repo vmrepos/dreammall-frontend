@@ -167,7 +167,7 @@ export const Page = () => {
         })
         if (!order.public_token) {
           toast.error("Pedido creado, pero no se pudo guardar el pago.")
-          navigate(`/orders/${order.id}`)
+          navigate(`/r/orders/${order.id}`)
           return
         }
         try {
@@ -186,12 +186,12 @@ export const Page = () => {
           })
         } catch (error) {
           toast.error(apiErrorMessage(error, "Pedido creado. No se pudo guardar ubicación o pago."))
-          navigate(`/orders/${order.id}`)
+          navigate(`/r/orders/${order.id}`)
           return
         }
         toast.success("Pedido creado")
         clearPosStartLocation()
-        navigate(`/orders/${order.id}`)
+        navigate(`/r/orders/${order.id}`)
       } catch (error) {
         toast.error(apiErrorMessage(error, "No se pudo crear el pedido. Intenta de nuevo."))
       } finally {
@@ -354,7 +354,7 @@ export const Page = () => {
       )}
       style={{ "--orders-rail-h": "5.75rem" } as CSSProperties}
     >
-      <OrdersQueueRail creating createTo="/pos" flush />
+      <OrdersQueueRail creating createTo="/r/pos" flush />
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-surface-elevated px-6 py-3 phone:px-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-brand">

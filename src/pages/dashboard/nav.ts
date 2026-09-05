@@ -8,6 +8,7 @@ import {
   faTruck,
   faUser,
 } from "@fortawesome/free-solid-svg-icons"
+import { restaurantPath } from "../../utils/navigation"
 import { DELIVERIES_SECTION_ENABLED } from "./deliveries/Deliveries"
 
 export type TNavItem = {
@@ -17,32 +18,32 @@ export type TNavItem = {
 }
 
 export const sidebarNavItems: TNavItem[] = [
-  { to: "/pos", label: "POS", icon: faCashRegister },
-  { to: "/menu", label: "Menú", icon: faBookOpen },
-  { to: "/orders", label: "Pedidos", icon: faClipboardList },
+  { to: restaurantPath("/pos"), label: "POS", icon: faCashRegister },
+  { to: restaurantPath("/menu"), label: "Menú", icon: faBookOpen },
+  { to: restaurantPath("/orders"), label: "Pedidos", icon: faClipboardList },
   ...(DELIVERIES_SECTION_ENABLED
-    ? [{ to: "/deliveries", label: "Entregas", icon: faTruck }]
+    ? [{ to: restaurantPath("/deliveries"), label: "Entregas", icon: faTruck }]
     : []),
-  { to: "/profile", label: "Perfil", icon: faUser },
-  { to: "/settings", label: "Configuración", icon: faGear },
-  { to: "/reports", label: "Reportes", icon: faChartPie },
+  { to: restaurantPath("/profile"), label: "Perfil", icon: faUser },
+  { to: restaurantPath("/settings"), label: "Configuración", icon: faGear },
+  { to: restaurantPath("/reports"), label: "Reportes", icon: faChartPie },
 ]
 
 export const tabNavItems: TNavItem[] = [
-  { to: "/orders", label: "Pedidos", icon: faClipboardList },
-  { to: "/menu", label: "Menú", icon: faBookOpen },
+  { to: restaurantPath("/orders"), label: "Pedidos", icon: faClipboardList },
+  { to: restaurantPath("/menu"), label: "Menú", icon: faBookOpen },
   ...(DELIVERIES_SECTION_ENABLED
-    ? [{ to: "/deliveries", label: "Entregas", icon: faTruck }]
-    : [{ to: "/reports", label: "Reportes", icon: faChartPie }]),
+    ? [{ to: restaurantPath("/deliveries"), label: "Entregas", icon: faTruck }]
+    : [{ to: restaurantPath("/reports"), label: "Reportes", icon: faChartPie }]),
 ]
 
 export const moreNavItems: TNavItem[] = [
-  { to: "/pos", label: "POS", icon: faCashRegister },
+  { to: restaurantPath("/pos"), label: "POS", icon: faCashRegister },
   ...(DELIVERIES_SECTION_ENABLED
-    ? [{ to: "/reports", label: "Reportes", icon: faChartPie }]
+    ? [{ to: restaurantPath("/reports"), label: "Reportes", icon: faChartPie }]
     : []),
-  { to: "/profile", label: "Perfil", icon: faUser },
-  { to: "/settings", label: "Configuración", icon: faGear },
+  { to: restaurantPath("/profile"), label: "Perfil", icon: faUser },
+  { to: restaurantPath("/settings"), label: "Configuración", icon: faGear },
 ]
 
 export const isNavActive = (pathname: string, to: string) =>

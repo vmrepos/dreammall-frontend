@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react"
 import { faStore } from "@fortawesome/free-solid-svg-icons"
-import { BrandLogo } from "../../../components/atoms/BrandLogo"
 import { apiClient } from "../../../services/apiClient"
 import type { TPublicRestaurant } from "../../../types/PublicOrder"
 import { StatusCard } from "../order/complete/StatusCard"
+import { PublicShell } from "../shared/PublicShell"
 import { RestaurantCard } from "./RestaurantCard"
 
 export const Page = () => {
   const [restaurants, setRestaurants] = useState<TPublicRestaurant[]>([])
   const [loadState, setLoadState] = useState<"loading" | "ready" | "unavailable">("loading")
+
+  useEffect(() => {
+    document.title = "Locales · Pedi2"
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -31,10 +35,8 @@ export const Page = () => {
   }, [])
 
   return (
-    <div className="min-h-svh bg-surface px-4 py-8">
-      <div className="mx-auto w-full max-w-lg">
-        <BrandLogo className="mb-6 h-12" />
-
+    <PublicShell>
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 md:py-10">
         {loadState === "loading" ? (
           <p className="text-center text-[15px] text-ink-muted">Cargando locales...</p>
         ) : null}
@@ -68,7 +70,7 @@ export const Page = () => {
             </ul>
           </>
         ) : null}
-      </div>
-    </div>
+      </main>
+    </PublicShell>
   )
 }

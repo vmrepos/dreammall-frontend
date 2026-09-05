@@ -12,11 +12,11 @@ type Props = {
 
 export const OrdersQueueRail = ({
   creating = false,
-  createTo = "/orders/new",
+  createTo = "/r/orders/new",
   flush = false,
 }: Props) => {
   const navigate = useNavigate()
-  const showMatch = useMatch("/orders/:id")
+  const showMatch = useMatch("/r/orders/:id")
   const { orders, attentionOrderIds, acknowledgeOrder } = useOrders()
   const parsedId = Number(showMatch?.params.id)
   const activeOrderId = !creating && Number.isFinite(parsedId) ? parsedId : null
@@ -34,7 +34,7 @@ export const OrdersQueueRail = ({
       activeOrderId={activeOrderId}
       creating={creating}
       flush={flush}
-      onSelect={(orderId) => navigate(`/orders/${orderId}`)}
+      onSelect={(orderId) => navigate(`/r/orders/${orderId}`)}
       onCreate={() => navigate(createTo)}
     />
   )

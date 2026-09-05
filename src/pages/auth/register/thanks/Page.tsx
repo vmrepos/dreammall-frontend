@@ -56,7 +56,7 @@ export const Page = () => {
 
         <div className="flex flex-col gap-3">
           <Link
-            to="/login"
+            to="/r/login"
             className="inline-flex w-full items-center justify-center rounded-xl bg-brand px-5 py-3.5 text-base font-semibold text-white transition hover:bg-brand-dark active:scale-[0.99]"
           >
             Ir al inicio de sesión

@@ -1,4 +1,5 @@
-export const SHARE_TARGET_PATH = "/pos/import-location"
+export const SHARE_TARGET_PATH = "/r/pos/import-location"
+const SHARE_TARGET_PATHS = [SHARE_TARGET_PATH, "/pos/import-location"]
 export const SHARE_TARGET_STORAGE_KEY = "pedi2-share-target"
 
 export type TShareTargetPayload = {
@@ -26,7 +27,7 @@ export const payloadFromLocation = (location: {
   search: string
   href: string
 }): TShareTargetPayload | null => {
-  if (location.pathname !== SHARE_TARGET_PATH) return null
+  if (!SHARE_TARGET_PATHS.includes(location.pathname)) return null
   const params = readParams(location.search)
   const searchParams = new URLSearchParams(location.search)
   return {

@@ -135,7 +135,7 @@ export const Page = () => {
       })
       setPreview(quoted)
       if (fromRestaurant) {
-        navigate(`/orders/${quoted.id}`, { replace: true })
+        navigate(`/r/orders/${quoted.id}`, { replace: true })
         return
       }
       setStep("waiting")
@@ -160,7 +160,7 @@ export const Page = () => {
         if (cancelled) return
         setPreview(order)
         if (fromRestaurant && isPaymentMethod(order.payment_method)) {
-          navigate(`/orders/${order.id}`, { replace: true })
+          navigate(`/r/orders/${order.id}`, { replace: true })
           return
         }
         setStep(stepForOrder(order))
@@ -250,7 +250,7 @@ export const Page = () => {
       <header className="mb-6">
         {fromRestaurant && preview ? (
           <Link
-            to={`/orders/${preview.id}`}
+            to={`/r/orders/${preview.id}`}
             className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-ink-muted transition hover:text-brand"
           >
             <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />

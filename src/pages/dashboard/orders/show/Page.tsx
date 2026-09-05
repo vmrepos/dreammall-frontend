@@ -78,7 +78,7 @@ export const Page = () => {
     return (
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="text-2xl font-bold text-gray-900">Pedido no encontrado</h1>
-        <Link to="/orders" className="mt-4 inline-block text-brand hover:underline">
+        <Link to="/r/orders" className="mt-4 inline-block text-brand hover:underline">
           Volver a pedidos
         </Link>
       </div>
@@ -107,7 +107,7 @@ export const Page = () => {
         const delivery = await apiClient.deliveries.create(order.id)
         await fetchOrder(order.id)
         toast.success("Buscando un nuevo repartidor")
-        if (DELIVERIES_SECTION_ENABLED) navigate(`/deliveries/${delivery.id}`)
+        if (DELIVERIES_SECTION_ENABLED) navigate(`/r/deliveries/${delivery.id}`)
       }
       setConfirmAction(null)
     } catch {
@@ -139,7 +139,7 @@ export const Page = () => {
   return (
     <div className="@container mx-auto max-w-screen-2xl">
       <Link
-        to="/orders"
+        to="/r/orders"
         className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand @min-[40rem]:mb-6"
       >
         <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />

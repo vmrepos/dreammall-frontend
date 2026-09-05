@@ -43,7 +43,7 @@ export const Page = () => {
         action={
           <Button
             className="min-w-0 phone-portrait:w-full phone-portrait:gap-1 phone-portrait:px-3 phone-portrait:py-2.5 phone-portrait:text-xs"
-            onClick={() => navigate("/orders/new")}
+            onClick={() => navigate("/r/orders/new")}
           >
             <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
             Nuevo pedido
@@ -57,7 +57,7 @@ export const Page = () => {
             icon={faClipboardList}
             title="Sin pedidos todavía"
             description="Crea un pedido manual para verlo aquí con estado, ítems y total."
-            actionUrl="/orders/new"
+            actionUrl="/r/orders/new"
             actionText="Crear primer pedido"
           />
         </Card>

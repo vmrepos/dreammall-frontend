@@ -88,7 +88,7 @@ export const Page = () => {
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="text-2xl font-bold text-gray-900">Menú no encontrado</h1>
         {error && <p className="mt-2 text-sm text-gray-500">{error}</p>}
-        <Link to="/menu" className="mt-4 inline-block text-brand hover:underline">
+        <Link to="/r/menu" className="mt-4 inline-block text-brand hover:underline">
           Volver a menús
         </Link>
       </div>
@@ -99,7 +99,7 @@ export const Page = () => {
     return (
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="text-2xl font-bold text-gray-900">Producto no encontrado</h1>
-        <Link to={`/menu/${menu.id}`} className="mt-4 inline-block text-brand hover:underline">
+        <Link to={`/r/menu/${menu.id}`} className="mt-4 inline-block text-brand hover:underline">
           Volver al menú
         </Link>
       </div>
@@ -165,7 +165,7 @@ const ProductEditor = ({
           await apiClient.products.create(parsedMenuId, input)
         }
 
-        navigate(`/menu/${menu.id}`)
+        navigate(`/r/menu/${menu.id}`)
       } catch {
         setError("No se pudo guardar el producto. Intenta de nuevo.")
         setSubmitting(false)
@@ -175,7 +175,7 @@ const ProductEditor = ({
 
   return (
     <div className="mx-auto max-w-6xl">
-      <GoBack text={`Volver a ${menu.name}`} route={`/menu/${menu.id}`} />
+      <GoBack text={`Volver a ${menu.name}`} route={`/r/menu/${menu.id}`} />
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
@@ -270,7 +270,7 @@ const ProductEditor = ({
         </Card>
 
         <div className="flex justify-end gap-3 lg:col-span-2">
-          <Button type="button" variant="secondary" onClick={() => navigate(`/menu/${menu.id}`)}>
+          <Button type="button" variant="secondary" onClick={() => navigate(`/r/menu/${menu.id}`)}>
             Cancelar
           </Button>
           <Button type="submit" disabled={submitting}>

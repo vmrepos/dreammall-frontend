@@ -2,7 +2,19 @@
 
 # Restaurant frontend (SPA)
 
-React + Vite + TypeScript dashboard for **restaurant owners** (Pedi2). Talks to the Rails API under `/api/v1` with cookie-based OAuth (Doorkeeper). This is **not** the driver or customer app.
+React + Vite + TypeScript dashboard for **restaurant owners** (Pedi2). Talks to the Rails API under `/api/v1` with cookie-based OAuth (Doorkeeper). This is **not** the driver app.
+
+## Public URLs
+
+| Path | What |
+|------|------|
+| `/` | Public landing (discovery + comercio login) |
+| `/locales` | Public restaurant directory |
+| `/r/*` | Restaurant panel (auth + dashboard). Login is `/r/login`. |
+| `/pedir/:token` | Public catalog (WhatsApp / copy-link) |
+| `/pedido/:token` | Public pin + pay |
+
+Old restaurant URLs (`/login`, `/orders`, …) redirect to `/r/…`. There is no customer subdomain.
 
 ## Domain (what this app owns)
 

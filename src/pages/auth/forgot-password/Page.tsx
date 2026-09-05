@@ -96,7 +96,7 @@ export const Page = () => {
         </div>
 
         <p className="mt-6 text-center text-[13px] text-ink-muted">
-          <Link to="/login" className="font-semibold text-brand hover:underline">
+          <Link to="/r/login" className="font-semibold text-brand hover:underline">
             Volver a iniciar sesión
           </Link>
         </p>

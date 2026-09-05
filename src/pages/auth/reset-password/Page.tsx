@@ -34,7 +34,7 @@ export const Page = () => {
     setIsSubmitting(true)
     try {
       await authService.resetPassword(token, password, passwordConfirmation)
-      navigate("/login?reset=1", { replace: true })
+      navigate("/r/login?reset=1", { replace: true })
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.error
@@ -132,7 +132,7 @@ export const Page = () => {
         </div>
 
         <p className="mt-6 text-center text-[13px] text-ink-muted">
-          <Link to="/forgot-password" className="font-semibold text-brand hover:underline">
+          <Link to="/r/forgot-password" className="font-semibold text-brand hover:underline">
             Solicitar un nuevo enlace
           </Link>
         </p>

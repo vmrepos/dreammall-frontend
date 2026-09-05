@@ -25,7 +25,7 @@ export const Page = () => {
         title="Entregas"
         description="Sigue los viajes de tus pedidos y solicita un envío sin productos del menú."
         action={
-          <Button onClick={() => navigate("/deliveries/new")}>
+          <Button onClick={() => navigate("/r/deliveries/new")}>
             <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
             Nueva entrega
           </Button>
@@ -38,7 +38,7 @@ export const Page = () => {
             icon={faTruck}
             title="Sin entregas todavía"
             description="Cuando marques Preparando en un pedido, o solicites un envío, aparecerá aquí."
-            actionUrl="/deliveries/new"
+            actionUrl="/r/deliveries/new"
             actionText="Crear primera entrega"
           />
         ) : (

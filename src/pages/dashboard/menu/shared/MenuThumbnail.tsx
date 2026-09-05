@@ -27,7 +27,7 @@ export const MenuThumbnail: React.FC<Props> = ({ menu }) => {
     >
       <button
         type="button"
-        onClick={() => navigate(`/menu/${menu.id}`)}
+        onClick={() => navigate(`/r/menu/${menu.id}`)}
         className="group block w-full cursor-pointer text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         <div

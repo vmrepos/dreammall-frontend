@@ -44,7 +44,7 @@ export const ImpersonationControls = ({ variant, compact = false, onPicked }: Pr
       await impersonate(id)
       setOpen(false)
       onPicked?.()
-      navigate("/menu", { replace: true })
+      navigate("/r/menu", { replace: true })
     } finally {
       setSelecting(false)
     }

@@ -30,10 +30,10 @@ export const DeliveriesTable = ({ deliveries }: Props) => {
               onClick={() =>
                 navigate(
                   DELIVERIES_SECTION_ENABLED
-                    ? `/deliveries/${delivery.id}`
+                    ? `/r/deliveries/${delivery.id}`
                     : delivery.order_id
-                      ? `/orders/${delivery.order_id}`
-                      : `/deliveries/${delivery.id}`,
+                      ? `/r/orders/${delivery.order_id}`
+                      : `/r/deliveries/${delivery.id}`,
                 )
               }
             >
@@ -41,7 +41,7 @@ export const DeliveriesTable = ({ deliveries }: Props) => {
               <td className="px-6 py-4">
                 {delivery.order_id ? (
                   <Link
-                    to={`/orders/${delivery.order_id}`}
+                    to={`/r/orders/${delivery.order_id}`}
                     className="font-medium text-brand hover:underline"
                     onClick={(e) => e.stopPropagation()}
                   >

@@ -31,7 +31,7 @@ export const Page = () => {
         active: true,
         image: image.file,
       })
-      navigate(`/menu/${created.id}`)
+      navigate(`/r/menu/${created.id}`)
     } catch (err) {
       console.error(err)
       setError("No se pudo crear el menú. Intenta de nuevo.")
@@ -42,7 +42,7 @@ export const Page = () => {
   return (
     <div className="mx-auto max-w-3xl">
       <Link
-        to="/menu"
+        to="/r/menu"
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
       >
         <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />
@@ -70,7 +70,7 @@ export const Page = () => {
           />
 
           <div className="flex justify-end gap-3 border-t border-gray-100 pt-6">
-            <Button type="button" variant="secondary" onClick={() => navigate("/menu")}>
+            <Button type="button" variant="secondary" onClick={() => navigate("/r/menu")}>
               Cancelar
             </Button>
             <Button type="submit" disabled={submitting}>

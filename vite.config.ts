@@ -13,6 +13,7 @@ export default defineConfig({
     VitePWA({
       registerType: "prompt",
       injectRegister: false,
+      scope: "/r/",
       manifest: {
         name: "Pedi2 · Comercio",
         short_name: "Pedi2",
@@ -22,11 +23,11 @@ export default defineConfig({
         background_color: splash,
         display: "standalone",
         orientation: "any",
-        start_url: "/",
-        scope: "/",
+        start_url: "/r/",
+        scope: "/r/",
         categories: ["business", "food"],
         share_target: {
-          action: "/pos/import-location",
+          action: "/r/pos/import-location",
           method: "GET",
           enctype: "application/x-www-form-urlencoded",
           params: {
@@ -64,6 +65,7 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: "/index.html",
+        navigateFallbackAllowlist: [/^\/r($|\/)/],
         navigateFallbackDenylist: [/^\/api\//],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest,woff2}"],
         runtimeCaching: [

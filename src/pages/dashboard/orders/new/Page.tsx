@@ -66,13 +66,13 @@ export const Page = () => {
       if (completeFromRestaurant) {
         if (!order.public_token) {
           toast.error("No se pudo abrir el enlace del cliente.")
-          navigate(`/orders/${order.id}`)
+          navigate(`/r/orders/${order.id}`)
           return
         }
         navigate(restaurantCompletePath(order.public_token))
         return
       }
-      navigate(`/orders/${order.id}`)
+      navigate(`/r/orders/${order.id}`)
     } catch {
       toast.error("No se pudo crear el pedido. Intenta de nuevo.")
     } finally {
@@ -139,7 +139,7 @@ export const Page = () => {
     <div className={cn("mx-auto max-w-[110rem]", compact && "-mx-4 -mt-4 px-2 pt-2")}>
       {compact ? null : (
         <Link
-          to="/orders"
+          to="/r/orders"
           className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
         >
           <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />

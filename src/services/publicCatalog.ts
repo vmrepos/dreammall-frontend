@@ -26,13 +26,6 @@ type TCatalogWire = {
   menus?: TCatalogMenuWire[]
 }
 
-type TRestaurantWire = {
-  name: string
-  ordering_token: string
-  address?: string | null
-  logo_url?: string | null
-}
-
 const toOptionGroup = (group: TProductOptionGroup): TProductOptionGroup => ({
   ...group,
   product_options: group.product_options ?? [],
@@ -68,6 +61,13 @@ const toCatalog = (raw: TCatalogWire): TPublicCatalog => ({
   logo_url: raw.logo_url ?? null,
   menus: (raw.menus ?? []).map(toMenu),
 })
+
+type TRestaurantWire = {
+  name: string
+  ordering_token: string
+  address?: string | null
+  logo_url?: string | null
+}
 
 const toRestaurant = (raw: TRestaurantWire): TPublicRestaurant => ({
   name: raw.name,

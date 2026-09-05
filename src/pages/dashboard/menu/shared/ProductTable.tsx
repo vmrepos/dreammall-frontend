@@ -65,7 +65,7 @@ export const ProductTable = ({ menuId, products, onProductsChange }: Props) => {
       <Button
         variant="ghost"
         className="px-3 py-2"
-        onClick={() => navigate(`/menu/${menuId}/products/${product.id}/edit`)}
+        onClick={() => navigate(`/r/menu/${menuId}/products/${product.id}/edit`)}
       >
         <FontAwesomeIcon icon={faPen} className="size-4" aria-hidden />
         Editar
@@ -95,7 +95,7 @@ export const ProductTable = ({ menuId, products, onProductsChange }: Props) => {
         {products.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
             <p className="text-sm text-gray-500">Este menú no tiene productos todavía.</p>
-            <Button className="mt-6" onClick={() => navigate(`/menu/${menuId}/products/new`)}>
+            <Button className="mt-6" onClick={() => navigate(`/r/menu/${menuId}/products/new`)}>
               Agregar primer producto
             </Button>
           </div>

@@ -104,7 +104,7 @@ export const OrderCard = ({ order }: Props) => {
     }
   }
 
-  const openOrder = () => navigate(`/orders/${order.id}`)
+  const openOrder = () => navigate(`/r/orders/${order.id}`)
 
   return (
     <div className="h-full">

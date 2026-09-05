@@ -99,7 +99,7 @@ export const Page = () => {
     try {
       const delivery = await apiClient.shipments.create(values)
       toast.success("Buscando un repartidor")
-      navigate(`/deliveries/${delivery.id}`)
+      navigate(`/r/deliveries/${delivery.id}`)
     } catch {
       toast.error("No se pudo crear la entrega.")
     } finally {
@@ -111,7 +111,7 @@ export const Page = () => {
   return (
     <div className="mx-auto max-w-3xl">
       <Link
-        to="/deliveries"
+        to="/r/deliveries"
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand"
       >
         <FontAwesomeIcon icon={faArrowLeft} className="size-4" aria-hidden />
@@ -169,7 +169,7 @@ export const Page = () => {
           setPreview(null)
         }}
         onCalculate={() => void calculatePreview()}
-        onCancel={() => navigate("/deliveries")}
+        onCancel={() => navigate("/r/deliveries")}
         onConfirm={() => setShowConfirm(true)}
       />
 

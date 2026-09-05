@@ -139,7 +139,7 @@ const MoreSheet = ({ open, onClose }: MoreSheetProps) => {
   const handleLogout = async () => {
     await logout()
     onClose()
-    navigate("/login", { replace: true })
+    navigate("/r/login", { replace: true })
   }
 
   return (

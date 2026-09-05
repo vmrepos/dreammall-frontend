@@ -39,7 +39,7 @@ export const Sidebar = ({ collapsed, onToggle }: Props) => {
 
   const handleLogout = async () => {
     await logout()
-    navigate("/login", { replace: true })
+    navigate("/r/login", { replace: true })
   }
 
   return (

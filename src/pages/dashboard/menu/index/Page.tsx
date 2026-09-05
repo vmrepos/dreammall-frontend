@@ -21,7 +21,7 @@ export const Page = () => {
         title="Menús"
         description="Organiza las cartas de tu comercio y administra sus productos."
         action={
-          <Button onClick={() => navigate("/menu/new")}>
+          <Button onClick={() => navigate("/r/menu/new")}>
             <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
             Nuevo menú
           </Button>
@@ -33,7 +33,7 @@ export const Page = () => {
           icon={faBookOpen}
           title="Sin menús todavía"
           description="Cuando crees un menú, aparecerá aquí con su estado y detalles."
-          actionUrl="/menu/new"
+          actionUrl="/r/menu/new"
           actionText="Crear primer menú"
         />
       ) : (

@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom"
 import { AuthProvider } from "./context/providers/AuthProvider"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { PublicRoute } from "./components/auth/PublicRoute"
@@ -15,43 +15,31 @@ import { Profile } from "./pages/dashboard/profile/Profile"
 import { Reports } from "./pages/dashboard/reports/Reports"
 import { Settings } from "./pages/dashboard/settings/Settings"
 import { Pos } from "./pages/dashboard/pos/Pos"
-import { PublicOrder } from "./pages/public/order/Order"
+import { Page as Landing } from "./pages/public/landing/Page"
 import { Locales } from "./pages/public/locales/Locales"
-import { isCustomerHost } from "./utils/host"
+import { PublicOrder } from "./pages/public/order/Order"
+import { isLegacyRestaurantPath, restaurantPath } from "./utils/navigation"
 
-export const AppRoutes = () => {
-  const customerHost = isCustomerHost()
-
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/pedido/:token" element={<PublicOrder.Complete />} />
-        <Route path="/pedir/:token" element={<PublicOrder.Shop />} />
-        <Route path="/pedir" element={<Navigate to="/locales" replace />} />
-        <Route path="/locales" element={<Locales.Index />} />
-        {customerHost ? <Route path="/" element={<Locales.Index />} /> : null}
-        <Route path="*" element={customerHost ? <PublicOrder.NeedLink /> : <RestaurantApp />} />
-      </Routes>
-    </BrowserRouter>
-  )
-}
-
-const RestaurantApp = () => (
-  <AuthProvider>
-    <CableProvider>
-      <PwaInstallBanner />
-      <Routes>
+export const AppRoutes = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/locales" element={<Locales.Index />} />
+      <Route path="/pedido/:token" element={<PublicOrder.Complete />} />
+      <Route path="/pedir/:token" element={<PublicOrder.Shop />} />
+      <Route path="/pedir" element={<Navigate to="/locales" replace />} />
+      <Route path="/r" element={<RestaurantApp />}>
         <Route element={<PublicRoute />}>
-          <Route path="/login" element={<Auth.Login />} />
-          <Route path="/register" element={<Auth.Register />} />
-          <Route path="/register/thanks" element={<Auth.RegisterThanks />} />
-          <Route path="/forgot-password" element={<Auth.ForgotPassword />} />
-          <Route path="/reset-password" element={<Auth.ResetPassword />} />
+          <Route path="login" element={<Auth.Login />} />
+          <Route path="register" element={<Auth.Register />} />
+          <Route path="register/thanks" element={<Auth.RegisterThanks />} />
+          <Route path="forgot-password" element={<Auth.ForgotPassword />} />
+          <Route path="reset-password" element={<Auth.ResetPassword />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Dashboard />}>
-            <Route index element={<Navigate to="/orders" replace />} />
+          <Route element={<Dashboard />}>
+            <Route index element={<Navigate to={restaurantPath("/orders")} replace />} />
             <Route path="pos" element={<Pos.Index />} />
             <Route path="pos/import-location" element={<Pos.ImportLocation />} />
             <Route path="orders" element={<Orders.Layout />}>
@@ -66,11 +54,11 @@ const RestaurantApp = () => (
                 <Route path="deliveries/:id" element={<Deliveries.Show />} />
               </>
             ) : (
-              <Route path="deliveries/*" element={<Navigate to="/orders" replace />} />
+              <Route path="deliveries/*" element={<Navigate to={restaurantPath("/orders")} replace />} />
             )}
             <Route path="profile" element={<Profile.Index />} />
             <Route path="settings" element={<Settings.Index />} />
-            <Route path="subscription" element={<Navigate to="/orders" replace />} />
+            <Route path="subscription" element={<Navigate to={restaurantPath("/orders")} replace />} />
             <Route path="reports" element={<Reports.Index />} />
             <Route path="menu" element={<MenuLayout />}>
               <Route index element={<Menu.Index />} />
@@ -82,7 +70,26 @@ const RestaurantApp = () => (
             </Route>
           </Route>
         </Route>
-      </Routes>
+        <Route path="*" element={<Navigate to={restaurantPath("/orders")} replace />} />
+      </Route>
+      <Route path="*" element={<LegacyRestaurantRedirect />} />
+    </Routes>
+  </BrowserRouter>
+)
+
+const LegacyRestaurantRedirect = () => {
+  const { pathname, search } = useLocation()
+  if (isLegacyRestaurantPath(pathname)) {
+    return <Navigate to={`${restaurantPath(pathname)}${search}`} replace />
+  }
+  return <Navigate to="/" replace />
+}
+
+const RestaurantApp = () => (
+  <AuthProvider>
+    <CableProvider>
+      <PwaInstallBanner />
+      <Outlet />
     </CableProvider>
   </AuthProvider>
 )

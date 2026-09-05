@@ -4,22 +4,21 @@ import { useLocation } from "react-router-dom"
 import { Button } from "../atoms/Button"
 import { usePwaInstall } from "../../hooks/usePwaInstall"
 import { cn } from "../../utils/format"
-import { isCustomerHost } from "../../utils/host"
 
 const dashboardPrefixes = [
-  "/orders",
-  "/menu",
-  "/deliveries",
-  "/profile",
-  "/settings",
-  "/reports",
+  "/r/orders",
+  "/r/menu",
+  "/r/deliveries",
+  "/r/profile",
+  "/r/settings",
+  "/r/reports",
 ]
 
 export const PwaInstallBanner = () => {
   const { pathname } = useLocation()
-  const enabled = !isCustomerHost() && !pathname.startsWith("/pedido")
+  const enabled = pathname.startsWith("/r")
   const { mode, install, dismiss } = usePwaInstall(enabled)
-  const aboveOrdersRail = pathname.startsWith("/orders")
+  const aboveOrdersRail = pathname.startsWith("/r/orders")
   const onDashboard = dashboardPrefixes.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   )

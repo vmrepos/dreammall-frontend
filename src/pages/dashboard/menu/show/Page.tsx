@@ -66,7 +66,7 @@ export const Page = () => {
 
   return (
     <div className="@container mx-auto max-w-6xl">
-      <GoBack text="Volver a menús" route="/menu" />
+      <GoBack text="Volver a menús" route="/r/menu" />
 
       <div className="mb-6 flex flex-col gap-4 @min-[40rem]:flex-row @min-[40rem]:items-start @min-[40rem]:justify-between">
         <div className="min-w-0">
@@ -96,7 +96,7 @@ export const Page = () => {
               onChange={(active) => void toggleMenu(menu.id, active)}
             />
           </div>
-          <Button variant="secondary" onClick={() => navigate(`/menu/${menu.id}/edit`)}>
+          <Button variant="secondary" onClick={() => navigate(`/r/menu/${menu.id}/edit`)}>
             <FontAwesomeIcon icon={faPen} className="size-4" aria-hidden />
             Editar menú
           </Button>
@@ -108,7 +108,7 @@ export const Page = () => {
             <FontAwesomeIcon icon={faImage} className="size-4" aria-hidden />
             Compartir menú
           </Button>
-          <Button onClick={() => navigate(`/menu/${menu.id}/products/new`)}>
+          <Button onClick={() => navigate(`/r/menu/${menu.id}/products/new`)}>
             <FontAwesomeIcon icon={faPlus} className="size-4" aria-hidden />
             Nuevo producto
           </Button>

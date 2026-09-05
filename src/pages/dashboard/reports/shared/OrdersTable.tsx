@@ -26,7 +26,7 @@ export const OrdersTable = ({ orders }: Props) => {
             <tr
               key={order.id}
               className={tableRowLinkClass}
-              onClick={() => navigate(`/orders/${order.id}`)}
+              onClick={() => navigate(`/r/orders/${order.id}`)}
             >
               <td className="px-6 py-4 font-medium text-gray-900">#{order.id}</td>
               <td className="px-6 py-4 text-gray-500">{formatDate(order.created_at)}</td>

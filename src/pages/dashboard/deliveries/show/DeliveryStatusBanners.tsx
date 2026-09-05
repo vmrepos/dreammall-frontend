@@ -17,7 +17,7 @@ export const DeliveryStatusBanners = ({ delivery }: Props) => (
         {delivery.order_id != null ? (
           <>
             Pedido recibido de vuelta. Puedes reenviar o cancelar el pedido{" "}
-            <Link to={`/orders/${delivery.order_id}`} className="font-semibold underline">
+            <Link to={`/r/orders/${delivery.order_id}`} className="font-semibold underline">
               #{delivery.order_id}
             </Link>
             .
