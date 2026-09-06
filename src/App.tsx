@@ -1,11 +1,8 @@
 import { Toaster } from "sonner"
 import { AppRoutes } from "./Routes"
 import { ThemeProvider } from "./context/providers/ThemeProvider"
-import { usePwaUpdate } from "./hooks/usePwaUpdate"
 
 function App() {
-  usePwaUpdate()
-
   return (
     <ThemeProvider>
       <Toaster position="top-center" richColors />

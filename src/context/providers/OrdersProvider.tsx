@@ -5,6 +5,7 @@ import type { TOrder, TOrderForm, TOrderStatus } from "../../types/Order"
 import { OrdersContext } from "../OrdersContext"
 import { useCable } from "../CableContext"
 import { toast } from "sonner"
+import { showBackgroundOrderNotice } from "../../utils/orderNotice"
 
 export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<TOrder[]>([])
@@ -38,6 +39,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
       switch (type) {
         case "order_created":
           toast.success(`Pedido #${o.id}: nuevo pedido del menú`)
+          showBackgroundOrderNotice("Nuevo pedido", `Pedido #${o.id} del menú`, `/r/orders/${o.id}`)
           markAttention(o.id)
           break
         case "order_picked_up":
@@ -51,6 +53,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
           break;
         case "order_driving_back":
           toast.error(`Pedido #${o.id}: el repartidor vuelve al local`)
+          showBackgroundOrderNotice("Repartidor vuelve", `Pedido #${o.id}: el repartidor vuelve al local`, `/r/orders/${o.id}`)
           break;
         case "order_driver_returned":
           toast.warning(`Pedido #${o.id}: el repartidor volvió al local`)
@@ -60,10 +63,12 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
           break;
         case "order_location_updated":
           toast.success(`Pedido #${o.id}: el cliente confirmó la ubicación`)
+          showBackgroundOrderNotice("Ubicación confirmada", `Pedido #${o.id}: el cliente confirmó la ubicación`, `/r/orders/${o.id}`)
           markAttention(o.id)
           break
         case "order_payment_updated":
           toast.success(`Pedido #${o.id}: eligió forma de pago`)
+          showBackgroundOrderNotice("Pago elegido", `Pedido #${o.id}: eligió forma de pago`, `/r/orders/${o.id}`)
           markAttention(o.id)
           break;
         case "delivery_assigned":

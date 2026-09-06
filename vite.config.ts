@@ -11,7 +11,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       injectRegister: false,
       scope: "/r/",
       manifest: {
@@ -87,10 +87,6 @@ export default defineConfig({
             },
           },
         ],
-      },
-      devOptions: {
-        enabled: true,
-        type: "classic",
       },
     }),
   ],

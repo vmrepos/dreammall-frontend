@@ -161,7 +161,7 @@ yarn lint
 
 Env (Vite): `VITE_API_URL`, `VITE_OAUTH_CLIENT_ID` (must match the Rails “Restaurant App” OAuth client). Cookies need API CORS + `CROSS_ORIGIN_COOKIES` aligned with the SPA origin.
 
-Web Push (optional, Windows/Android): service worker `sw-push.js` + `GET/PUT/DELETE /restaurants/web_push`. Needs Rails `WEB_PUSH_VAPID_PUBLIC_KEY` / `WEB_PUSH_VAPID_PRIVATE_KEY`. Banner on `/r` and toggle in Configuración. Does not replace Action Cable while the tab is open. See `docs/restaurant-web-push.md`.
+Web Push (optional, Windows/Android): service worker `sw-push.js` + `GET/PUT/DELETE /restaurants/web_push`. Needs Rails `WEB_PUSH_VAPID_PUBLIC_KEY` / `WEB_PUSH_VAPID_PRIVATE_KEY` (env, not in git; local keys live in `backend/.env.development`). Banner on `/r` and toggle in Configuración. Do not enable Vite PWA `devOptions` — it breaks F5 on `/r`. See `docs/restaurant-web-push.md`.
 
 ## Documentation
 parent folder (virtualmall)/

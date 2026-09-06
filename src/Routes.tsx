@@ -20,6 +20,7 @@ import { Page as Landing } from "./pages/public/landing/Page"
 import { Locales } from "./pages/public/locales/Locales"
 import { PublicOrder } from "./pages/public/order/Order"
 import { isLegacyRestaurantPath, restaurantPath } from "./utils/navigation"
+import { usePwaUpdate } from "./hooks/usePwaUpdate"
 
 export const AppRoutes = () => (
   <BrowserRouter>
@@ -86,12 +87,16 @@ const LegacyRestaurantRedirect = () => {
   return <Navigate to="/" replace />
 }
 
-const RestaurantApp = () => (
-  <AuthProvider>
-    <CableProvider>
-      <PwaInstallBanner />
-      <WebPushBanner />
-      <Outlet />
-    </CableProvider>
-  </AuthProvider>
-)
+const RestaurantApp = () => {
+  usePwaUpdate()
+
+  return (
+    <AuthProvider>
+      <CableProvider>
+        <PwaInstallBanner />
+        <WebPushBanner />
+        <Outlet />
+      </CableProvider>
+    </AuthProvider>
+  )
+}
