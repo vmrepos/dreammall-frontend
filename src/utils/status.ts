@@ -18,7 +18,8 @@ export const orderStatusConfig: Record<TOrderStatus, StatusConfig> = {
 
 export const deliveryStatusConfig: Record<TDeliveryStatus, StatusConfig> = {
   awaiting_driver: { label: "Buscando repartidor", variant: "warning" },
-  assigned: { label: "Asignada", variant: "info" },
+  assigned: { label: "Esperando aceptación", variant: "info" },
+  accepted: { label: "Aceptada", variant: "info" },
   in_transit: { label: "En camino", variant: "info" },
   delivered: { label: "Entregada", variant: "success" },
   driving_back: { label: "Regresando al local", variant: "danger" },
@@ -30,6 +31,7 @@ export const deliveryStatusConfig: Record<TDeliveryStatus, StatusConfig> = {
 export const deliveryProgressSteps: TDeliveryStatus[] = [
   "awaiting_driver",
   "assigned",
+  "accepted",
   "in_transit",
   "delivered",
 ]
@@ -50,6 +52,7 @@ export const getDeliveryStepTimestamp = (
     created_at: string
     awaiting_driver_at: string | null
     assigned_at: string | null
+    accepted_at: string | null
     picked_up_at: string | null
     delivered_at: string | null
     cancelled_at: string | null
@@ -64,6 +67,8 @@ export const getDeliveryStepTimestamp = (
       return delivery.awaiting_driver_at
     case "assigned":
       return delivery.assigned_at
+    case "accepted":
+      return delivery.accepted_at
     case "in_transit":
       return delivery.picked_up_at
     case "delivered":
@@ -98,7 +103,7 @@ export const canCancelOrder = (status: TOrderStatus, delivery: { status: TDelive
 }
 
 export const canCancelDelivery = (status: TDeliveryStatus) =>
-  status === "awaiting_driver" || status === "assigned"
+  status === "awaiting_driver" || status === "assigned" || status === "accepted"
 
 export const canConfirmReturn = (delivery: {
   status: TDeliveryStatus
@@ -120,6 +125,8 @@ export const cancelReasonLabel = (reason: string | null | undefined) => {
   if (!reason) return null
   if (reason === "customer_cancelled") return "Cancelado por el cliente"
   if (reason === "restaurant_cancelled") return "Cancelado por el restaurant"
+  if (reason === "driver_cancelled") return "Cancelado por el repartidor"
+  if (reason === "acceptance_timeout") return "El repartidor no aceptó a tiempo"
   if (reason === "other") return "Otro"
   return reason
 }

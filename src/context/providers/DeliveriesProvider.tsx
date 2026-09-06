@@ -22,6 +22,8 @@ const shipmentEventToast = (type: string, shipmentId?: number) => {
   const reference = shipmentId ? `Envío #${shipmentId}` : "Envío"
   const messages: Record<string, [ "success" | "warning" | "error", string ]> = {
     shipment_delivery_assigned: ["success", `${reference}: repartidor asignado`],
+    shipment_delivery_accepted: ["success", `${reference}: el repartidor aceptó`],
+    shipment_delivery_acceptance_timeout: ["warning", `${reference}: el repartidor no aceptó, buscando otro`],
     shipment_picked_up: ["success", `${reference}: paquete recogido`],
     shipment_delivered: ["success", `${reference}: paquete entregado`],
     shipment_absent_customer: ["warning", `${reference}: cliente ausente`],
