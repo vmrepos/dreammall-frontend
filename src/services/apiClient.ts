@@ -10,6 +10,7 @@ import { PublicOrdersAPI } from "./publicOrders";
 import { PublicCatalogAPI } from "./publicCatalog";
 import { ShipmentsAPI } from "./shipments";
 import { CouponsAPI } from "./coupons";
+import { WebPushAPI } from "./webPush"
 
 export { axiosInstance } from "./axiosInstance";
 
@@ -26,4 +27,5 @@ export const apiClient = {
   publicCatalog: PublicCatalogAPI,
   shipments: ShipmentsAPI,
   coupons: CouponsAPI,
+  webPush: WebPushAPI,
 }

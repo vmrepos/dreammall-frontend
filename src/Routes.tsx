@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/providers/AuthProvider"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { PublicRoute } from "./components/auth/PublicRoute"
 import { PwaInstallBanner } from "./components/molecules/PwaInstallBanner"
+import { WebPushBanner } from "./components/molecules/WebPushBanner"
 import { CableProvider } from "./context/providers/CableProvider"
 import { Auth } from "./pages/auth/Auth"
 import { Dashboard } from "./pages/dashboard/Dashboard"
@@ -89,6 +90,7 @@ const RestaurantApp = () => (
   <AuthProvider>
     <CableProvider>
       <PwaInstallBanner />
+      <WebPushBanner />
       <Outlet />
     </CableProvider>
   </AuthProvider>

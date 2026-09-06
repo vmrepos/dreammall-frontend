@@ -4,9 +4,8 @@ import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 import { toast } from "sonner"
 import { GoBack } from "../../../../components/atoms/GoBack"
 import { PageHeader } from "../../../../components/molecules/PageHeader"
-import { apiClient } from "../../../../services/apiClient"
-import { findMapsUrl, parseShareLocation } from "../../../../utils/parseShareLocation"
 import { stashPosStartLocation } from "../../../../utils/posStartLocation"
+import { resolveMapsLinkCoords } from "../../../../utils/resolveMapsLink"
 import {
   captureShareTargetFromWindow,
   payloadFromLocation,
@@ -17,17 +16,8 @@ import {
 } from "../../../../utils/shareTarget"
 import { PayloadDump } from "./PayloadDump"
 
-const resolveCoords = async (payload: TShareTargetPayload) => {
-  const blob = shareTargetBlob(payload)
-  const direct = parseShareLocation(blob)
-  if (direct) return direct
-
-  const mapsUrl = findMapsUrl(blob)
-  if (!mapsUrl) return null
-
-  const expanded = await apiClient.restaurants.expandMapsUrl(mapsUrl)
-  return parseShareLocation(expanded)
-}
+const resolveCoords = async (payload: TShareTargetPayload) =>
+  resolveMapsLinkCoords(shareTargetBlob(payload))
 
 const currentPayload = (): TShareTargetPayload | null => {
   captureShareTargetFromWindow()

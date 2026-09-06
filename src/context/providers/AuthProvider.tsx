@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { authService, type TRestaurantSession } from "../../services/authService";
 import type { TRestaurant } from "../../types/Restaurant";
 import { AuthContext } from "../AuthContext";
+import { disableWebPush } from "../../utils/webPush";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [restaurant, setRestaurant] = useState<TRestaurant | null>(null);
@@ -28,6 +29,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
+    try {
+      await disableWebPush()
+    } catch {
+      // Session still has to close even if push unsubscribe fails.
+    }
     await authService.logout();
     setRestaurant(null);
     setIsAdmin(false);

@@ -68,6 +68,7 @@ export default defineConfig({
         navigateFallbackAllowlist: [/^\/r($|\/)/],
         navigateFallbackDenylist: [/^\/api\//],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest,woff2}"],
+        importScripts: ["sw-push.js"],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -86,6 +87,10 @@ export default defineConfig({
             },
           },
         ],
+      },
+      devOptions: {
+        enabled: true,
+        type: "classic",
       },
     }),
   ],

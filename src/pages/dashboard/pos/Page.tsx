@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCashRegister } from "@fortawesome/free-solid-svg-icons"
 import axios from "axios"
 import { toast } from "sonner"
+import { useAuth } from "../../../context/AuthContext"
 import { useMenuContext } from "../../../context/MenuContext"
 import { useOrders } from "../../../context/OrdersContext"
 import { useRestaurant } from "../../../context/RestaurantContext"
@@ -14,6 +15,7 @@ import type { TOrderForm, TPaymentMethod } from "../../../types/Order"
 import type { TOrderItemOption } from "../../../types/OrderItem"
 import type { TProduct } from "../../../types/Product"
 import { clearPosStartLocation, readPosStartLocation } from "../../../utils/posStartLocation"
+import { resolveMapsLinkCoords } from "../../../utils/resolveMapsLink"
 import { cn } from "../../../utils/format"
 import { CatalogStep } from "./CatalogStep"
 import { CheckoutStep } from "./CheckoutStep"
@@ -119,6 +121,7 @@ export const Page = () => {
   const { products, menus } = useMenuContext()
   const { createOrder } = useOrders()
   const { restaurant } = useRestaurant()
+  const { isAdmin } = useAuth()
   const [step, setStep] = useState<TPosStep>(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [customizing, setCustomizing] = useState<TProduct | null>(null)
@@ -131,6 +134,8 @@ export const Page = () => {
   const [couponApplied, setCouponApplied] = useState(0)
   const [couponError, setCouponError] = useState("")
   const [couponStatus, setCouponStatus] = useState<"idle" | "loading" | "ready" | "error">("idle")
+  const [mapsLinkBusy, setMapsLinkBusy] = useState(false)
+  const [mapsLinkError, setMapsLinkError] = useState("")
 
   const { values, handleChange, handleSubmit, mutate, setValues } = useForm<TOrderForm>({
     initialValues,
@@ -225,6 +230,24 @@ export const Page = () => {
     // Shared pin is applied once when this POS screen mounts.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mutate is not stable
   }, [])
+
+  const applyMapsLink = async (raw: string) => {
+    setMapsLinkBusy(true)
+    setMapsLinkError("")
+    try {
+      const coords = await resolveMapsLinkCoords(raw)
+      if (!coords) {
+        setMapsLinkError("No se pudieron leer coordenadas de ese enlace.")
+        return
+      }
+      mutate({ latitude: coords.latitude, longitude: coords.longitude })
+      toast.success("Ubicación cargada desde Maps")
+    } catch (error) {
+      setMapsLinkError(apiErrorMessage(error, "No se pudo resolver el enlace de Maps."))
+    } finally {
+      setMapsLinkBusy(false)
+    }
+  }
 
   useEffect(() => {
     if (values.latitude == null || values.longitude == null) {
@@ -384,6 +407,11 @@ export const Page = () => {
             onPhoneChange={(phone) => mutate({ customer_phone: phone })}
             onLocationChange={(latitude, longitude) => mutate({ latitude, longitude })}
             onContinue={() => setStep(2)}
+            mapsPaste={
+              isAdmin
+                ? { busy: mapsLinkBusy, error: mapsLinkError, onApply: applyMapsLink }
+                : undefined
+            }
           />
         ) : null}
         {step === 2 ? (

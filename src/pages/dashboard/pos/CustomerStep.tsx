@@ -5,6 +5,7 @@ import { Label } from "../../../components/atoms/Label"
 import { FormField } from "../../../components/molecules/FormField"
 import { LocationPicker } from "../../public/order/complete/LocationPicker"
 import type { TOrderForm } from "../../../types/Order"
+import { MapsLinkField } from "./MapsLinkField"
 
 const PHONE_DIGITS = 8
 
@@ -26,6 +27,11 @@ type Props = {
   onPhoneChange: (phone: string) => void
   onLocationChange: (latitude: number, longitude: number) => void
   onContinue: () => void
+  mapsPaste?: {
+    busy: boolean
+    error: string
+    onApply: (raw: string) => Promise<void>
+  }
 }
 
 export const CustomerStep = ({
@@ -34,6 +40,7 @@ export const CustomerStep = ({
   onPhoneChange,
   onLocationChange,
   onContinue,
+  mapsPaste,
 }: Props) => (
   <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 phone:px-4">
     <div className="mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
@@ -90,6 +97,13 @@ export const CustomerStep = ({
             allowDeviceLocation={false}
           />
         </div>
+        {mapsPaste ? (
+          <MapsLinkField
+            busy={mapsPaste.busy}
+            error={mapsPaste.error}
+            onApply={mapsPaste.onApply}
+          />
+        ) : null}
       </div>
     </div>
   </div>

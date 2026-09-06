@@ -9,6 +9,8 @@ import { Toggle } from "../../../components/atoms/Toggle"
 import type { TRestaurantForm } from "../../../types/Restaurant"
 import { useRestaurant } from "../../../context/RestaurantContext"
 import { Notification } from "../../../components/atoms/Notification"
+import { WebPushSection } from "./WebPushCard"
+
 export const Page = () => {
   const { restaurant, loading, updateRestaurant } = useRestaurant()
   const [settings, setSettings] = useState<TRestaurantForm | null>(null)
@@ -117,6 +119,8 @@ export const Page = () => {
               />
             </div>
           </section>
+
+          <WebPushSection enabled={Boolean(restaurant)} restaurantId={restaurant?.id} />
 
           <div className="flex justify-end border-t border-gray-100 pt-6">
             <Button type="submit" disabled={isSaving}>
