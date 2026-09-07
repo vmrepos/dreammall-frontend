@@ -18,6 +18,7 @@ import { Settings } from "./pages/dashboard/settings/Settings"
 import { Pos } from "./pages/dashboard/pos/Pos"
 import { Page as Landing } from "./pages/public/landing/Page"
 import { Locales } from "./pages/public/locales/Locales"
+import { Privacy } from "./pages/public/privacy/Privacy"
 import { PublicOrder } from "./pages/public/order/Order"
 import { isLegacyRestaurantPath, restaurantPath } from "./utils/navigation"
 import { usePwaUpdate } from "./hooks/usePwaUpdate"
@@ -26,6 +27,8 @@ export const AppRoutes = () => (
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/privacy" element={<Privacy.Index />} />
+      <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
       <Route path="/locales" element={<Locales.Index />} />
       <Route path="/pedido/:token" element={<PublicOrder.Complete />} />
       <Route path="/pedir/:token" element={<PublicOrder.Shop />} />

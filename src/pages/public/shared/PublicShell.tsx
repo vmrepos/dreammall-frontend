@@ -38,6 +38,22 @@ export const PublicShell = ({ children, tone = "light" }: Props) => {
         </Link>
       </header>
       <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+      <footer
+        className={cn(
+          "mt-auto flex flex-wrap items-center justify-between gap-3 px-4 py-4 text-sm md:px-8",
+          dark ? "text-white/60" : "border-t border-gray-200/70 text-ink-muted",
+        )}
+      >
+        <Link to="/privacy" className={cn("hover:underline", dark ? "text-white/80" : "text-brand")}>
+          Privacy Policy
+        </Link>
+        <a
+          href="mailto:pedi2soporte@gmail.com"
+          className={cn("hover:underline", dark ? "text-white/80" : "hover:text-brand")}
+        >
+          pedi2soporte@gmail.com
+        </a>
+      </footer>
     </div>
   )
 }
