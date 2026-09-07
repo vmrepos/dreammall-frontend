@@ -19,6 +19,7 @@ import { Pos } from "./pages/dashboard/pos/Pos"
 import { Page as Landing } from "./pages/public/landing/Page"
 import { Locales } from "./pages/public/locales/Locales"
 import { Privacy } from "./pages/public/privacy/Privacy"
+import { DeleteAccount } from "./pages/public/delete-account/DeleteAccount"
 import { PublicOrder } from "./pages/public/order/Order"
 import { isLegacyRestaurantPath, restaurantPath } from "./utils/navigation"
 import { usePwaUpdate } from "./hooks/usePwaUpdate"
@@ -29,6 +30,8 @@ export const AppRoutes = () => (
       <Route path="/" element={<Landing />} />
       <Route path="/privacy" element={<Privacy.Index />} />
       <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
+      <Route path="/eliminar-cuenta" element={<DeleteAccount.Index />} />
+      <Route path="/delete-account" element={<Navigate to="/eliminar-cuenta" replace />} />
       <Route path="/locales" element={<Locales.Index />} />
       <Route path="/pedido/:token" element={<PublicOrder.Complete />} />
       <Route path="/pedir/:token" element={<PublicOrder.Shop />} />

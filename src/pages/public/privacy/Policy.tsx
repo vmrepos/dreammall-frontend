@@ -1,8 +1,6 @@
 import type { ReactNode } from "react"
-
-const SUPPORT_EMAIL = "pedi2soporte@gmail.com"
-const WEBSITE_URL = "https://www.pedi2.com.bo"
-const WEBSITE_LABEL = "www.pedi2.com.bo"
+import { Link } from "react-router-dom"
+import { DELETE_ACCOUNT_PATH, SUPPORT_EMAIL, WEBSITE_LABEL, WEBSITE_URL } from "../shared/contact"
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="space-y-3">
@@ -153,9 +151,13 @@ export const Policy = () => (
           enforcement of legal agreements.
         </p>
         <p>
-          To request deletion of your account or personal information, contact:
+          To request deletion of your account or personal information, use this link or email us:
         </p>
         <p>
+          <Link className="font-medium text-brand hover:underline" to={DELETE_ACCOUNT_PATH}>
+            Request account and data deletion
+          </Link>
+          <br />
           Email:{" "}
           <a className="font-medium text-brand hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>
             {SUPPORT_EMAIL}

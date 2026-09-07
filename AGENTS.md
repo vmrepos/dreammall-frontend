@@ -10,6 +10,7 @@ React + Vite + TypeScript dashboard for **restaurant owners** (Pedi2). Talks to 
 |------|------|
 | `/` | Public landing (discovery + comercio login) |
 | `/privacy` | Public privacy policy (`/privacy-policy` redirects here) |
+| `/eliminar-cuenta` | Public account-deletion request (`/delete-account` redirects here) |
 | `/locales` | Public restaurant directory |
 | `/r/*` | Restaurant panel (auth + dashboard). Login is `/r/login`. |
 | `/pedir/:token` | Public catalog (WhatsApp / copy-link) |

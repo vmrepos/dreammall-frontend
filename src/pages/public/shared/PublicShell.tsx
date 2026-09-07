@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { BrandLogo } from "../../../components/atoms/BrandLogo"
 import { restaurantPath } from "../../../utils/navigation"
 import { cn } from "../../../utils/format"
+import { DELETE_ACCOUNT_PATH, SUPPORT_EMAIL } from "./contact"
 
 type Props = {
   children: ReactNode
@@ -44,14 +45,19 @@ export const PublicShell = ({ children, tone = "light" }: Props) => {
           dark ? "text-white/60" : "border-t border-gray-200/70 text-ink-muted",
         )}
       >
-        <Link to="/privacy" className={cn("hover:underline", dark ? "text-white/80" : "text-brand")}>
-          Privacy Policy
-        </Link>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Link to="/privacy" className={cn("hover:underline", dark ? "text-white/80" : "text-brand")}>
+            Privacy Policy
+          </Link>
+          <Link to={DELETE_ACCOUNT_PATH} className={cn("hover:underline", dark ? "text-white/80" : "text-brand")}>
+            Eliminar cuenta
+          </Link>
+        </div>
         <a
-          href="mailto:pedi2soporte@gmail.com"
+          href={`mailto:${SUPPORT_EMAIL}`}
           className={cn("hover:underline", dark ? "text-white/80" : "hover:text-brand")}
         >
-          pedi2soporte@gmail.com
+          {SUPPORT_EMAIL}
         </a>
       </footer>
     </div>
