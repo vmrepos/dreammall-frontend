@@ -74,6 +74,12 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         case "delivery_assigned":
           toast.success(`Pedido #${o.id}: repartidor asignado`)
           break;
+        case "delivery_accepted":
+          toast.success(`Pedido #${o.id}: el repartidor aceptó`)
+          break;
+        case "delivery_acceptance_timeout":
+          toast.warning(`Pedido #${o.id}: el repartidor no aceptó, buscando otro`)
+          break;
       }
       upsertOrder(o)
       return () => {

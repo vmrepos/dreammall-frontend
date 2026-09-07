@@ -4,6 +4,7 @@ import type { TShipment } from "./Shipment"
 export type TDeliveryStatus =
   | "awaiting_driver"
   | "assigned"
+  | "accepted"
   | "in_transit"
   | "delivered"
   | "driving_back"
@@ -25,6 +26,7 @@ export type TDelivery = {
   updated_at: string
   awaiting_driver_at: string | null
   assigned_at: string | null
+  accepted_at: string | null
   picked_up_at: string | null
   delivered_at: string | null
   cancelled_at: string | null
