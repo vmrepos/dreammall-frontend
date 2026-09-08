@@ -138,7 +138,7 @@ export const Page = () => {
         navigate(`/r/orders/${quoted.id}`, { replace: true })
         return
       }
-      setStep("waiting")
+      setStep(stepForOrder(quoted))
     } catch (e) {
       if (axios.isAxiosError(e) && e.response?.status === 404) {
         setLoadState("unavailable")

@@ -21,6 +21,7 @@ export type TRestaurant = {
   payment_qr_url?: string | null
   logo_url?: string | null;
   listed?: boolean;
+  fast_track?: boolean;
   demand?: {
     online: number;
     available: number;

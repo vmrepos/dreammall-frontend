@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faGear, faMapLocationDot, faStore, faStopwatch } from "@fortawesome/free-solid-svg-icons"
+import { faBolt, faGear, faMapLocationDot, faStore, faStopwatch } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../components/atoms/Button"
 import { Card } from "../../../components/atoms/Card"
 import { FormField } from "../../../components/molecules/FormField"
@@ -23,6 +23,7 @@ export const Page = () => {
       delivery_radius: restaurant.delivery_radius,
       prep_time: restaurant.prep_time,
       listed: restaurant.listed !== false,
+      fast_track: restaurant.fast_track === true,
     })
   }, [restaurant])
 
@@ -97,6 +98,27 @@ export const Page = () => {
             <p className="mt-2 text-xs text-gray-500">
               Tiempo promedio que tarda tu cocina en dejar un pedido listo.
             </p>
+          </section>
+
+          <section className="border-t border-gray-100 pt-6">
+            <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand">
+              <FontAwesomeIcon icon={faBolt} className="size-4" aria-hidden />
+              Fast track
+            </h2>
+            <div className="flex items-center justify-between gap-4 rounded-xl bg-gray-100 px-3 py-2.5">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-ink">Auto Preparando</p>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  Si el pedido ya tiene ubicación y pago, pasa a preparación solo. No hace falta
+                  pulsar Preparando.
+                </p>
+              </div>
+              <Toggle
+                checked={Boolean(settings.fast_track)}
+                label={settings.fast_track ? "Desactivar Fast track" : "Activar Fast track"}
+                onChange={(fast_track) => setSettings({ ...settings, fast_track })}
+              />
+            </div>
           </section>
 
           <section className="border-t border-gray-100 pt-6">

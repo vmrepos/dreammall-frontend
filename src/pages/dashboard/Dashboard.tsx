@@ -38,7 +38,7 @@ export const Dashboard = () => {
 
   return (
     <div
-      className="flex min-h-svh bg-surface [--bottom-tabs-h:0px] phone:[--bottom-tabs-h:calc(3.5rem+env(safe-area-inset-bottom,0px))]"
+      className="flex min-h-svh bg-surface [--bottom-tabs-h:0px] phone:[--bottom-tabs-h:calc(4rem+env(safe-area-inset-bottom,0px))]"
       style={
         {
           "--sidebar-w": collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED,

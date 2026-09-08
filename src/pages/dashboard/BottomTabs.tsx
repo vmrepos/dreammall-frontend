@@ -31,13 +31,15 @@ const TabFace = ({
   <>
     <span
       className={cn(
-        "flex size-7 items-center justify-center rounded-lg",
+        "flex size-9 items-center justify-center rounded-lg text-[1.5rem] leading-none",
         active && "bg-white/12",
       )}
     >
-      <FontAwesomeIcon icon={icon} className="size-4" aria-hidden />
+      <FontAwesomeIcon icon={icon} aria-hidden />
     </span>
-    <span className="max-w-full truncate">{label}</span>
+    <span className="max-w-full truncate text-[10px] font-semibold tracking-wide">
+      {label}
+    </span>
   </>
 )
 
@@ -60,14 +62,19 @@ export const BottomTabs = () => {
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-accent-clay/50 via-accent-sun/40 to-brand/60"
           aria-hidden
         />
-        <ul className="grid h-14 grid-cols-4">
+        <ul
+          className={cn(
+            "grid h-16",
+            tabNavItems.length === 3 ? "grid-cols-4" : "grid-cols-3",
+          )}
+        >
           {tabNavItems.map(({ to, label, icon }) => (
             <li key={to} className="min-w-0">
               <NavLink
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    "flex h-full flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-semibold tracking-wide transition",
+                    "flex h-full flex-col items-center justify-center gap-0.5 px-1 transition",
                     isActive ? "text-white" : "text-white/50 hover:text-white",
                   )
                 }
@@ -82,7 +89,7 @@ export const BottomTabs = () => {
             <button
               type="button"
               className={cn(
-                "flex h-full w-full flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-semibold tracking-wide transition",
+                "flex h-full w-full flex-col items-center justify-center gap-0.5 px-1 transition",
                 moreOpen || moreActive ? "text-white" : "text-white/50 hover:text-white",
               )}
               aria-expanded={moreOpen}

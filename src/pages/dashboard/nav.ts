@@ -30,18 +30,16 @@ export const sidebarNavItems: TNavItem[] = [
 ]
 
 export const tabNavItems: TNavItem[] = [
+  { to: restaurantPath("/pos"), label: "POS", icon: faCashRegister },
   { to: restaurantPath("/orders"), label: "Pedidos", icon: faClipboardList },
-  { to: restaurantPath("/menu"), label: "Menú", icon: faBookOpen },
   ...(DELIVERIES_SECTION_ENABLED
     ? [{ to: restaurantPath("/deliveries"), label: "Entregas", icon: faTruck }]
-    : [{ to: restaurantPath("/reports"), label: "Reportes", icon: faChartPie }]),
+    : []),
 ]
 
 export const moreNavItems: TNavItem[] = [
-  { to: restaurantPath("/pos"), label: "POS", icon: faCashRegister },
-  ...(DELIVERIES_SECTION_ENABLED
-    ? [{ to: restaurantPath("/reports"), label: "Reportes", icon: faChartPie }]
-    : []),
+  { to: restaurantPath("/menu"), label: "Menú", icon: faBookOpen },
+  { to: restaurantPath("/reports"), label: "Reportes", icon: faChartPie },
   { to: restaurantPath("/profile"), label: "Perfil", icon: faUser },
   { to: restaurantPath("/settings"), label: "Configuración", icon: faGear },
 ]
