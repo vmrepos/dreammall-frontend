@@ -47,6 +47,26 @@ export const buildOrderTicket = (order: TOrder): TCleanterJob => {
   content.push({ type: "divider" })
   content.push({
     type: "row",
+    left: "Envío",
+    right: ticketMoney(Number(order.delivery_fee)),
+  })
+  const discount = Number(order.discount)
+  if (discount > 0) {
+    content.push({
+      type: "row",
+      left: "Descuento",
+      right: `-${ticketMoney(discount)}`,
+    })
+  }
+  if (order.coupon && Number(order.coupon.applied_amount) > 0) {
+    content.push({
+      type: "row",
+      left: "Cupón",
+      right: `-${ticketMoney(Number(order.coupon.applied_amount))}`,
+    })
+  }
+  content.push({
+    type: "row",
     left: "TOTAL",
     right: ticketMoney(Number(order.total_amount)),
     bold: true,
