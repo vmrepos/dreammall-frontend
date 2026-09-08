@@ -23,6 +23,7 @@ import {
   orderCardErrorMessage,
   type TOrderCardAction,
 } from "./orderCardActions"
+import { PrintTicketButton } from "./PrintTicketButton"
 
 type Props = {
   order: TOrder
@@ -197,13 +198,14 @@ export const OrderCard = ({ order }: Props) => {
           </div>
         </button>
 
-        <div className="relative z-10 flex min-h-[3.25rem] shrink-0 gap-2 border-t border-gray-100 px-4 py-3">
+        <div className="relative z-10 flex min-h-[3.25rem] shrink-0 flex-wrap gap-2 border-t border-gray-100 px-4 py-3">
+          <PrintTicketButton order={order} compact />
           {actions.length > 0 ? (
             actions.map((action) => (
               <Button
                 key={action.id}
                 variant={action.variant}
-                className="flex-1 rounded-lg px-3 py-2 text-xs"
+                className="min-w-0 flex-1 rounded-lg px-3 py-2 text-xs"
                 disabled={action.disabled}
                 title={action.title}
                 onClick={() => {
@@ -217,7 +219,7 @@ export const OrderCard = ({ order }: Props) => {
           ) : (
             <Button
               variant="secondary"
-              className="flex-1 rounded-lg px-3 py-2 text-xs"
+              className="min-w-0 flex-1 rounded-lg px-3 py-2 text-xs"
               onClick={openOrder}
             >
               Ver detalle

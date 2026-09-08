@@ -22,6 +22,7 @@ import { DeliveryCard } from "../shared/DeliveryCard"
 import { ReadyCountdown } from "../shared/ReadyCountdown"
 import { DELIVERIES_SECTION_ENABLED } from "../../deliveries/Deliveries"
 import { CopySummaryImageButton } from "./CopySummaryImageButton"
+import { PrintTicketButton } from "../shared/PrintTicketButton"
 
 const nextActionLabel: Partial<Record<TOrderStatus, string>> = {
   pending: "Preparando",
@@ -231,7 +232,12 @@ export const Page = () => {
         <OrderSummaryCard
           order={order}
           className="h-full"
-          headerAction={<CopySummaryImageButton order={order} />}
+          headerAction={
+            <div className="flex shrink-0 items-center gap-2">
+              <PrintTicketButton order={order} />
+              <CopySummaryImageButton order={order} />
+            </div>
+          }
         />
 
         <Card padding="md" className="h-full border-2 !border-accent-sun/55">

@@ -155,6 +155,8 @@ export const AvailableProducts = ({
           compact ? "py-1.5" : "py-3",
           compact && framed && "px-2",
           !compact && framed && "px-4",
+          compact && !framed && !pageScroll && "px-3 phone:px-4",
+          !compact && !framed && !pageScroll && "px-4",
         )}
       >
         <div

@@ -6,6 +6,13 @@ import { OrdersContext } from "../OrdersContext"
 import { useCable } from "../CableContext"
 import { toast } from "sonner"
 import { showBackgroundOrderNotice } from "../../utils/orderNotice"
+import { kitchenPrintErrorMessage, printOrderTicket } from "../../utils/orderTicket"
+
+const printKitchenTicket = (order: TOrder) => {
+  void printOrderTicket(order).catch((error) => {
+    toast.warning(kitchenPrintErrorMessage(error))
+  })
+}
 
 export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<TOrder[]>([])
@@ -124,6 +131,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     async (id: number) => {
       const order = await apiClient.orders.markPreparing(id)
       upsertOrder(order)
+      printKitchenTicket(order)
       return order
     },
     [upsertOrder],
