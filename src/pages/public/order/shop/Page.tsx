@@ -5,13 +5,16 @@ import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons"
 import { BrandLogo } from "../../../../components/atoms/BrandLogo"
 import { useCart } from "../../../../hooks/useCart"
 import { useForm } from "../../../../hooks/useForm"
+import { usePublicLastOrder } from "../../../../hooks/usePublicLastOrder"
 import { apiClient } from "../../../../services/apiClient"
 import type { TPublicCatalog, TPublicOrderCompleteForm } from "../../../../types/PublicOrder"
 import type { TOrderItemForm, TOrderItemOption } from "../../../../types/OrderItem"
 import type { TProduct } from "../../../../types/Product"
 import { ProductList } from "../../../../utils/utils"
 import { publicOrderPath } from "../../../../utils/orderShare"
+import { readPublicCustomer, rememberPublicOrder, writePublicCustomer } from "../../../../utils/publicStorage"
 import { resolveMediaUrl } from "../../../../utils/mediaUrl"
+import { LastOrderBanner } from "../../shared/LastOrderBanner"
 import { StatusCard } from "../complete/StatusCard"
 import { ProductOptionsDialog } from "../../../dashboard/orders/new/ProductOptionsDialog"
 import { CatalogStep } from "./CatalogStep"
@@ -24,15 +27,11 @@ type TShopForm = TPublicOrderCompleteForm & {
   coupon_code: string
 }
 
-const initialValues: TShopForm = {
+const emptyShopForm = (): TShopForm => ({
   items_attributes: [],
   coupon_code: "",
-  name: "",
-  phone: "",
-  notes: "",
-  latitude: null,
-  longitude: null,
-}
+  ...readPublicCustomer(),
+})
 
 const PHONE_DIGITS = 8
 
@@ -94,8 +93,9 @@ export const Page = () => {
   const [couponError, setCouponError] = useState("")
   const [couponStatus, setCouponStatus] = useState<"idle" | "loading" | "ready" | "error">("idle")
 
+  const { stored: lastOrder, order: lastOrderDetail } = usePublicLastOrder()
   const { values, handleChange, handleSubmit, mutate, setValues } = useForm<TShopForm>({
-    initialValues,
+    initialValues: emptyShopForm(),
     onSubmit: async (formValues) => {
       if (!orderingToken) return
       if (formValues.items_attributes.length === 0) {
@@ -135,6 +135,16 @@ export const Page = () => {
               option_name: option.option_name,
             })),
           })),
+        })
+        rememberPublicOrder(order, {
+          orderingToken,
+          customer: {
+            name: formValues.name,
+            phone: formValues.phone,
+            notes: formValues.notes,
+            latitude: formValues.latitude,
+            longitude: formValues.longitude,
+          },
         })
         navigate(publicOrderPath(order.public_token), { replace: true })
       } catch (e) {
@@ -245,6 +255,16 @@ export const Page = () => {
     }
   }, [orderingToken, couponCode, cart.subtotal, deliveryFee])
 
+  useEffect(() => {
+    writePublicCustomer({
+      name: values.name,
+      phone: values.phone,
+      notes: values.notes,
+      latitude: values.latitude,
+      longitude: values.longitude,
+    })
+  }, [values.name, values.phone, values.notes, values.latitude, values.longitude])
+
   const handleAddProduct = (product: TProduct) => {
     if (productHasOptions(product)) {
       setCustomizeKey((key) => key + 1)
@@ -317,6 +337,16 @@ export const Page = () => {
         <h1 className="mt-1 text-[1.75rem] font-bold leading-tight text-ink">{copy.title}</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">{copy.description}</p>
         <Stepper step={step} canPreview={cart.items.length > 0} onStep={goToStep} />
+        {lastOrder ? (
+          <div className="mt-4">
+            <LastOrderBanner
+              publicToken={lastOrder.publicToken}
+              restaurantName={lastOrderDetail?.restaurant_name ?? lastOrder.restaurantName}
+              orderId={lastOrderDetail?.id ?? lastOrder.orderId}
+              deliveryCode={lastOrderDetail?.delivery_code}
+            />
+          </div>
+        ) : null}
       </header>
 
       {step === 1 ? (

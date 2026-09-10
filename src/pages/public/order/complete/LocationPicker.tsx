@@ -84,8 +84,9 @@ export const LocationPicker = ({
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
 
+  const hasSavedPin = latitude != null && longitude != null
   const [geoError, setGeoError] = useState("")
-  const [locating, setLocating] = useState(allowDeviceLocation)
+  const [locating, setLocating] = useState(allowDeviceLocation && !hasSavedPin)
   const [useGoogle, setUseGoogle] = useState(Boolean(googleMapsKey))
   const [fullScreen, setFullScreen] = useState(openOnMount)
 
@@ -124,6 +125,7 @@ export const LocationPicker = ({
 
   useEffect(() => {
     if (!allowDeviceLocation) return
+    if (coordsRef.current.latitude != null && coordsRef.current.longitude != null) return
     requestLocation()
   }, [allowDeviceLocation, requestLocation])
 

@@ -9,19 +9,24 @@ import { apiClient } from "../../../../services/apiClient"
 import type { TPaymentMethod } from "../../../../types/Order"
 import type { TPublicOrder, TPublicOrderCompleteForm } from "../../../../types/PublicOrder"
 import { isPaymentMethod } from "../../../../utils/payment"
+import { publicCatalogPath } from "../../../../utils/orderShare"
+import {
+  clearPublicLastOrder,
+  readPublicCustomer,
+  readPublicLastOrder,
+  rememberPublicOrder,
+  writePublicCustomer,
+} from "../../../../utils/publicStorage"
 import { CustomerForm } from "./CustomerForm"
 import { PayStep } from "./PayStep"
 import { StatusCard } from "./StatusCard"
 import { SummaryStep } from "./SummaryStep"
 import { WaitingStep } from "./WaitingStep"
 
-const initialValues: TPublicOrderCompleteForm = {
-  name: "",
-  phone: "",
-  notes: "",
-  latitude: null,
-  longitude: null,
-}
+const emptyCompleteForm = (fromRestaurant: boolean): TPublicOrderCompleteForm =>
+  fromRestaurant
+    ? { name: "", phone: "", notes: "", latitude: null, longitude: null }
+    : readPublicCustomer()
 
 const PHONE_DIGITS = 8
 const PAY_POLL_MS = 4000
@@ -71,7 +76,7 @@ export const Page = () => {
   const [changeFor, setChangeFor] = useState("")
 
   const { values, handleChange, handleSubmit, mutate } = useForm<TPublicOrderCompleteForm>({
-    initialValues,
+    initialValues: emptyCompleteForm(fromRestaurant),
     onSubmit: async (formValues) => {
       if (!publicToken) return
       if (!formValues.name.trim()) {
@@ -97,6 +102,17 @@ export const Page = () => {
           longitude: formValues.longitude,
           ...(fromRestaurant ? { from_restaurant: true } : {}),
         })
+        if (!fromRestaurant) {
+          rememberPublicOrder(quoted, {
+            customer: {
+              name: formValues.name,
+              phone: formValues.phone,
+              notes: formValues.notes,
+              latitude: formValues.latitude,
+              longitude: formValues.longitude,
+            },
+          })
+        }
         setPreview(quoted)
         setStep(stepForOrder(quoted))
       } catch (e) {
@@ -133,6 +149,7 @@ export const Page = () => {
         change_for: method === "cash" ? Number(changeFor) : null,
         ...(fromRestaurant ? { from_restaurant: true } : {}),
       })
+      if (!fromRestaurant) rememberPublicOrder(quoted)
       setPreview(quoted)
       if (fromRestaurant) {
         navigate(`/r/orders/${quoted.id}`, { replace: true })
@@ -159,14 +176,23 @@ export const Page = () => {
         const order = await apiClient.publicOrders.show(publicToken)
         if (cancelled) return
         setPreview(order)
+        if (!fromRestaurant) rememberPublicOrder(order)
         if (fromRestaurant && isPaymentMethod(order.payment_method)) {
           navigate(`/r/orders/${order.id}`, { replace: true })
           return
         }
         setStep(stepForOrder(order))
         setLoadState("ready")
-      } catch {
-        if (!cancelled) setLoadState("unavailable")
+      } catch (error) {
+        if (cancelled) return
+        if (
+          axios.isAxiosError(error) &&
+          error.response?.status === 404 &&
+          readPublicLastOrder()?.publicToken === publicToken
+        ) {
+          clearPublicLastOrder()
+        }
+        setLoadState("unavailable")
       }
     }
 
@@ -185,6 +211,7 @@ export const Page = () => {
         const order = await apiClient.publicOrders.show(publicToken)
         if (cancelled) return
         setPreview(order)
+        if (!fromRestaurant) rememberPublicOrder(order)
         if (kitchenStarted(order)) setStep("confirmed")
       } catch {
         // Keep waiting; transient errors should not kick the customer off pay.
@@ -199,7 +226,18 @@ export const Page = () => {
       cancelled = true
       window.clearInterval(id)
     }
-  }, [publicToken, step])
+  }, [publicToken, step, fromRestaurant])
+
+  useEffect(() => {
+    if (fromRestaurant) return
+    writePublicCustomer({
+      name: values.name,
+      phone: values.phone,
+      notes: values.notes,
+      latitude: values.latitude,
+      longitude: values.longitude,
+    })
+  }, [fromRestaurant, values.name, values.phone, values.notes, values.latitude, values.longitude])
 
   if (!publicToken || loadState === "unavailable") {
     return (
@@ -221,6 +259,11 @@ export const Page = () => {
     )
   }
 
+  const storedLast = fromRestaurant ? null : readPublicLastOrder()
+  const catalogHref =
+    storedLast?.publicToken === publicToken && storedLast.orderingToken
+      ? publicCatalogPath(storedLast.orderingToken)
+      : undefined
   const orderLabel = preview ? `Pedido #${preview.id}` : "tu pedido"
   const title =
     step === "details"
@@ -265,7 +308,7 @@ export const Page = () => {
       </header>
 
       {step === "confirmed" && preview ? (
-        <SummaryStep order={preview} />
+        <SummaryStep order={preview} catalogHref={catalogHref} />
       ) : step === "waiting" && preview ? (
         <WaitingStep order={preview} />
       ) : step === "pay" && preview ? (

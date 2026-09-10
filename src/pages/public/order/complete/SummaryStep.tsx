@@ -1,9 +1,11 @@
+import { Link } from "react-router-dom"
 import { Card } from "../../../../components/atoms/Card"
 import type { TPublicOrder } from "../../../../types/PublicOrder"
 import { OrderPreview } from "./OrderPreview"
 
 type Props = {
   order: TPublicOrder
+  catalogHref?: string
 }
 
 const phoneDisplay = (phone: string) => {
@@ -14,7 +16,7 @@ const phoneDisplay = (phone: string) => {
 }
 
 /** Shown after kitchen marks preparing — summary + delivery code (no payment QR). */
-export const SummaryStep = ({ order }: Props) => {
+export const SummaryStep = ({ order, catalogHref }: Props) => {
   const name = order.customer_name?.trim() ?? ""
   const phone = phoneDisplay(order.customer_phone ?? "")
   const notes = order.notes?.trim() ?? ""
@@ -53,6 +55,15 @@ export const SummaryStep = ({ order }: Props) => {
             ) : null}
           </dl>
         </Card>
+      ) : null}
+
+      {catalogHref ? (
+        <Link
+          to={catalogHref}
+          className="text-center text-sm font-medium text-ink-muted hover:text-brand"
+        >
+          Pedir de nuevo
+        </Link>
       ) : null}
     </div>
   )

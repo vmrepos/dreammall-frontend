@@ -34,6 +34,15 @@ export type TPublicOrderCompleteForm = {
   longitude: number | null
 }
 
+export type TPublicCustomerDraft = TPublicOrderCompleteForm
+
+export type TPublicLastOrder = {
+  publicToken: string
+  restaurantName?: string
+  orderId?: number
+  orderingToken?: string
+}
+
 export type TPublicOrderCompletePayload = {
   customer_name: string
   customer_phone: string

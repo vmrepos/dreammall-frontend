@@ -2,13 +2,16 @@ import { useEffect, useState } from "react"
 import { faStore } from "@fortawesome/free-solid-svg-icons"
 import { apiClient } from "../../../services/apiClient"
 import type { TPublicRestaurant } from "../../../types/PublicOrder"
+import { usePublicLastOrder } from "../../../hooks/usePublicLastOrder"
 import { StatusCard } from "../order/complete/StatusCard"
+import { LastOrderBanner } from "../shared/LastOrderBanner"
 import { PublicShell } from "../shared/PublicShell"
 import { RestaurantCard } from "./RestaurantCard"
 
 export const Page = () => {
   const [restaurants, setRestaurants] = useState<TPublicRestaurant[]>([])
   const [loadState, setLoadState] = useState<"loading" | "ready" | "unavailable">("loading")
+  const { stored: lastOrder, order: lastOrderDetail } = usePublicLastOrder()
 
   useEffect(() => {
     document.title = "Locales · Pedi2"
@@ -37,6 +40,16 @@ export const Page = () => {
   return (
     <PublicShell>
       <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 md:py-10">
+        {lastOrder ? (
+          <div className="mb-6">
+            <LastOrderBanner
+              publicToken={lastOrder.publicToken}
+              restaurantName={lastOrderDetail?.restaurant_name ?? lastOrder.restaurantName}
+              orderId={lastOrderDetail?.id ?? lastOrder.orderId}
+              deliveryCode={lastOrderDetail?.delivery_code}
+            />
+          </div>
+        ) : null}
         {loadState === "loading" ? (
           <p className="text-center text-[15px] text-ink-muted">Cargando locales...</p>
         ) : null}
