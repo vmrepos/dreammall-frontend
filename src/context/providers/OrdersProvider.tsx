@@ -3,21 +3,29 @@ import { apiClient } from "../../services/apiClient"
 import { toOrder } from "../../services/orders"
 import type { TOrder, TOrderForm, TOrderStatus } from "../../types/Order"
 import { OrdersContext } from "../OrdersContext"
+import { useAuth } from "../AuthContext"
 import { useCable } from "../CableContext"
 import { toast } from "sonner"
 import { showBackgroundOrderNotice } from "../../utils/orderNotice"
-import { kitchenPrintErrorMessage, printOrderTicket } from "../../utils/orderTicket"
-
-const printKitchenTicket = (order: TOrder) => {
-  void printOrderTicket(order).catch((error) => {
-    toast.warning(kitchenPrintErrorMessage(error))
-  })
-}
+import {
+  kitchenPrintErrorMessage,
+  printerConfigFromRestaurant,
+  printOrderTicket,
+} from "../../utils/orderTicket"
 
 export const OrdersProvider = ({ children }: { children: ReactNode }) => {
+  const { restaurant } = useAuth()
   const [orders, setOrders] = useState<TOrder[]>([])
   const [attentionOrderIds, setAttentionOrderIds] = useState<number[]>([])
   const { subscribe } = useCable()
+
+  const printKitchenTicket = useCallback((order: TOrder) => {
+    const config = printerConfigFromRestaurant(restaurant)
+    if (!config) return
+    void printOrderTicket(order, config).catch((error) => {
+      toast.warning(kitchenPrintErrorMessage(error))
+    })
+  }, [restaurant])
 
   const markAttention = useCallback((id: number) => {
     setAttentionOrderIds((current) => (current.includes(id) ? current : [...current, id]))
@@ -39,7 +47,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
       next[index] = order
       return next
     })
-  }, [])
+  }, [printKitchenTicket])
 
   useEffect(() => {
     return subscribe((data) => {
@@ -98,7 +106,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
         console.log("unsubscribed")
       }
     })
-  }, [subscribe, upsertOrder, markAttention])
+  }, [subscribe, upsertOrder, markAttention, printKitchenTicket])
 
 
 

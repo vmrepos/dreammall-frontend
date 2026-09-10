@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBolt, faGear, faMapLocationDot, faStore, faStopwatch } from "@fortawesome/free-solid-svg-icons"
+import { toast } from "sonner"
 import { Button } from "../../../components/atoms/Button"
 import { Card } from "../../../components/atoms/Card"
 import { FormField } from "../../../components/molecules/FormField"
 import { PageHeader } from "../../../components/molecules/PageHeader"
 import { Toggle } from "../../../components/atoms/Toggle"
-import type { TRestaurantForm } from "../../../types/Restaurant"
+import type { TRestaurantForm, TTicketWidth } from "../../../types/Restaurant"
 import { useRestaurant } from "../../../context/RestaurantContext"
 import { Notification } from "../../../components/atoms/Notification"
 import { WebPushSection } from "./WebPushCard"
+import { PrinterCard } from "./PrinterCard"
 
 export const Page = () => {
   const { restaurant, loading, updateRestaurant } = useRestaurant()
@@ -24,6 +26,9 @@ export const Page = () => {
       prep_time: restaurant.prep_time,
       listed: restaurant.listed !== false,
       fast_track: restaurant.fast_track === true,
+      uses_printer: restaurant.uses_printer === true,
+      printer_url: restaurant.printer_url ?? "",
+      ticket_width: restaurant.ticket_width === 80 ? 80 : 58,
     })
   }, [restaurant])
 
@@ -38,6 +43,7 @@ export const Page = () => {
       setSaved(true)
     } catch (error) {
       console.error(error)
+      toast.error("No se pudo guardar la configuración.")
     } finally {
       setIsSaving(false)
     }
@@ -120,6 +126,13 @@ export const Page = () => {
               />
             </div>
           </section>
+
+          <PrinterCard
+            usesPrinter={Boolean(settings.uses_printer)}
+            printerUrl={settings.printer_url ?? ""}
+            ticketWidth={(settings.ticket_width === 80 ? 80 : 58) as TTicketWidth}
+            onChange={(patch) => setSettings({ ...settings, ...patch })}
+          />
 
           <section className="border-t border-gray-100 pt-6">
             <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand">

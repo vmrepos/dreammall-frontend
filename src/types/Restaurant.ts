@@ -1,5 +1,7 @@
 import type { TUser } from "./User";
 
+export type TTicketWidth = 58 | 80
+
 export type TRestaurant = {
   id: number;
   name: string;
@@ -22,6 +24,9 @@ export type TRestaurant = {
   logo_url?: string | null;
   listed?: boolean;
   fast_track?: boolean;
+  uses_printer?: boolean;
+  printer_url?: string | null;
+  ticket_width?: TTicketWidth;
   demand?: {
     online: number;
     available: number;

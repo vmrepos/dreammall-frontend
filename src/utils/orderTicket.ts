@@ -1,12 +1,30 @@
 import { CleanterPrintError, printCleanterJob, type TCleanterBlock, type TCleanterJob } from "../services/cleanter"
 import type { TOrder } from "../types/Order"
 import type { TOrderItem } from "../types/OrderItem"
+import type { TRestaurant, TTicketWidth } from "../types/Restaurant"
 
 const ticketMoney = (value: number) => Number(value).toFixed(2)
 
 const lineAmount = (item: TOrderItem) => Number(item.unit_price) * item.quantity
 
-export const buildOrderTicket = (order: TOrder): TCleanterJob => {
+export type TPrinterConfig = {
+  url: string
+  paperWidth: TTicketWidth
+}
+
+export const printerConfigFromRestaurant = (
+  restaurant: TRestaurant | null | undefined,
+): TPrinterConfig | null => {
+  if (!restaurant?.uses_printer) return null
+  const url = restaurant.printer_url?.trim().replace(/\/$/, "")
+  if (!url) return null
+  return {
+    url,
+    paperWidth: restaurant.ticket_width === 80 ? 80 : 58,
+  }
+}
+
+export const buildOrderTicket = (order: TOrder, paperWidth: TTicketWidth = 58): TCleanterJob => {
   const content: TCleanterBlock[] = [
     {
       type: "text",
@@ -74,14 +92,15 @@ export const buildOrderTicket = (order: TOrder): TCleanterJob => {
   content.push({ type: "feed", lines: 3 })
 
   return {
-    paperWidth: 58,
+    paperWidth,
     cut: true,
     reference: `Pedido #${order.id}`,
     content,
   }
 }
 
-export const printOrderTicket = (order: TOrder) => printCleanterJob(buildOrderTicket(order))
+export const printOrderTicket = (order: TOrder, config: TPrinterConfig) =>
+  printCleanterJob(buildOrderTicket(order, config.paperWidth), config.url)
 
 export const kitchenPrintErrorMessage = (error: unknown) =>
   error instanceof CleanterPrintError ? error.message : "No se pudo imprimir el ticket."

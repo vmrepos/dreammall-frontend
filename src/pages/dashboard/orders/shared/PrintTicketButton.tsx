@@ -3,9 +3,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPrint } from "@fortawesome/free-solid-svg-icons"
 import { toast } from "sonner"
 import { Button } from "../../../../components/atoms/Button"
+import { useAuth } from "../../../../context/AuthContext"
 import type { TOrder } from "../../../../types/Order"
 import { cn } from "../../../../utils/format"
-import { kitchenPrintErrorMessage, printOrderTicket } from "../../../../utils/orderTicket"
+import {
+  kitchenPrintErrorMessage,
+  printerConfigFromRestaurant,
+  printOrderTicket,
+} from "../../../../utils/orderTicket"
 
 type Props = {
   order: TOrder
@@ -13,12 +18,16 @@ type Props = {
 }
 
 export const PrintTicketButton = ({ order, compact = false }: Props) => {
+  const { restaurant } = useAuth()
+  const config = printerConfigFromRestaurant(restaurant)
   const [busy, setBusy] = useState(false)
+
+  if (!config) return null
 
   const handlePrint = async () => {
     setBusy(true)
     try {
-      await printOrderTicket(order)
+      await printOrderTicket(order, config)
       toast.success(`Ticket del pedido #${order.id} enviado`)
     } catch (error) {
       toast.warning(kitchenPrintErrorMessage(error))

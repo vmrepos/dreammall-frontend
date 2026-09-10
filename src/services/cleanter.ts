@@ -37,7 +37,7 @@ export type TCleanterJob = {
 }
 
 const configuredUrl = import.meta.env.VITE_CLEANTER_URL?.trim()
-export const CLEANTER_URL = (configuredUrl || "http://localhost:9100").replace(/\/$/, "")
+export const DEFAULT_PRINTER_URL = (configuredUrl || "http://localhost:9200").replace(/\/$/, "")
 
 const PRINT_TIMEOUT_MS = 15_000
 
@@ -65,12 +65,13 @@ export class CleanterPrintError extends Error {
   }
 }
 
-export const printCleanterJob = async (job: TCleanterJob) => {
+export const printCleanterJob = async (job: TCleanterJob, printerUrl: string) => {
   const controller = new AbortController()
   const timer = window.setTimeout(() => controller.abort(), PRINT_TIMEOUT_MS)
+  const baseUrl = printerUrl.replace(/\/$/, "")
 
   try {
-    const response = await fetch(`${CLEANTER_URL}/print`, {
+    const response = await fetch(`${baseUrl}/print`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(job),
@@ -88,7 +89,7 @@ export const printCleanterJob = async (job: TCleanterJob) => {
   } catch (error) {
     if (error instanceof CleanterPrintError) throw error
     throw new CleanterPrintError(
-      `Cleanter no responde en ${CLEANTER_URL}. Ábrelo en el teléfono.`,
+      `Cleanter no responde en ${baseUrl}. Ábrelo en el teléfono.`,
     )
   } finally {
     window.clearTimeout(timer)
