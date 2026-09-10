@@ -160,6 +160,7 @@ export const Sidebar = ({ collapsed, onToggle }: Props) => {
           "mt-4 flex items-center border-t border-white/10 pt-4",
           collapsed ? "justify-center px-0" : "gap-2.5 px-1",
         )}
+        title={`Hecho en Bolivia (version: ${import.meta.env.VITE_BUILD_NUMBER})`}
       >
         <span
           className="inline-flex h-3.5 w-5 shrink-0 flex-col overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
@@ -171,7 +172,10 @@ export const Sidebar = ({ collapsed, onToggle }: Props) => {
           <span className="h-1/3 w-full bg-[#007A33]" />
         </span>
         {collapsed ? null : (
-          <p className="text-[11px] font-medium tracking-wide text-white/40">Hecho en Bolivia</p>
+          <p className="text-[11px] font-medium tracking-wide text-white/40">
+            Hecho en Bolivia
+            <span className="mt-0.5 block font-normal tracking-normal">(version: {import.meta.env.VITE_BUILD_NUMBER})</span>
+          </p>
         )}
       </div>
     </aside>

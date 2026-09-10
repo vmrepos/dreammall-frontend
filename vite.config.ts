@@ -1,12 +1,24 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 import { VitePWA } from "vite-plugin-pwa"
 
+const root = path.dirname(fileURLToPath(import.meta.url))
+const buildNumber = (
+  process.env.VITE_BUILD_NUMBER ?? readFileSync(path.join(root, "BUILD_NUMBER"), "utf8")
+).trim()
+process.env.VITE_BUILD_NUMBER = buildNumber
+
 const brand = "#0c6b3d"
 const splash = "#0a2f22"
 
 export default defineConfig({
+  define: {
+    "import.meta.env.VITE_BUILD_NUMBER": JSON.stringify(buildNumber),
+  },
   plugins: [
     react(),
     tailwindcss(),
