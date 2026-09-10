@@ -98,8 +98,13 @@ export const Page = () => {
       if (confirmAction === "preparing") {
         await markPreparing(order.id)
         toast.success(`Pedido #${order.id} en preparación`)
+        navigate("/r/orders", { replace: true })
+        return
       } else if (confirmAction === "ready") {
         await updateOrder(order.id, "ready")
+        toast.success(`Pedido #${order.id} marcado como listo`)
+        navigate("/r/orders", { replace: true })
+        return
       } else if (confirmAction === "return" && order.delivery) {
         await apiClient.deliveries.confirmReturn(order.delivery.id)
         await fetchOrder(order.id)

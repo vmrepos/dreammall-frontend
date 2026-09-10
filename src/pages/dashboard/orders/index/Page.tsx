@@ -7,7 +7,7 @@ import { Card } from "../../../../components/atoms/Card"
 import { EmptyList } from "../../../../components/molecules/EmptyList"
 import { PageHeader } from "../../../../components/molecules/PageHeader"
 import { useOrders } from "../../../../context/OrdersContext"
-import { orderStatusConfig } from "../../../../utils/status"
+import { isTerminalOrderStatus, orderStatusConfig } from "../../../../utils/status"
 import { OrderCard } from "../shared/OrderCard"
 import { StatusFilters } from "./StatusFilters"
 import type { StatusFilter } from "./statusFilters"
@@ -15,23 +15,22 @@ import type { StatusFilter } from "./statusFilters"
 export const Page = () => {
   const navigate = useNavigate()
   const { orders } = useOrders()
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending")
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
+  const liveOrders = orders.filter((order) => !isTerminalOrderStatus(order.status))
 
   const counts: Record<StatusFilter, number> = {
-    all: orders.length,
-    pending: orders.filter((order) => order.status === "pending").length,
-    preparing: orders.filter((order) => order.status === "preparing").length,
-    ready: orders.filter((order) => order.status === "ready").length,
-    dispatched: orders.filter((order) => order.status === "dispatched").length,
-    returned: orders.filter((order) => order.status === "returned").length,
-    cancelled: orders.filter((order) => order.status === "cancelled").length,
-    completed: orders.filter((order) => order.status === "completed").length,
+    all: liveOrders.length,
+    pending: liveOrders.filter((order) => order.status === "pending").length,
+    preparing: liveOrders.filter((order) => order.status === "preparing").length,
+    ready: liveOrders.filter((order) => order.status === "ready").length,
+    dispatched: liveOrders.filter((order) => order.status === "dispatched").length,
+    returned: liveOrders.filter((order) => order.status === "returned").length,
   }
 
   const filteredOrders =
     statusFilter === "all"
-      ? orders
-      : orders.filter((order) => order.status === statusFilter)
+      ? liveOrders
+      : liveOrders.filter((order) => order.status === statusFilter)
 
   return (
     <div className="mx-auto w-full max-w-screen-2xl px-2">
@@ -51,12 +50,12 @@ export const Page = () => {
         }
       />
 
-      {orders.length === 0 ? (
+      {liveOrders.length === 0 ? (
         <Card>
           <EmptyList
             icon={faClipboardList}
-            title="Sin pedidos todavía"
-            description="Crea un pedido manual para verlo aquí con estado, ítems y total."
+            title="Sin pedidos activos"
+            description="Crea un pedido manual para verlo aquí con estado, ítems y total. Completados y cancelados no se muestran."
             actionUrl="/r/orders/new"
             actionText="Crear primer pedido"
           />

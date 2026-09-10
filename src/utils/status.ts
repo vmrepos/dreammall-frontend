@@ -84,6 +84,11 @@ export const getDeliveryStepTimestamp = (
   }
 }
 
+export const TERMINAL_ORDER_STATUSES: TOrderStatus[] = ["completed", "cancelled"]
+
+export const isTerminalOrderStatus = (status: TOrderStatus) =>
+  TERMINAL_ORDER_STATUSES.includes(status)
+
 export const getNextOrderStatus = (status: TOrderStatus): TOrderStatus | null => {
   if (status === "pending") return "preparing"
   if (status === "preparing") return "ready"
