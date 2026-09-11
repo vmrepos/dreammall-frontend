@@ -103,7 +103,7 @@ export const CheckoutStep = ({
               <div className="flex justify-between gap-3 py-2 first:pt-0 last:pb-0">
                 <dt className="text-ink-muted">Teléfono</dt>
                 <dd className={phone ? "font-medium text-ink" : "text-ink-muted"}>
-                  {phone ? `+591 ${phone}` : "—"}
+                  {phone || "—"}
                 </dd>
               </div>
             </dl>

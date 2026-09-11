@@ -8,17 +8,9 @@ type Props = {
   catalogHref?: string
 }
 
-const phoneDisplay = (phone: string) => {
-  const trimmed = phone.trim()
-  if (!trimmed) return ""
-  if (trimmed.startsWith("+")) return trimmed
-  return `+591 ${trimmed}`
-}
-
-/** Shown after kitchen marks preparing — summary + delivery code (no payment QR). */
 export const SummaryStep = ({ order, catalogHref }: Props) => {
   const name = order.customer_name?.trim() ?? ""
-  const phone = phoneDisplay(order.customer_phone ?? "")
+  const phone = order.customer_phone?.trim() ?? ""
   const notes = order.notes?.trim() ?? ""
 
   return (

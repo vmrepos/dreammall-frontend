@@ -22,7 +22,6 @@ type Props = {
   feeError: string
   total: number
   onChange: (e: ChangeEvent<HTMLInputElement>) => void
-  onPhoneChange: (phone: string) => void
   onLocationChange: (latitude: number, longitude: number) => void
   onCouponChange: (code: string) => void
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
@@ -85,7 +84,6 @@ export const CheckoutStep = ({
   feeError,
   total,
   onChange,
-  onPhoneChange,
   onLocationChange,
   onCouponChange,
   onSubmit,
@@ -136,7 +134,6 @@ export const CheckoutStep = ({
         feeStatus === "error"
       }
       onChange={onChange}
-      onPhoneChange={onPhoneChange}
       onLocationChange={onLocationChange}
       onSubmit={onSubmit}
     />

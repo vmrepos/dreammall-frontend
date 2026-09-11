@@ -24,8 +24,6 @@ import { ProductOptionsDialog } from "../orders/new/ProductOptionsDialog"
 import { OrdersQueueRail } from "../orders/shared/OrdersQueueRail"
 import { Stepper, type TPosStep } from "./Stepper"
 
-const PHONE_DIGITS = 8
-
 const productHasOptions = (product: TProduct) =>
   (product.product_option_groups ?? []).some((group) =>
     (group.product_options ?? []).some((option) => option.active !== false),
@@ -41,10 +39,6 @@ const clampDiscount = (discount: number, subtotal: number, deliveryFee: number) 
   if (!Number.isFinite(discount) || discount < 0) return 0
   return Math.min(toMoney(discount), max)
 }
-
-const isBoliviaPhone = (value: string) => value.length === PHONE_DIGITS && /^\d+$/.test(value)
-
-const toBoliviaPhone = (value: string) => `+591${value}`
 
 type TGap = { step: TPosStep; message: string }
 
@@ -71,8 +65,8 @@ const collectGaps = ({
   if (!formValues.customer_name?.trim()) {
     gaps.push({ step: 1, message: "Falta el nombre del cliente" })
   }
-  if (!isBoliviaPhone(formValues.customer_phone ?? "")) {
-    gaps.push({ step: 1, message: "Falta un teléfono de 8 dígitos" })
+  if (!formValues.customer_phone?.trim()) {
+    gaps.push({ step: 1, message: "Falta el teléfono del cliente" })
   }
   if (formValues.latitude == null || formValues.longitude == null) {
     gaps.push({ step: 1, message: "Falta la ubicación de entrega" })
@@ -167,7 +161,7 @@ export const Page = () => {
         const order = await createOrder({
           ...formValues,
           customer_name: formValues.customer_name?.trim(),
-          customer_phone: toBoliviaPhone(formValues.customer_phone ?? ""),
+          customer_phone: formValues.customer_phone?.trim(),
           notes: formValues.notes?.trim(),
         })
         if (!order.public_token) {
@@ -178,7 +172,7 @@ export const Page = () => {
         try {
           await apiClient.publicOrders.complete(order.public_token, {
             customer_name: formValues.customer_name?.trim() ?? "",
-            customer_phone: toBoliviaPhone(formValues.customer_phone ?? ""),
+            customer_phone: formValues.customer_phone?.trim() ?? "",
             notes: formValues.notes?.trim() ?? "",
             latitude: Number(formValues.latitude),
             longitude: Number(formValues.longitude),
@@ -404,7 +398,6 @@ export const Page = () => {
           <CustomerStep
             values={values}
             onChange={handleChange}
-            onPhoneChange={(phone) => mutate({ customer_phone: phone })}
             onLocationChange={(latitude, longitude) => mutate({ latitude, longitude })}
             onContinue={() => setStep(2)}
             mapsPaste={

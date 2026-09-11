@@ -28,12 +28,7 @@ const emptyCompleteForm = (fromRestaurant: boolean): TPublicOrderCompleteForm =>
     ? { name: "", phone: "", notes: "", latitude: null, longitude: null }
     : readPublicCustomer()
 
-const PHONE_DIGITS = 8
 const PAY_POLL_MS = 4000
-
-const isBoliviaPhone = (value: string) => value.length === PHONE_DIGITS && /^\d+$/.test(value)
-
-const toBoliviaPhone = (value: string) => `+591${value}`
 
 const errorMessage = (error: unknown) => {
   if (!axios.isAxiosError(error)) return "No se pudieron enviar tus datos. Intenta de nuevo."
@@ -79,12 +74,8 @@ export const Page = () => {
     initialValues: emptyCompleteForm(fromRestaurant),
     onSubmit: async (formValues) => {
       if (!publicToken) return
-      if (!formValues.name.trim()) {
+      if (!formValues.name.trim() || !formValues.phone.trim()) {
         setError("Completa tu nombre y teléfono.")
-        return
-      }
-      if (!isBoliviaPhone(formValues.phone)) {
-        setError("El teléfono debe tener 8 dígitos.")
         return
       }
       if (formValues.latitude == null || formValues.longitude == null) {
@@ -96,7 +87,7 @@ export const Page = () => {
       try {
         const quoted = await apiClient.publicOrders.complete(publicToken, {
           customer_name: formValues.name.trim(),
-          customer_phone: toBoliviaPhone(formValues.phone),
+          customer_phone: formValues.phone.trim(),
           notes: formValues.notes.trim(),
           latitude: formValues.latitude,
           longitude: formValues.longitude,
@@ -331,7 +322,6 @@ export const Page = () => {
           isSubmitting={isSubmitting}
           error={error}
           onChange={handleChange}
-          onPhoneChange={(phone) => mutate({ phone })}
           onLocationChange={(latitude, longitude) => mutate({ latitude, longitude })}
           onSubmit={handleSubmit}
           fromRestaurant={fromRestaurant}

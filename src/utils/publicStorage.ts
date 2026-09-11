@@ -32,18 +32,12 @@ const writeJson = (key: string, value: unknown) => {
 const isFiniteCoord = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value)
 
-export const toLocalPhone = (value: string) => {
-  const digits = value.replace(/\D/g, "")
-  if (digits.startsWith("591") && digits.length >= 11) return digits.slice(-8)
-  return digits.slice(0, 8)
-}
-
 export const readPublicCustomer = (): TPublicCustomerDraft => {
   const stored = readJson<Partial<TPublicCustomerDraft>>(CUSTOMER_KEY)
   if (!stored) return emptyCustomer()
   return {
     name: typeof stored.name === "string" ? stored.name : "",
-    phone: typeof stored.phone === "string" ? toLocalPhone(stored.phone) : "",
+    phone: typeof stored.phone === "string" ? stored.phone : "",
     notes: typeof stored.notes === "string" ? stored.notes : "",
     latitude: isFiniteCoord(stored.latitude) ? stored.latitude : null,
     longitude: isFiniteCoord(stored.longitude) ? stored.longitude : null,
@@ -53,7 +47,7 @@ export const readPublicCustomer = (): TPublicCustomerDraft => {
 export const writePublicCustomer = (draft: TPublicCustomerDraft) => {
   const next: TPublicCustomerDraft = {
     name: draft.name.trim(),
-    phone: toLocalPhone(draft.phone),
+    phone: draft.phone.trim(),
     notes: draft.notes.trim(),
     latitude: isFiniteCoord(draft.latitude) ? draft.latitude : null,
     longitude: isFiniteCoord(draft.longitude) ? draft.longitude : null,
@@ -118,7 +112,7 @@ export const rememberPublicOrder = (
   const current = readPublicCustomer()
   writePublicCustomer({
     name: order.customer_name?.trim() || current.name,
-    phone: order.customer_phone ? toLocalPhone(order.customer_phone) : current.phone,
+    phone: order.customer_phone?.trim() || current.phone,
     notes: order.notes?.trim() || current.notes,
     latitude: current.latitude,
     longitude: current.longitude,
