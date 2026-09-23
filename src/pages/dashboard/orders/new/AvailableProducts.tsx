@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { Card } from "../../../../components/atoms/Card"
+import { ProductThumb } from "../../../../components/molecules/ProductThumb"
 import { useTheme } from "../../../../context/ThemeContext"
 import type { TMenu } from "../../../../types/Menu"
 import type { TProduct } from "../../../../types/Product"
@@ -375,6 +376,7 @@ const ProductTile = ({
           addedCount > 0 && "border-[var(--cat-solid)]",
         )}
       >
+        <ProductThumb imageUrl={product.image_url} />
         <div className="min-w-0 flex-1">
           <p className="line-clamp-2 text-sm font-semibold leading-snug text-ink">{product.name}</p>
           {description ? (

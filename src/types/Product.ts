@@ -29,6 +29,7 @@ export type TProduct = {
   active: boolean
   combo: boolean
   position: number
+  image_url: string | null
   created_at: string
   updated_at: string
   product_option_groups: TProductOptionGroup[]
@@ -56,6 +57,8 @@ export type TProductOptionGroupWrite = {
   product_options_attributes?: TProductOptionWrite[]
 }
 
-export type TProductForm = Partial<Omit<TProduct, "product_option_groups">> & {
+export type TProductForm = Partial<Omit<TProduct, "product_option_groups" | "image_url">> & {
   product_option_groups_attributes?: TProductOptionGroupWrite[]
+  /** Local file to upload, or null to remove the current photo. Omit to leave it. */
+  image?: File | null
 }

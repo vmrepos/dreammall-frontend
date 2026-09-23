@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { Badge } from "../../../../components/atoms/Badge"
+import { ProductThumb } from "../../../../components/molecules/ProductThumb"
 import { Button } from "../../../../components/atoms/Button"
 import { Card } from "../../../../components/atoms/Card"
 import { Toggle } from "../../../../components/atoms/Toggle"
@@ -208,16 +209,19 @@ export const ProductTable = ({ menuId, products, onProductsChange }: Props) => {
 }
 
 const ProductCopy = ({ product }: { product: TProduct }) => (
-  <div className="min-w-0">
-    <p className="font-medium text-ink">{product.name}</p>
-    {product.description ? (
-      <p className="mt-1 text-xs text-ink-muted">{product.description}</p>
-    ) : null}
-    {(product.product_option_groups?.length ?? 0) > 0 ? (
-      <Badge variant="brand" className="mt-2">
-        Personalizable
-      </Badge>
-    ) : null}
+  <div className="flex min-w-0 items-center gap-3">
+    <ProductThumb imageUrl={product.image_url} className="size-12" />
+    <div className="min-w-0">
+      <p className="font-medium text-ink">{product.name}</p>
+      {product.description ? (
+        <p className="mt-1 text-xs text-ink-muted">{product.description}</p>
+      ) : null}
+      {(product.product_option_groups?.length ?? 0) > 0 ? (
+        <Badge variant="brand" className="mt-2">
+          Personalizable
+        </Badge>
+      ) : null}
+    </div>
   </div>
 )
 

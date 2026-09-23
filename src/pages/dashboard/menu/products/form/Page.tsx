@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
+import { faImage } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "../../../../../components/atoms/Button"
 import { Card } from "../../../../../components/atoms/Card"
 import { GoBack } from "../../../../../components/atoms/GoBack"
@@ -10,6 +11,8 @@ import { useForm } from "../../../../../hooks/useForm"
 import { apiClient } from "../../../../../services/apiClient"
 import type { TMenu } from "../../../../../types/Menu"
 import type { TProduct, TProductForm } from "../../../../../types/Product"
+import { revokePreviewIfBlob } from "../../../../../utils/utils"
+import { ImageUploadField } from "../../../profile/ImageUploadField"
 import { OptionGroupsEditor } from "../shared/OptionGroupsEditor"
 import {
   groupsFromProduct,
@@ -135,6 +138,10 @@ const ProductEditor = ({
   const navigate = useNavigate()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [removeImage, setRemoveImage] = useState(false)
+  const [imageError, setImageError] = useState("")
 
   const { values, handleChange, handleSubmit, mutate } = useForm<ProductEditorValues>({
     initialValues: {
@@ -157,6 +164,8 @@ const ProductEditor = ({
         combo: formValues.combo,
         product_option_groups_attributes: toGroupsAttributes(formValues.product_option_groups),
       }
+      if (imageFile) input.image = imageFile
+      else if (removeImage) input.image = null
 
       try {
         if (isEditing && parsedProductId !== null) {
@@ -221,6 +230,37 @@ const ProductEditor = ({
               placeholder="Opcional"
             />
           </div>
+
+          <ImageUploadField
+            id="product-image"
+            label="Foto (opcional)"
+            hint="Se muestra en el menú público. Sin foto, se ve un ícono."
+            emptyCta="Subir foto"
+            currentLabel="Foto actual"
+            removeLabel="Quitar foto"
+            previewAlt="Foto del producto"
+            icon={faImage}
+            imageClassName="size-20 rounded-xl border border-gray-200 object-cover bg-brand-light"
+            existingUrl={product?.image_url}
+            file={imageFile}
+            preview={imagePreview}
+            pendingRemoval={removeImage}
+            error={imageError}
+            onFileChange={(file, preview) => {
+              revokePreviewIfBlob(imagePreview)
+              setImageFile(file)
+              setImagePreview(preview)
+              setRemoveImage(false)
+            }}
+            onRemove={() => {
+              revokePreviewIfBlob(imagePreview)
+              setImageFile(null)
+              setImagePreview(null)
+              setRemoveImage(Boolean(product?.image_url) && !imageFile)
+              setImageError("")
+            }}
+            onError={setImageError}
+          />
 
           <div>
             <Label htmlFor="product-price">Precio</Label>

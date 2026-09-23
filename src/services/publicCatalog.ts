@@ -40,6 +40,7 @@ const toProduct = (raw: TCatalogProductWire): TProduct => ({
   active: raw.active !== false,
   combo: Boolean(raw.combo),
   position: raw.position ?? 0,
+  image_url: raw.image_url ?? null,
   created_at: raw.created_at ?? "",
   updated_at: raw.updated_at ?? "",
   product_option_groups: (raw.product_option_groups ?? []).map(toOptionGroup),
