@@ -136,7 +136,7 @@ export const Page = () => {
   }, {})
 
   return (
-    <div className={cn("mx-auto max-w-[110rem]", compact && "-mx-4 -mt-4 px-2 pt-2")}>
+    <div className={cn("mx-auto max-w-[110rem]", compact && "flex h-full min-h-0 flex-col -mx-4 -mt-4 px-2 pt-2")}>
       {compact ? null : (
         <Link
           to="/r/orders"
@@ -199,6 +199,7 @@ export const Page = () => {
       </div>
 
       <form
+        className={cn(compact && "flex min-h-0 flex-1 flex-col")}
         onSubmit={(event) => {
           if (step !== 2) {
             event.preventDefault()
@@ -213,7 +214,7 @@ export const Page = () => {
             className={cn(
               "grid grid-cols-1 items-stretch gap-4",
               compact
-                ? "h-[calc(100svh-3rem-var(--orders-rail-h,0px)-var(--bottom-tabs-h,0px))] grid-cols-[minmax(0,1fr)_minmax(15.5rem,0.62fr)] gap-2"
+                ? "min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(15.5rem,0.62fr)] gap-2"
                 : "md:h-[min(48rem,calc(100svh-13rem-var(--orders-rail-h,0px)-var(--bottom-tabs-h,0px)))] md:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.9fr)]",
             )}
           >

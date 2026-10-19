@@ -8,11 +8,13 @@ export const OrdersLayout = () => {
 
   return (
     <div
-      className="pb-[var(--orders-rail-h)] phone-portrait:pb-0 phone-portrait:[--orders-rail-h:0px]"
+      className="pb-[var(--orders-rail-h)] phone:flex phone:h-full phone:min-h-0 phone:flex-col phone-portrait:pb-0"
       style={{ "--orders-rail-h": "5.75rem" } as CSSProperties}
     >
       <OrdersQueueRail creating={creating} />
-      <Outlet />
+      <div className="phone:min-h-0 phone:flex-1">
+        <Outlet />
+      </div>
     </div>
   )
 }

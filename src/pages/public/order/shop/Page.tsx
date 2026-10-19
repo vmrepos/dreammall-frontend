@@ -406,7 +406,7 @@ export const Page = () => {
 }
 
 const Shell = ({ children }: { children: ReactNode }) => (
-  <div className="min-h-svh bg-surface px-4 py-8">
+  <div className="min-h-svh bg-surface px-4 pt-8 pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+5.5rem))]">
     <div className="mx-auto w-full max-w-lg">
       <BrandLogo className="mb-6 h-12" />
       {children}

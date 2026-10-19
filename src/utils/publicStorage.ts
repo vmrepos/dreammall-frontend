@@ -93,15 +93,19 @@ export const clearPublicLastOrder = () => {
 }
 
 export const rememberPublicOrder = (
-  order: Pick<TPublicOrder, "public_token" | "id" | "restaurant_name" | "customer_name" | "customer_phone" | "notes">,
+  order: Pick<TPublicOrder, "public_token" | "id" | "status" | "restaurant_name" | "customer_name" | "customer_phone" | "notes">,
   extras?: { orderingToken?: string; customer?: TPublicCustomerDraft },
 ) => {
-  writePublicLastOrder({
-    publicToken: order.public_token,
-    restaurantName: order.restaurant_name ?? undefined,
-    orderId: order.id,
-    orderingToken: extras?.orderingToken,
-  })
+  if (order.status === "completed") {
+    if (readPublicLastOrder()?.publicToken === order.public_token) clearPublicLastOrder()
+  } else {
+    writePublicLastOrder({
+      publicToken: order.public_token,
+      restaurantName: order.restaurant_name ?? undefined,
+      orderId: order.id,
+      orderingToken: extras?.orderingToken,
+    })
+  }
 
   const customer = extras?.customer
   if (customer) {

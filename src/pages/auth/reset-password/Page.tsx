@@ -1,16 +1,29 @@
 import { faLock, faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { BrandLogo } from "../../../components/atoms/BrandLogo"
 import { PasswordField } from "../../../components/molecules/FormField"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { authService } from "../../../services/authService"
 import axios from "axios"
 
+const readResetToken = () => {
+  const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash
+  const fromHash = new URLSearchParams(hash).get("token")?.trim() ?? ""
+  if (fromHash) return fromHash
+  return new URLSearchParams(window.location.search).get("token")?.trim() ?? ""
+}
+
 export const Page = () => {
-  const [searchParams] = useSearchParams()
-  const token = searchParams.get("token") ?? ""
+  const [token] = useState(readResetToken)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const hadToken = url.searchParams.has("token") || url.hash.includes("token=")
+    if (!hadToken) return
+    navigate({ pathname: "/r/reset-password", search: "", hash: "" }, { replace: true })
+  }, [navigate])
 
   const [password, setPassword] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")

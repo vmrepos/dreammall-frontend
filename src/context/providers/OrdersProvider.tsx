@@ -39,7 +39,7 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
     setOrders((current) => {
       const index = current.findIndex((item) => item.id === order.id)
       const previous = index === -1 ? undefined : current[index]
-      if (order.status === "preparing" && previous?.status === "pending") {
+      if (order.status === "preparing" && previous?.status !== "preparing") {
         queueMicrotask(() => printKitchenTicket(order))
       }
       if (index === -1) return [...current, order]
@@ -51,7 +51,6 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     return subscribe((data) => {
-      console.log("New Message Received", data)
       if (String(data.type).startsWith("shipment_")) return
       const type = data.type === "order_absent_customer" ? "order_driving_back" : data.type
       const o = toOrder(data.message as Parameters<typeof toOrder>[0])
@@ -60,7 +59,6 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
           toast.success(`Pedido #${o.id}: nuevo pedido del menú`)
           showBackgroundOrderNotice("Nuevo pedido", `Pedido #${o.id} del menú`, `/r/orders/${o.id}`)
           markAttention(o.id)
-          if (o.status === "preparing") printKitchenTicket(o)
           break
         case "order_picked_up":
           toast.warning(`La orden numero ${o.id} ha sido tomada por el repartidor`)
@@ -102,11 +100,8 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
           break;
       }
       upsertOrder(o)
-      return () => {
-        console.log("unsubscribed")
-      }
     })
-  }, [subscribe, upsertOrder, markAttention, printKitchenTicket])
+  }, [subscribe, upsertOrder, markAttention])
 
 
 

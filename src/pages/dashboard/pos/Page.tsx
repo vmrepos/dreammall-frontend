@@ -364,10 +364,9 @@ export const Page = () => {
   return (
     <div
       className={cn(
-        "-m-6 flex flex-col overflow-hidden bg-surface",
-        "h-[calc(100svh-var(--orders-rail-h,0px))]",
-        "phone:-mx-4 phone:-mt-4 phone:mb-[calc(-1rem-var(--bottom-tabs-h))] phone:h-[calc(100svh-var(--bottom-tabs-h)-var(--orders-rail-h,0px))]",
-        "phone-portrait:h-[calc(100svh-var(--bottom-tabs-h))] phone-portrait:[--orders-rail-h:0px]",
+        "-m-6 flex h-[calc(100svh-var(--orders-rail-h,0px))] flex-col overflow-hidden bg-surface",
+        "phone:-mx-4 phone:-mt-4 phone:h-[calc(100%+1rem-var(--orders-rail-h,0px))]",
+        "phone-portrait:h-[calc(100%+1rem)]",
       )}
       style={{ "--orders-rail-h": "5.75rem" } as CSSProperties}
     >

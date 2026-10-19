@@ -40,7 +40,7 @@ export const CatalogStep = ({
       emptyMessage="No hay productos disponibles."
     />
 
-    <div className="sticky bottom-3 z-10 flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-surface-elevated px-4 py-3 shadow-[0_8px_24px_rgba(12,107,61,0.12)]">
+    <div className="sticky bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] z-10 flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-surface-elevated px-4 py-3 shadow-[0_8px_24px_rgba(12,107,61,0.12)]">
       <p className="min-w-0 text-sm text-ink-muted">
         <span className="font-semibold tabular-nums text-ink">{formatCurrency(subtotal)}</span>
         <span className="ml-1 text-xs">

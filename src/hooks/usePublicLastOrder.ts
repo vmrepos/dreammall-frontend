@@ -9,20 +9,25 @@ import {
 } from "../utils/publicStorage"
 
 export const usePublicLastOrder = () => {
-  const [stored, setStored] = useState<TPublicLastOrder | null>(() => readPublicLastOrder())
+  const [stored, setStored] = useState<TPublicLastOrder | null>(null)
   const [order, setOrder] = useState<TPublicOrder | null>(null)
-  const publicToken = stored?.publicToken
-  const orderingToken = stored?.orderingToken
 
   useEffect(() => {
-    if (!publicToken) return
+    const initial = readPublicLastOrder()
+    if (!initial?.publicToken) return
     let cancelled = false
 
     void apiClient.publicOrders
-      .show(publicToken)
+      .show(initial.publicToken)
       .then((next) => {
         if (cancelled) return
-        rememberPublicOrder(next, { orderingToken })
+        if (next.status === "completed") {
+          clearPublicLastOrder()
+          setStored(null)
+          setOrder(null)
+          return
+        }
+        rememberPublicOrder(next, { orderingToken: initial.orderingToken })
         setStored(readPublicLastOrder())
         setOrder(next)
       })
@@ -32,13 +37,15 @@ export const usePublicLastOrder = () => {
           clearPublicLastOrder()
           setStored(null)
           setOrder(null)
+          return
         }
+        setStored(initial)
       })
 
     return () => {
       cancelled = true
     }
-  }, [publicToken, orderingToken])
+  }, [])
 
   return { stored, order }
 }

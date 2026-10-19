@@ -45,7 +45,7 @@ export const PreviewStep = ({
       ) : null}
     </div>
 
-    <div className="sticky bottom-3 z-10 flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-surface-elevated px-4 py-3 shadow-[0_8px_24px_rgba(12,107,61,0.12)]">
+    <div className="sticky bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] z-10 flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-surface-elevated px-4 py-3 shadow-[0_8px_24px_rgba(12,107,61,0.12)]">
       <Button type="button" variant="ghost" className="shrink-0 px-3" onClick={onBack}>
         ← Menú
       </Button>

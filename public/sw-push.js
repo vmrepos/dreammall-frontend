@@ -6,9 +6,22 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close()
-  const url = event.notification.data?.url || "/r/orders"
+  const url = panelPath(event.notification.data?.url)
   event.waitUntil(openOrFocus(url))
 })
+
+function panelPath(url) {
+  if (typeof url !== "string" || url === "") return "/r/orders"
+  try {
+    const parsed = new URL(url, self.location.origin)
+    if (parsed.origin !== self.location.origin) return "/r/orders"
+    const path = `${parsed.pathname}${parsed.search}${parsed.hash}`
+    if (path !== "/r" && !path.startsWith("/r/")) return "/r/orders"
+    return path
+  } catch {
+    return "/r/orders"
+  }
+}
 
 async function handlePush(event) {
   let payload = {}
@@ -30,7 +43,7 @@ async function handlePush(event) {
     silent: false,
     vibrate: [200, 100, 200],
     data: {
-      url: payload.url || "/r/orders",
+      url: panelPath(payload.url),
       type,
       order_id: orderId,
     },

@@ -38,7 +38,7 @@ export const Dashboard = () => {
 
   return (
     <div
-      className="flex min-h-svh bg-surface [--bottom-tabs-h:0px] phone:[--bottom-tabs-h:calc(4rem+env(safe-area-inset-bottom,0px))]"
+      className="flex min-h-svh bg-surface [--bottom-tabs-h:0px] phone:h-dvh phone:overflow-hidden phone:[--bottom-tabs-h:calc(4rem+env(safe-area-inset-bottom,0px))]"
       style={
         {
           "--sidebar-w": collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED,
@@ -46,14 +46,14 @@ export const Dashboard = () => {
       }
     >
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((current) => !current)} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {impersonating && restaurant && (
           <ImpersonationBanner
             restaurantName={restaurant.name}
             onStop={() => void handleStopImpersonating()}
           />
         )}
-        <main className="min-w-0 flex-1 bg-surface p-6 phone:px-4 phone:pt-4 phone:pb-[calc(1rem+var(--bottom-tabs-h))]">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface p-6 phone:px-4 phone:pt-4 phone:pb-[calc(1rem+var(--bottom-tabs-h))]">
           {restaurant ? (
             <DeliveriesProvider key={restaurant.id}>
               <MenuProvider>
